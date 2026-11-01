@@ -3,7 +3,7 @@
 基于 [pingdotgg/t3code](https://github.com/pingdotgg/t3code) 的简体中文社区分叉，保留官方功能，并维护中文界面、macOS 原生菜单和相关修复。本项目由社区维护，不是 T3 Tools 官方发行版。
 
 - **代码与反馈**：[ycj715925/t3code-cn](https://github.com/ycj715925/t3code-cn)
-- **安装包**：[GitHub Releases](https://github.com/ycj715925/t3code-cn/releases)
+- **安装包发布入口**：[GitHub Releases](https://github.com/ycj715925/t3code-cn/releases)，当前 DMG 上传尚未完成
 - **当前基础**：官方 `v0.1.6`，提交 `2359643cffa6ba9ee84d6f2694b935de54a8013e`
 - **当前中文构建**：`0.1.6-zh-test.7`，macOS Apple Silicon，测试发布
 - **汉化参考**：[ZhiweiXiao98/t3code](https://github.com/ZhiweiXiao98/t3code)，来源与许可证见 [NOTICE.zh-CN.md](./NOTICE.zh-CN.md)
@@ -18,7 +18,7 @@
 
 ## 安装与数据
 
-从 [Releases](https://github.com/ycj715925/t3code-cn/releases) 下载 DMG。当前构建使用本机 ad-hoc 签名，没有 Apple Developer ID 签名或 Apple 公证。
+当前社区源码已公开，测试版 DMG 的远端上传因连接中断尚未完成，可按下文从源码构建。完成上传后，安装包会列在 [Releases](https://github.com/ycj715925/t3code-cn/releases)。当前本地构建使用本机 ad-hoc 签名，没有 Apple Developer ID 签名或 Apple 公证。
 
 应用名称暂为 `T3 Code CN Test (Beta)`，与官方版分开保存数据：
 

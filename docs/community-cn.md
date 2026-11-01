@@ -42,7 +42,7 @@ sh scripts/build-cn.sh 0.1.6-zh-test.8
 
 首次公开前运行了 `vp run check:changed HEAD --concurrency 2`：格式、lint 和 452 个客户端文件的 React Compiler 检查通过。检查发现的语言上下文与独立应用标识测试夹具已对齐，相关复核为 71 项通过、1 项失败；剩余失败是 `GuestPage.browser.test.tsx` 的自动滚动用例，尚未解决。Web 与桌面的独立类型检查通过。
 
-综合检查仍未全部通过：移动端和官网依赖不完整，导致完整依赖分析与跨全部包的类型检查无法完成。不要将这些范围报告为通过，也不要据此宣称 Windows、Linux、移动端或访客滚动已经验收。本版本以 prerelease 发布。
+综合检查仍未全部通过：移动端和官网依赖不完整，导致完整依赖分析与跨全部包的类型检查无法完成。不要将这些范围报告为通过，也不要据此宣称 Windows、Linux、移动端或访客滚动已经验收。本版本定位为 prerelease；源码已公开，DMG 上传因连接中断未完成，Release 暂时保留草稿。
 
 ## 后续维护
 
