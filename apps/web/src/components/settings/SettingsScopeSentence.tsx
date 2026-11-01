@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { translateWebSource } from "../../i18n/messages";
+import { useI18n } from "../../i18n/WebI18nContext";
 import { resolveEnvironmentMachineKind } from "@t3tools/contracts";
 import { useLocation } from "@tanstack/react-router";
 import { CheckIcon, ChevronDownIcon, LayersIcon } from "lucide-react";
@@ -63,6 +67,7 @@ interface SettingsScopeMenuProps {
 }
 
 export function SettingsScopeSentence() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const scope = useOptionalSettingsScope();
   const pathname = useLocation({ select: (location) => location.pathname });
   const { environments } = useEnvironments();
@@ -77,12 +82,16 @@ export function SettingsScopeSentence() {
   return (
     <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 px-3 text-sm text-muted-foreground sm:px-4">
       <span className="flex min-w-0 items-center gap-1.5">
-        <span className="shrink-0">Applying settings for</span>
+        <span className="shrink-0">
+          {translateStaticUiCopy(staticUiLocale, "Applying settings for")}
+        </span>
         <ProjectScopeMenu {...props} />
       </span>
       <span className="flex min-w-0 items-center gap-1.5">
         <span className="shrink-0">
-          {scope.search.machine || scope.scope.kind === "checkout" ? "on" : "across"}
+          {scope.search.machine || scope.scope.kind === "checkout"
+            ? translateStaticUiCopy(staticUiLocale, "on")
+            : translateStaticUiCopy(staticUiLocale, "across")}
         </span>
         <EnvironmentScopeMenu {...props} />
       </span>
@@ -99,6 +108,7 @@ interface ScopeOption {
 }
 
 function ScopeOptionLabel({ option }: { option: ScopeOption }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <>
       {option.icon}
@@ -109,7 +119,9 @@ function ScopeOptionLabel({ option }: { option: ScopeOption }) {
         ) : null}
       </span>
       {option.offline ? (
-        <span className="shrink-0 text-xs text-muted-foreground">Offline</span>
+        <span className="shrink-0 text-xs text-muted-foreground">
+          {translateStaticUiCopy(staticUiLocale, "Offline")}
+        </span>
       ) : null}
     </>
   );
@@ -134,6 +146,7 @@ function ScopeMenu({
   searchLabel: string;
   onChange: (next: string) => void;
 }) {
+  const { locale: sourceLocale } = useI18n();
   const [query, setQuery] = useState("");
   const Trigger = options.length > 6 ? ComboboxTrigger : MenuTrigger;
   const trigger = (
@@ -181,7 +194,7 @@ function ScopeMenu({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
-          <ComboboxEmpty>No matches found.</ComboboxEmpty>
+          <ComboboxEmpty>{translateWebSource(sourceLocale, "No matches found.")}</ComboboxEmpty>
           <ComboboxList>
             {(option: ScopeOption) => (
               <ComboboxItem key={option.value} value={option}>
@@ -232,6 +245,7 @@ function EnvironmentScopeMenu({
   onChange,
   singleEnvironment,
 }: SettingsScopeMenuProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const resolved = resolveSettingsScope(value, groups, environments);
   const environmentValue = environmentAxisValue(
     value,
@@ -263,10 +277,10 @@ function EnvironmentScopeMenu({
         selected
           ? settingsScopeEnvironmentLabel(selected, environments)
           : environmentValue !== ALL_ENVIRONMENTS_VALUE
-            ? "Unavailable environment"
+            ? translateStaticUiCopy(staticUiLocale, "Unavailable environment")
             : singleEnvironment
-              ? "No environments"
-              : "All environments"
+              ? translateStaticUiCopy(staticUiLocale, "No environments")
+              : translateStaticUiCopy(staticUiLocale, "All environments")
       }
       value={environmentValue}
       onChange={(next) => onChange(selectEnvironmentAxis(value, next))}
@@ -276,7 +290,7 @@ function EnvironmentScopeMenu({
           ? null
           : {
               value: ALL_ENVIRONMENTS_VALUE,
-              label: "All environments",
+              label: translateStaticUiCopy(staticUiLocale, "All environments"),
               icon: <LayersIcon aria-hidden className="size-3.5 shrink-0" />,
             }
       }
@@ -304,6 +318,7 @@ function EnvironmentScopeMenu({
 }
 
 function ProjectScopeMenu({ value, groups, environments, onChange }: SettingsScopeMenuProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const selected = groups.find((group) => group.projectKey === value.project);
   const projects = projectScopeMenuGroups(groups, value).map((group) => ({
     group,
@@ -317,7 +332,10 @@ function ProjectScopeMenu({ value, groups, environments, onChange }: SettingsSco
       value={projectAxisValue(value)}
       onChange={(next) => onChange(selectProjectAxis(value, next))}
       searchLabel="Search projects"
-      allOption={{ value: ALL_PROJECTS_VALUE, label: "All projects" }}
+      allOption={{
+        value: ALL_PROJECTS_VALUE,
+        label: translateStaticUiCopy(staticUiLocale, "All projects"),
+      }}
       options={projects.map(({ group, machines }) => {
         const sameName = projects.filter(
           (other) =>

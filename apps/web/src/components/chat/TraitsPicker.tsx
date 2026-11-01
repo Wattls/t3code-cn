@@ -1,3 +1,4 @@
+import { translateWebSource } from "~/i18n/messages";
 import {
   buildTraitsTriggerDisplay,
   getDescriptorStringValue,
@@ -23,6 +24,7 @@ import {
   normalizeModelSlug,
 } from "@t3tools/shared/model";
 import { memo } from "react";
+import { useI18n } from "~/i18n/WebI18nContext";
 import { GaugeIcon } from "lucide-react";
 import {
   Menu,
@@ -101,9 +103,10 @@ type TraitsPersistence =
     };
 
 function DefaultBadge() {
+  const { t: translateRelease } = useI18n();
   return (
     <Badge variant="outline" size="sm" className="min-w-0">
-      Default
+      {translateRelease("connections.endpoint.default")}
     </Badge>
   );
 }
@@ -375,6 +378,7 @@ export const ULTRATHINK_IN_BODY_NOTE =
   'Your prompt contains "ultrathink" in the text. Remove it to change this option.';
 
 const TraitsMenuContent = memo(function TraitsMenuContentImpl(props: TraitsSelectionInput) {
+  const { locale: releaseLocale } = useI18n();
   const traits = useTraitsSelection(props);
   const {
     descriptors,
@@ -423,7 +427,7 @@ const TraitsMenuContent = memo(function TraitsMenuContentImpl(props: TraitsSelec
             </div>
             {ultrathinkInBodyText && descriptor.id === primarySelectDescriptor?.id ? (
               <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">
-                {ULTRATHINK_IN_BODY_NOTE}
+                {translateWebSource(releaseLocale, ULTRATHINK_IN_BODY_NOTE)}
               </div>
             ) : null}
             <MenuRadioGroup
@@ -469,7 +473,7 @@ const TraitsMenuContent = memo(function TraitsMenuContentImpl(props: TraitsSelec
               {(["on", "off"] as const).map((value) => (
                 <MenuRadioItem key={value} value={value} hideIndicator closeOnClick>
                   <span className="flex w-full min-w-0 items-center justify-between gap-3">
-                    <span>{value === "on" ? "On" : "Off"}</span>
+                    <span>{translateWebSource(releaseLocale, value === "on" ? "On" : "Off")}</span>
                   </span>
                 </MenuRadioItem>
               ))}
@@ -491,12 +495,13 @@ export const TraitsPicker = memo(function TraitsPicker({
   hidden?: boolean;
   disabled?: boolean;
 }) {
+  const { t } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useComposerMenuState(hidden || disabled);
   const traits = useTraitsSelection(props);
   if (!traits.hasAnyControls) {
     return null;
   }
-  const { label: triggerLabel } = buildTraitsTriggerDisplay({
+  const { label: rawTriggerLabel } = buildTraitsTriggerDisplay({
     provider: props.provider,
     descriptors: traits.descriptors,
     primarySelectDescriptorId: traits.primarySelectDescriptor?.id ?? null,
@@ -507,6 +512,10 @@ export const TraitsPicker = memo(function TraitsPicker({
         : null,
     reportedModelSelection: props.reportedModelSelection,
   });
+  const triggerLabel =
+    props.provider === "codex" && rawTriggerLabel === "Ultrafast"
+      ? t("composer.traits.ultrafast")
+      : rawTriggerLabel;
   const isCodexStyle = props.provider === "codex";
 
   return (

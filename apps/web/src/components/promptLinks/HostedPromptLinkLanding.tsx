@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   type LinkedPrompt,
   parseNewThreadLink,
@@ -98,6 +100,7 @@ function HostedPromptLinkLanding({
   readonly openInAppRemembered: boolean;
   readonly onChoose: (choice: "app" | "browser", remember: boolean) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const summary = summarize(appPath);
   const [remember, setRemember] = useState(false);
   const deepLink = promptLinkDeepLink(appPath);
@@ -114,7 +117,10 @@ function HostedPromptLinkLanding({
   if (!summary.ok) {
     return (
       <StandalonePage>
-        <StandalonePageHeader title="Could not open the link" description={summary.error} />
+        <StandalonePageHeader
+          title={translateStaticUiCopy(staticUiLocale, "Could not open the link")}
+          description={summary.error}
+        />
       </StandalonePage>
     );
   }
@@ -123,15 +129,26 @@ function HostedPromptLinkLanding({
   return (
     <StandalonePage>
       <StandalonePageHeader
-        title="Open this prompt"
-        description="It opens as a draft. Nothing runs until you press Send."
+        title={translateStaticUiCopy(staticUiLocale, "Open this prompt")}
+        description={translateStaticUiCopy(
+          staticUiLocale,
+          "It opens as a draft. Nothing runs until you press Send.",
+        )}
       />
       {prompt !== null && prompt.hiddenCharacters > 0 ? (
         <Alert className="mt-5" variant="error">
-          <AlertTitle>This prompt had hidden characters, it may be malicious</AlertTitle>
+          <AlertTitle>
+            {translateStaticUiCopy(
+              staticUiLocale,
+              "This prompt had hidden characters, it may be malicious",
+            )}
+          </AlertTitle>
           <AlertDescription>
-            T3 Code removed {prompt.hiddenCharacters} hidden character
-            {prompt.hiddenCharacters === 1 ? "" : "s"}. Read the prompt before you send it.
+            {translateStaticUiCopy(staticUiLocale, "T3 Code removed") + " "}
+            {prompt.hiddenCharacters}
+            {" " + translateStaticUiCopy(staticUiLocale, "hidden character")}
+            {prompt.hiddenCharacters === 1 ? "" : "s"}
+            {translateStaticUiCopy(staticUiLocale, ". Read the prompt before you send it.")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -143,20 +160,22 @@ function HostedPromptLinkLanding({
       <p className="mt-3 text-xs text-muted-foreground">{details.join(" · ")}</p>
       <div className="mt-6 flex flex-wrap gap-2">
         <Button render={<a href={deepLink} />} onClick={() => onChoose("app", remember)}>
-          {onPhone ? "Open in app" : "Open in desktop app"}
+          {onPhone
+            ? translateStaticUiCopy(staticUiLocale, "Open in app")
+            : translateStaticUiCopy(staticUiLocale, "Open in desktop app")}
         </Button>
         {canContinue ? (
           <Button variant="outline" onClick={() => onChoose("browser", remember)}>
-            Continue here
+            {translateStaticUiCopy(staticUiLocale, "Continue here")}
           </Button>
         ) : null}
         <Button variant="ghost" render={<a href={DESKTOP_DOWNLOAD_URL} />}>
-          Get T3 Code
+          {translateStaticUiCopy(staticUiLocale, "Get T3 Code")}
         </Button>
       </div>
       <label className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
         <Checkbox checked={remember} onCheckedChange={(checked) => setRemember(checked === true)} />
-        Remember my choice
+        {translateStaticUiCopy(staticUiLocale, "Remember my choice")}
       </label>
     </StandalonePage>
   );

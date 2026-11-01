@@ -1,6 +1,7 @@
 import type { DesktopBridge, DesktopUpdateState } from "@t3tools/contracts";
 import { ExternalLinkIcon } from "lucide-react";
 
+import { useI18n } from "../../i18n/WebI18nContext";
 import {
   getDesktopUpdateReleaseHistoryUrl,
   getDesktopUpdateReleaseUrl,
@@ -64,6 +65,7 @@ export function SidebarUpdateReleaseNotes({
   readonly state: DesktopUpdateState;
   readonly tooltip: string;
 }) {
+  const { t } = useI18n();
   if (state.releaseNotes.length === 0) {
     return <>{tooltip}</>;
   }
@@ -77,7 +79,7 @@ export function SidebarUpdateReleaseNotes({
         {state.status === "available" ? (
           <div>
             <div className="whitespace-nowrap text-sm leading-5 font-medium">
-              Update ready to download
+              {t("sidebar.update.readyToDownload")}
             </div>
             {state.availableVersion ? (
               <div className="mt-0.5 text-xs leading-4 text-muted-foreground">
@@ -98,8 +100,13 @@ export function SidebarUpdateReleaseNotes({
           const linkLabel =
             releaseNote.stats ??
             (omittedItemCount === 0
-              ? "View release on GitHub"
-              : `${omittedItemCount} more ${omittedItemCount === 1 ? "change" : "changes"} on GitHub`);
+              ? t("sidebar.update.viewRelease")
+              : t(
+                  omittedItemCount === 1
+                    ? "sidebar.update.moreChange"
+                    : "sidebar.update.moreChanges",
+                  { count: omittedItemCount },
+                ));
 
           if (releaseNote.intro !== undefined) {
             return (
@@ -116,7 +123,7 @@ export function SidebarUpdateReleaseNotes({
                 </p>
                 {releaseUrl ? (
                   <ReleaseLink releaseUrl={releaseUrl} shell={shell}>
-                    {releaseNote.stats ?? "View release on GitHub"}
+                    {releaseNote.stats ?? t("sidebar.update.viewRelease")}
                   </ReleaseLink>
                 ) : null}
               </section>
@@ -127,7 +134,9 @@ export function SidebarUpdateReleaseNotes({
             <div className={index > 0 ? "mt-4" : undefined} key={releaseNote.version}>
               <section>
                 <h3 className="text-foreground text-xs leading-4 font-semibold">
-                  {index === 0 ? "What's changed" : `Changes in ${releaseNote.version}`}
+                  {index === 0
+                    ? t("sidebar.update.whatsChanged")
+                    : t("sidebar.update.changesIn", { version: releaseNote.version })}
                 </h3>
                 <ul className="mt-2 space-y-1.5 pl-4 text-xs leading-5 text-popover-foreground/90">
                   {keyReleaseNoteItems(releaseNote.items).map(({ item, key }) => (
@@ -148,7 +157,9 @@ export function SidebarUpdateReleaseNotes({
         {state.omittedReleaseCount > 0 ? (
           <div className="mt-3">
             <ReleaseLink releaseUrl={getDesktopUpdateReleaseHistoryUrl()} shell={shell}>
-              {`${state.omittedReleaseCount} older ${state.omittedReleaseCount === 1 ? "release" : "releases"} on GitHub`}
+              {state.omittedReleaseCount === 1
+                ? t("sidebar.update.olderRelease", { count: state.omittedReleaseCount })
+                : t("sidebar.update.olderReleases", { count: state.omittedReleaseCount })}
             </ReleaseLink>
           </div>
         ) : null}

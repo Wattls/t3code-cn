@@ -1,5 +1,6 @@
 import { ProviderDriverKind, ProviderInstanceId, type ServerProvider } from "@t3tools/contracts";
 import { describe, expect, it } from "vite-plus/test";
+import { translateWebMessage } from "../../i18n/messages";
 
 import {
   getProviderSummary,
@@ -232,4 +233,57 @@ it("shows compatibility in the version popover even when the installed version i
     emphasis: "normal",
     targetVersion: null,
   });
+});
+
+it("localizes provider summaries and update instructions", () => {
+  const translate: Parameters<typeof getProviderSummary>[1] = (key, values) =>
+    translateWebMessage("zh-CN", key, values);
+  expect(getProviderSummary(provider, translate).headline).toBe("已认证 · ChatGPT");
+  const advisory = {
+    status: "behind_latest" as const,
+    currentVersion: "1.0.0",
+    latestVersion: "1.1.0",
+    updateCommand: "npm update -g @openai/codex",
+    canUpdate: true,
+    checkedAt: provider.checkedAt,
+    message: null,
+  };
+  expect(
+    getProviderVersionAdvisoryPresentation(advisory, undefined, true, translate),
+  ).toMatchObject({
+    title: "有可用更新",
+    detail: "有可用更新：请安装 v1.1.0。",
+    updateCommand: advisory.updateCommand,
+  });
+});
+
+describe("provider status copy", () => {
+  it("surfaces an ACP-advertised authentication method", () => {
+    const provider = {
+      enabled: true,
+      installed: true,
+      status: "error",
+      auth: { status: "unauthenticated", type: "agent", label: "Company login" },
+      message: "Complete this authentication method on the server.",
+    } as ServerProvider;
+
+    expect(getProviderSummary(provider)).toEqual({
+      headline: "Not authenticated · Company login",
+      detail: "Complete this authentication method on the server.",
+    });
+  });
+});
+
+it("localizes the neutral Antigravity sign-in status", () => {
+  const candidate: ServerProvider = {
+    ...provider,
+    driver: ProviderDriverKind.make("antigravity"),
+    status: "warning",
+    auth: { status: "unknown", type: "oauth-personal" },
+  };
+  expect(getProviderStatusKey(candidate)).toBe("neutral");
+  expect(
+    getProviderSummary(candidate, (key, values) => translateWebMessage("zh-CN", key, values))
+      .headline,
+  ).toBe("已安装 · 尚未检查登录状态");
 });

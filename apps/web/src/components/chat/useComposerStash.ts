@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import type { ChatComposerProps } from "./ChatComposer";
 import {
   type ComposerContextRecord,
@@ -98,6 +100,8 @@ export function useComposerStash(input: {
   ) => ReadonlyMap<string, string>;
   readonly expandMobileComposer: () => void;
 }) {
+  const { t, locale: releaseLocale } = useI18n();
+
   const {
     environmentId,
     composerDraftTarget,
@@ -160,8 +164,8 @@ export function useComposerStash(input: {
     if (filesToVerify.some((file) => file.environmentId !== environmentId)) {
       toastManager.add({
         type: "error",
-        title: "Stashed files belong to another environment",
-        description: "Restore this prompt in the environment that received its files.",
+        title: t("composer.stash.toast.otherEnvironmentTitle"),
+        description: t("composer.stash.toast.otherEnvironmentDescription"),
       });
       return;
     }
@@ -197,9 +201,8 @@ export function useComposerStash(input: {
     if (!durable) {
       toastManager.add({
         type: "warning",
-        title: "Restored prompt may reappear in the stash",
-        description:
-          "Browser storage rejected the update, so this entry could still be there after a reload.",
+        title: t("composer.stash.toast.restoreNotDurableTitle"),
+        description: t("composer.stash.toast.restoreNotDurableDescription"),
         data: { hideCopyButton: true },
       });
     }
@@ -405,7 +408,7 @@ export function useComposerStash(input: {
     if (missingImageReasons.length > 0) {
       toastManager.add({
         type: "warning",
-        title: "Some attachments were not restored",
+        title: t("composer.stash.toast.notRestoredTitle"),
         description: missingImageReasons.join(" "),
       });
     }
@@ -435,9 +438,8 @@ export function useComposerStash(input: {
     if (!durable) {
       toastManager.add({
         type: "warning",
-        title: "Stash entry may come back",
-        description:
-          "Browser storage rejected the delete, so this prompt could reappear after a reload.",
+        title: t("composer.stash.toast.deleteNotDurableTitle"),
+        description: t("composer.stash.toast.deleteNotDurableDescription"),
         data: { hideCopyButton: true },
       });
     }
@@ -450,8 +452,11 @@ export function useComposerStash(input: {
     if (pendingDraftWork.has(attachmentTargetKey)) {
       toastManager.add({
         type: "info",
-        title: "Still bringing attached context into this message.",
-        description: "Stash again once its chip resolves.",
+        title: translateWebSource(
+          releaseLocale,
+          "Still bringing attached context into this message.",
+        ),
+        description: translateWebSource(releaseLocale, "Stash again once its chip resolves."),
       });
       return;
     }
@@ -486,7 +491,7 @@ export function useComposerStash(input: {
       if (composerFileNeedsReattach(file)) {
         toastManager.add({
           type: "error",
-          title: "Attach dropped files again or remove them before stashing",
+          title: t("composer.stash.toast.reattachBeforeStash"),
         });
         return;
       }
@@ -494,7 +499,7 @@ export function useComposerStash(input: {
       if (upload?.status !== "ready" || upload.environmentId !== environmentId) {
         toastManager.add({
           type: "error",
-          title: "Wait for file uploads before stashing this prompt",
+          title: t("composer.stash.toast.waitForUploads"),
         });
         return;
       }
@@ -543,9 +548,8 @@ export function useComposerStash(input: {
       if (!written) {
         toastManager.add({
           type: "error",
-          title: "Could not stash this prompt",
-          description:
-            "Browser storage rejected the write, so the composer was left as-is. Free up site data and try again.",
+          title: t("composer.stash.toast.saveFailedTitle"),
+          description: t("composer.stash.toast.saveFailedDescription"),
           data: { hideCopyButton: true },
         });
         return;
@@ -553,9 +557,8 @@ export function useComposerStash(input: {
       if (!durable) {
         toastManager.add({
           type: "warning",
-          title: "Stashed prompt will not survive a reload",
-          description:
-            "Browser storage is unavailable, so this stash is kept in memory only for this session.",
+          title: t("composer.stash.toast.sessionOnlyTitle"),
+          description: t("composer.stash.toast.sessionOnlyDescription"),
           data: { hideCopyButton: true },
         });
       }
@@ -589,7 +592,7 @@ export function useComposerStash(input: {
         }
         toastManager.add({
           type: "warning",
-          title: "Oldest stashed prompt discarded",
+          title: t("composer.stash.toast.evictedTitle"),
           description: `The stash holds ${MAX_STASH_ENTRIES} prompts; the oldest was removed to make room.`,
           data: { hideCopyButton: true },
         });
@@ -631,16 +634,15 @@ export function useComposerStash(input: {
         if (!imagesDurable && durable && images.length > 0) {
           toastManager.add({
             type: "warning",
-            title: "Stashed images were not saved",
-            description:
-              "The prompt was stashed, but browser storage rejected its images. They will be missing if you reload.",
+            title: t("composer.stash.toast.imagesNotSavedTitle"),
+            description: t("composer.stash.toast.imagesNotSavedDescription"),
             data: { hideCopyButton: true },
           });
         }
       } else if (kept.length > 0) {
         toastManager.add({
           type: "warning",
-          title: "Stashed images did not attach",
+          title: t("composer.stash.toast.imagesDidNotAttachTitle"),
           description: `That prompt was restored or deleted before ${kept.length} image${kept.length === 1 ? "" : "s"} finished saving. Re-attach ${kept.length === 1 ? "it" : "them"} if you still need ${kept.length === 1 ? "it" : "them"}.`,
           data: { hideCopyButton: true },
         });

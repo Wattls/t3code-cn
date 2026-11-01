@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { translateWebSource } from "../../i18n/messages";
+import { useI18n } from "../../i18n/WebI18nContext";
 import { useAtomValue } from "@effect/atom-react";
 import type { EnvironmentId } from "@t3tools/contracts";
 import * as Schema from "effect/Schema";
@@ -16,6 +20,9 @@ export function DatabaseStorageNotice({
 }: {
   environments: ReadonlyArray<{ readonly environmentId: EnvironmentId; readonly label: string }>;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: sourceLocale } = useI18n();
+
   const recommendations = useAtomValue(
     serverEnvironment.databaseCompactionRecommendations(
       JSON.stringify(environments.map((environment) => environment.environmentId)),
@@ -32,10 +39,16 @@ export function DatabaseStorageNotice({
   );
   if (visible.length === 0) return null;
   return (
-    <SettingsSection id="storage-database" title="Database">
+    <SettingsSection
+      id="storage-database"
+      title={translateStaticUiCopy(staticUiLocale, "Database")}
+    >
       <SettingsRow
-        title="Reclaim freed database space"
-        description="Old history is cleaned up automatically, but these databases still hold the freed space. Run the command on each machine to return it to disk; it pauses and restarts the background service. Quit the desktop app first if it hosts the environment."
+        title={translateStaticUiCopy(staticUiLocale, "Reclaim freed database space")}
+        description={translateStaticUiCopy(
+          staticUiLocale,
+          "Old history is cleaned up automatically, but these databases still hold the freed space. Run the command on each machine to return it to disk; it pauses and restarts the background service. Quit the desktop app first if it hosts the environment.",
+        )}
       />
       {visible.map(({ environmentId, status }) => (
         <SettingsRow
@@ -52,14 +65,14 @@ export function DatabaseStorageNotice({
                 size="xs"
                 onClick={() => copyToClipboard(status.compactCommand, undefined)}
               >
-                Copy command
+                {translateWebSource(sourceLocale, "Copy command")}
               </Button>
               <Button
                 variant="ghost"
                 size="xs"
                 onClick={() => setDismissed((current) => [...current, environmentId])}
               >
-                Dismiss
+                {translateStaticUiCopy(staticUiLocale, "Dismiss")}
               </Button>
             </div>
           }

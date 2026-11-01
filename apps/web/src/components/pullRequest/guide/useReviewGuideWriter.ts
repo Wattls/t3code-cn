@@ -1,3 +1,5 @@
+import { translateWebSource } from "~/i18n/messages";
+import { useI18n } from "~/i18n/WebI18nContext";
 import type { EnvironmentId, PullRequestRef } from "@t3tools/contracts";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import { useAtomValue } from "@effect/atom-react";
@@ -20,6 +22,7 @@ export function useReviewGuideWriter({
   reference: PullRequestRef;
   title: string | null;
 }) {
+  const { locale: uiLocale } = useI18n();
   const query = useEnvironmentQuery(
     pullRequestEnvironment.reviewGuide({ environmentId, input: reference }),
   );
@@ -51,10 +54,13 @@ export function useReviewGuideWriter({
       useGuideRunStore.getState().settle(guideRunKey(environmentId, reference));
       toastManager.add({
         type: "error",
-        title: "Could not start a review guide",
+        title: translateWebSource(uiLocale, "Could not start a review guide"),
         description: readableFailure(
           squashAtomCommandFailure(result),
-          "Check the review guide model in Settings → Source control.",
+          translateWebSource(
+            uiLocale,
+            "Check the review guide model in Settings → Source Control.",
+          ),
         ),
       });
     }

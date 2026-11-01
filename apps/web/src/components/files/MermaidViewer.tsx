@@ -1,9 +1,12 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useState } from "react";
 
 import { MermaidDiagram } from "../chat/MermaidDiagram";
 import { ExpandedImageDialog } from "../chat/ExpandedImageDialog";
 
 export default function MermaidViewer(props: { readonly text: string }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [expanded, setExpanded] = useState<string | null>(null);
   // Mermaid lays out DOM before sanitizing its SVG. Refuse resource and config
   // syntax before that pass so standalone files cannot initiate requests. Node
@@ -15,8 +18,10 @@ export default function MermaidViewer(props: { readonly text: string }) {
   )
     return (
       <div role="alert" className="p-6 text-xs text-muted-foreground">
-        This diagram contains resource URLs, markup, node metadata, or custom configuration. Show
-        Mermaid source to inspect it safely.
+        {translateStaticUiCopy(
+          staticUiLocale,
+          "This diagram contains resource URLs, markup, node metadata, or custom configuration. Show Mermaid source to inspect it safely.",
+        )}
       </div>
     );
   return (

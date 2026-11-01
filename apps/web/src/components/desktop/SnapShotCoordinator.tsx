@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   type DesktopBridge,
   type DesktopPendingSnapShot,
@@ -222,6 +224,7 @@ export async function deliverSnapShot(
 }
 
 export function SnapShotCoordinator() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const {
     activeDraftThread,
     activeThread,
@@ -347,8 +350,14 @@ export function SnapShotCoordinator() {
               "missing-project",
               stackedThreadToast({
                 type: "error",
-                title: "Snapshot taken, but no project is available",
-                description: "Add a project, then capture the window again.",
+                title: translateStaticUiCopy(
+                  staticUiLocale,
+                  "Snapshot taken, but no project is available",
+                ),
+                description: translateStaticUiCopy(
+                  staticUiLocale,
+                  "Add a project, then capture the window again.",
+                ),
               }),
             );
             continue;
@@ -371,7 +380,7 @@ export function SnapShotCoordinator() {
               "delivery",
               stackedThreadToast({
                 type: "error",
-                title: "Snapshot failed",
+                title: translateStaticUiCopy(staticUiLocale, "Snapshot failed"),
                 description: `Capture ${item.id}: ${
                   error instanceof Error ? error.message : "Try the capture again."
                 }`,
@@ -387,7 +396,7 @@ export function SnapShotCoordinator() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Snapshot failed",
+            title: translateStaticUiCopy(staticUiLocale, "Snapshot failed"),
             description: error instanceof Error ? error.message : "Try the capture again.",
           }),
         );
@@ -455,7 +464,7 @@ export function SnapShotCoordinator() {
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Snapshot failed",
+                title: translateStaticUiCopy(staticUiLocale, "Snapshot failed"),
                 description: state.message ?? "Try the capture again.",
               }),
             );

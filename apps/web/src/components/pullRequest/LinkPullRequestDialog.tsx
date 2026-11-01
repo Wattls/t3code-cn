@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { ScopedThreadRef } from "@t3tools/contracts";
 import {
   pullRequestLinkProject,
@@ -63,6 +65,7 @@ function LinkPullRequestDialog({
   projectId,
   onOpenChange,
 }: LinkPullRequestDialogProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const inputRef = useRef<HTMLInputElement>(null);
   const [reference, setReference] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -123,16 +126,18 @@ function LinkPullRequestDialog({
     <Dialog open={open} onOpenChange={(next) => (pending ? undefined : onOpenChange(next))}>
       <DialogPopup className="max-w-xl" initialFocus={inputRef}>
         <DialogHeader>
-          <DialogTitle>Link pull request</DialogTitle>
+          <DialogTitle>{translateStaticUiCopy(staticUiLocale, "Link pull request")}</DialogTitle>
           <DialogDescription>
-            Attach a pull request to this thread by its URL, or by its number for this thread's
-            repository.
+            {translateStaticUiCopy(
+              staticUiLocale,
+              "Attach a pull request to this thread by its URL, or by its number for this thread's repository.",
+            )}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>
           <Input
             ref={inputRef}
-            placeholder="Pull request URL or #42"
+            placeholder={translateStaticUiCopy(staticUiLocale, "Pull request URL or #42")}
             value={reference}
             onChange={(event) => {
               setDirty(true);
@@ -161,7 +166,7 @@ function LinkPullRequestDialog({
             onClick={() => onOpenChange(false)}
             disabled={pending}
           >
-            Cancel
+            {translateStaticUiCopy(staticUiLocale, "Cancel")}
           </Button>
           <Button
             type="button"
@@ -169,7 +174,9 @@ function LinkPullRequestDialog({
             onClick={() => void submit()}
             disabled={pending || resolved === null || "error" in resolved}
           >
-            {pending ? "Linking..." : "Link"}
+            {pending
+              ? translateStaticUiCopy(staticUiLocale, "Linking...")
+              : translateStaticUiCopy(staticUiLocale, "Link")}
           </Button>
         </DialogFooter>
       </DialogPopup>

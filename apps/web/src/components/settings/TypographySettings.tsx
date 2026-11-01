@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { ReactNode } from "react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import {
@@ -57,13 +59,17 @@ function useFontDefaultFamilies() {
 }
 
 function InterfaceFontRow({ preview }: { preview?: ReactNode }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
       {...searchableSetting("interface-font")}
-      description="Everything outside code blocks and the terminal."
+      description={translateStaticUiCopy(
+        staticUiLocale,
+        "Everything outside code blocks and the terminal.",
+      )}
       defaultFamily={defaults.sans}
       defaultValue={DEFAULT_UNIFIED_SETTINGS.fontFamilySans}
       value={settings.fontFamilySans}
@@ -75,7 +81,7 @@ function InterfaceFontRow({ preview }: { preview?: ReactNode }) {
         })
       }
       size={{
-        label: "Interface font size",
+        label: translateStaticUiCopy(staticUiLocale, "Interface font size"),
         min: MIN_INTERFACE_FONT_SIZE,
         max: MAX_INTERFACE_FONT_SIZE,
         value: settings.fontSizeInterface,
@@ -88,13 +94,17 @@ function InterfaceFontRow({ preview }: { preview?: ReactNode }) {
 }
 
 function PromptFontRow() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
       {...searchableSetting("prompt-font")}
-      description="Only the box you write prompts in. Mono works well here."
+      description={translateStaticUiCopy(
+        staticUiLocale,
+        "Only the box you write prompts in. Mono works well here.",
+      )}
       defaultFamily={defaults.interfaceFamily}
       defaultValue={DEFAULT_UNIFIED_SETTINGS.fontFamilyComposer}
       value={settings.fontFamilyComposer}
@@ -106,7 +116,7 @@ function PromptFontRow() {
         })
       }
       size={{
-        label: "Prompt font size",
+        label: translateStaticUiCopy(staticUiLocale, "Prompt font size"),
         min: MIN_PROMPT_FONT_SIZE,
         max: MAX_PROMPT_FONT_SIZE,
         value: settings.fontSizePrompt,
@@ -127,6 +137,7 @@ function CodeFontRow({
   description?: string;
   preview?: ReactNode;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   const defaults = useFontDefaultFamilies();
@@ -147,7 +158,7 @@ function CodeFontRow({
       }
       requireMonospace
       size={{
-        label: "Code font size",
+        label: translateStaticUiCopy(staticUiLocale, "Code font size"),
         min: MIN_CODE_FONT_SIZE,
         max: MAX_CODE_FONT_SIZE,
         value: settings.fontSizeCode,
@@ -160,13 +171,17 @@ function CodeFontRow({
 }
 
 function TerminalFontRow() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
       {...searchableSetting("terminal-font")}
-      description="Terminal output, independent from code blocks and diffs."
+      description={translateStaticUiCopy(
+        staticUiLocale,
+        "Terminal output, independent from code blocks and diffs.",
+      )}
       defaultFamily={defaults.code}
       defaultValue={DEFAULT_UNIFIED_SETTINGS.fontFamilyTerminal}
       value={settings.fontFamilyTerminal}
@@ -179,7 +194,7 @@ function TerminalFontRow() {
       }
       requireMonospace
       size={{
-        label: "Terminal font size",
+        label: translateStaticUiCopy(staticUiLocale, "Terminal font size"),
         min: MIN_TERMINAL_FONT_SIZE,
         max: MAX_TERMINAL_FONT_SIZE,
         value: settings.fontSizeTerminal,
@@ -201,17 +216,21 @@ function TerminalFontRow() {
 }
 
 function FontSmoothingRow() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   if (!isMacPlatform(navigator.platform)) return null;
   return (
     <SettingsRow
       {...searchableSetting("font-smoothing")}
-      description="Use thinner grayscale text smoothing instead of the macOS default."
+      description={translateStaticUiCopy(
+        staticUiLocale,
+        "Use thinner grayscale text smoothing instead of the macOS default.",
+      )}
       resetAction={
         settings.fontSmoothing !== DEFAULT_UNIFIED_SETTINGS.fontSmoothing ? (
           <SettingResetButton
-            label="font smoothing"
+            label={translateStaticUiCopy(staticUiLocale, "font smoothing")}
             onClick={() =>
               updateSettings({ fontSmoothing: DEFAULT_UNIFIED_SETTINGS.fontSmoothing })
             }
@@ -222,7 +241,7 @@ function FontSmoothingRow() {
         <Switch
           checked={settings.fontSmoothing}
           onCheckedChange={(checked) => updateSettings({ fontSmoothing: Boolean(checked) })}
-          aria-label="Font smoothing"
+          aria-label={translateStaticUiCopy(staticUiLocale, "Font smoothing")}
         />
       }
     />
@@ -230,16 +249,20 @@ function FontSmoothingRow() {
 }
 
 function WordWrapRow() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   return (
     <SettingsRow
       {...searchableSetting("word-wrap")}
-      description="Wrap long lines in code blocks, diffs, and file previews by default."
+      description={translateStaticUiCopy(
+        staticUiLocale,
+        "Wrap long lines in code blocks, diffs, and file previews by default.",
+      )}
       resetAction={
         settings.wordWrap !== DEFAULT_UNIFIED_SETTINGS.wordWrap ? (
           <SettingResetButton
-            label="word wrapping"
+            label={translateStaticUiCopy(staticUiLocale, "word wrapping")}
             onClick={() => updateSettings({ wordWrap: DEFAULT_UNIFIED_SETTINGS.wordWrap })}
           />
         ) : null
@@ -248,7 +271,10 @@ function WordWrapRow() {
         <Switch
           checked={settings.wordWrap}
           onCheckedChange={(checked) => updateSettings({ wordWrap: Boolean(checked) })}
-          aria-label="Wrap code, diffs, and file previews by default"
+          aria-label={translateStaticUiCopy(
+            staticUiLocale,
+            "Wrap code, diffs, and file previews by default",
+          )}
         />
       }
     />
@@ -273,15 +299,19 @@ function SeparateFontsRow({
   readonly checked: boolean;
   readonly onCheckedChange: (checked: boolean) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <SettingsRow
       {...searchableSetting("separate-fonts")}
-      description="Set the prompt, code, and terminal fonts separately instead of one monospace font."
+      description={translateStaticUiCopy(
+        staticUiLocale,
+        "Set the prompt, code, and terminal fonts separately instead of one monospace font.",
+      )}
       control={
         <Switch
           checked={checked}
           onCheckedChange={(next) => onCheckedChange(Boolean(next))}
-          aria-label="Separate fonts"
+          aria-label={translateStaticUiCopy(staticUiLocale, "Separate fonts")}
         />
       }
     />
@@ -289,13 +319,17 @@ function SeparateFontsRow({
 }
 
 function SimpleFontRows() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const settings = useScopedSettings();
   return (
     <>
       <InterfaceFontRow preview={<PromptFontPreview />} />
       <CodeFontRow
-        title="Monospace font"
-        description="Code blocks, diffs, file previews, and the terminal."
+        title={translateStaticUiCopy(staticUiLocale, "Monospace font")}
+        description={translateStaticUiCopy(
+          staticUiLocale,
+          "Code blocks, diffs, file previews, and the terminal.",
+        )}
         preview={
           <>
             <CodeFontPreview />
@@ -319,6 +353,7 @@ function SimpleFontRows() {
 }
 
 export function TypographySection() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [advanced, setAdvanced] = useLocalStorage(
     TYPOGRAPHY_ADVANCED_STORAGE_KEY,
     false,
@@ -335,7 +370,7 @@ export function TypographySection() {
   const showAdvanced =
     advanced || (searchTargetId !== null && isAdvancedTypographyTarget(searchTargetId));
   return (
-    <SettingsSection id="typography" title="Typography">
+    <SettingsSection id="typography" title={translateStaticUiCopy(staticUiLocale, "Typography")}>
       {showAdvanced ? <FontSettingsGroup /> : <SimpleFontRows />}
       <WordWrapRow />
       <AdvancedSettings

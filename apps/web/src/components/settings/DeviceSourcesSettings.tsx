@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useAtomValue } from "@effect/atom-react";
 import { Fragment, useState, type ReactNode } from "react";
 import * as Cause from "effect/Cause";
@@ -140,6 +142,7 @@ export function DeviceSourcesSettings(props: {
   readonly supportsEas: boolean;
   readonly supportsSimlock: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { scope, environments, connectedEnvironments, environment: primary } = useSettingsScope();
   const projectScope = scope.kind === "project" || scope.kind === "checkout";
   const update = useAtomCommand(serverEnvironment.updateSettings, { reportFailure: false });
@@ -235,7 +238,7 @@ export function DeviceSourcesSettings(props: {
     } catch (error) {
       toastManager.add({
         type: "error",
-        title: "Device host not saved",
+        title: translateStaticUiCopy(staticUiLocale, "Device host not saved"),
         description: error instanceof Error ? error.message : String(error),
       });
     }
@@ -329,12 +332,17 @@ export function DeviceSourcesSettings(props: {
   const rowActions = (onEdit: () => void, onRemove: () => void, extra?: ReactNode) => (
     <>
       <Button size="sm" variant="outline" disabled={disabled} onClick={onEdit}>
-        Edit
+        {translateStaticUiCopy(staticUiLocale, "Edit")}
       </Button>
       <Menu>
         <MenuTrigger
           render={
-            <Button size="icon-sm" variant="ghost-muted" disabled={disabled} aria-label="More" />
+            <Button
+              size="icon-sm"
+              variant="ghost-muted"
+              disabled={disabled}
+              aria-label={translateStaticUiCopy(staticUiLocale, "More")}
+            />
           }
         >
           <MoreVertical />
@@ -342,7 +350,7 @@ export function DeviceSourcesSettings(props: {
         <MenuPopup align="end">
           {extra}
           <MenuItem variant="destructive" onClick={onRemove}>
-            Remove
+            {translateStaticUiCopy(staticUiLocale, "Remove")}
           </MenuItem>
         </MenuPopup>
       </Menu>
@@ -354,7 +362,7 @@ export function DeviceSourcesSettings(props: {
   rows.push({
     key: "local",
     shared: false,
-    title: "Local simulators",
+    title: translateStaticUiCopy(staticUiLocale, "Local simulators"),
     description:
       members.length > 1
         ? "Simulators and emulators installed on each environment's own machine."
@@ -372,7 +380,7 @@ export function DeviceSourcesSettings(props: {
             ? {
                 ...status,
                 action: {
-                  label: "Refresh",
+                  label: translateStaticUiCopy(staticUiLocale, "Refresh"),
                   run: () => void list({ environmentId: member.environmentId, input: {} }),
                 },
               }
@@ -413,7 +421,10 @@ export function DeviceSourcesSettings(props: {
         if (!held)
           return { environmentId: member.environmentId, label: member.label, added: false };
         const status = testing.has(host.id)
-          ? ({ tone: "pending", label: "Testing connection" } as const)
+          ? ({
+              tone: "pending",
+              label: translateStaticUiCopy(staticUiLocale, "Testing connection"),
+            } as const)
           : hostStatus(member.state, held.host.id);
         return {
           environmentId: member.environmentId,
@@ -424,8 +435,11 @@ export function DeviceSourcesSettings(props: {
             status?.tone === "error" && member.state?.supportsHostRetry
               ? {
                   ...status,
-                  label: "Can't connect",
-                  action: { label: "Retry", run: () => retry(member.environmentId, held.host.id) },
+                  label: translateStaticUiCopy(staticUiLocale, "Can't connect"),
+                  action: {
+                    label: translateStaticUiCopy(staticUiLocale, "Retry"),
+                    run: () => retry(member.environmentId, held.host.id),
+                  },
                 }
               : status,
         };
@@ -434,7 +448,9 @@ export function DeviceSourcesSettings(props: {
         () =>
           setEditing({ kind: "ssh", host, original: host, ...(grouped ? {} : { only: holders }) }),
         () => void saveSsh(host, true, host, holders),
-        <MenuItem onClick={() => void testSsh(host)}>Test connection</MenuItem>,
+        <MenuItem onClick={() => void testSsh(host)}>
+          {translateStaticUiCopy(staticUiLocale, "Test connection")}
+        </MenuItem>,
       ),
     });
   }
@@ -521,7 +537,8 @@ export function DeviceSourcesSettings(props: {
       <MenuTrigger
         render={<Button size="sm" variant="outline" disabled={disabled || editing !== null} />}
       >
-        <PlusIcon className="size-3.5" /> Add source
+        <PlusIcon className="size-3.5" />
+        {" " + translateStaticUiCopy(staticUiLocale, "Add source")}
         <ChevronDownIcon className="size-3.5" />
       </MenuTrigger>
       <MenuPopup align="end">
@@ -534,7 +551,7 @@ export function DeviceSourcesSettings(props: {
             })
           }
         >
-          Machine over SSH
+          {translateStaticUiCopy(staticUiLocale, "Machine over SSH")}
         </MenuItem>
         {props.supportsEas ? (
           <MenuItem
@@ -548,7 +565,7 @@ export function DeviceSourcesSettings(props: {
               })
             }
           >
-            EAS Simulator
+            {translateStaticUiCopy(staticUiLocale, "EAS Simulator")}
           </MenuItem>
         ) : null}
         {props.supportsSimlock && simlockEnabled ? (
@@ -557,7 +574,7 @@ export function DeviceSourcesSettings(props: {
               setEditing({ kind: "simlock", host: newSimlockDeviceHost(randomUUID()), isNew: true })
             }
           >
-            Simlock pool (alpha)
+            {translateStaticUiCopy(staticUiLocale, "Simlock pool (alpha)")}
           </MenuItem>
         ) : null}
       </MenuPopup>
@@ -565,7 +582,11 @@ export function DeviceSourcesSettings(props: {
   );
 
   return (
-    <SettingsSection id="device-sources" title="Device sources" headerAction={addMenu}>
+    <SettingsSection
+      id="device-sources"
+      title={translateStaticUiCopy(staticUiLocale, "Device sources")}
+      headerAction={addMenu}
+    >
       {rows.map((row) => (
         <DeviceSourceRow key={row.key} row={row} />
       ))}
@@ -627,6 +648,7 @@ function PlatformIcon(props: {
   row: SourceRow;
   known: ReadonlyArray<SourceEnvironment>;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const availability = (environment: SourceEnvironment) =>
     environment.platforms?.find((candidate) => candidate.platform === props.platform);
   const availableOn = props.known.filter((environment) => availability(environment)?.available);
@@ -672,7 +694,11 @@ function PlatformIcon(props: {
       <PopoverPopup side="top" align="end" width="sm">
         <p className="text-sm font-medium">
           {props.label}{" "}
-          {available ? (partial ? "available on some" : "available") : "not available"}
+          {available
+            ? partial
+              ? translateStaticUiCopy(staticUiLocale, "available on some")
+              : translateStaticUiCopy(staticUiLocale, "available")
+            : translateStaticUiCopy(staticUiLocale, "not available")}
         </p>
         {props.row.shared ? (
           <>
@@ -723,7 +749,9 @@ function PlatformIcon(props: {
                 <Fragment key={environment.environmentId}>
                   <dt className="text-muted-foreground">{environment.label}</dt>
                   <dd className={entry?.available ? "" : "text-muted-foreground"}>
-                    {entry?.available ? "Available" : (entry?.reason ?? "Not available")}
+                    {entry?.available
+                      ? translateStaticUiCopy(staticUiLocale, "Available")
+                      : (entry?.reason ?? "Not available")}
                   </dd>
                 </Fragment>
               );

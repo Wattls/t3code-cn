@@ -25,6 +25,18 @@ const state = vi.hoisted(() => ({
   prepared: [] as { branch: string; worktreePath: string | null }[],
 }));
 
+vi.mock("~/i18n/WebI18nContext", async () => {
+  const { translateWebMessage } = await import("~/i18n/messages");
+  return {
+    useI18n: () => ({
+      t: (
+        key: Parameters<typeof translateWebMessage>[1],
+        values?: Parameters<typeof translateWebMessage>[2],
+      ) => translateWebMessage("en", key, values),
+    }),
+  };
+});
+
 vi.mock("react", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react")>()),
   useCallback: (callback: unknown) => callback,

@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { RuntimeMode } from "@t3tools/contracts";
 import { useAtomValue } from "@effect/atom-react";
 
@@ -13,6 +15,7 @@ export function ComposerContextPermissions(props: {
   runtimeMode: RuntimeMode;
   onOpen: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const shortcutLabel = shortcutLabelForCommand(
     useAtomValue(primaryServerKeybindingsAtom),
     "composer.mode",
@@ -25,7 +28,7 @@ export function ComposerContextPermissions(props: {
           <ComposerControl
             size="xs"
             className="ms-auto min-w-0 shrink-0"
-            aria-label={`Permissions: ${label}`}
+            aria-label={`${translateStaticUiCopy(staticUiLocale, "Permissions")}: ${translateStaticUiCopy(staticUiLocale, label)}`}
             aria-haspopup="menu"
             data-composer-context-control
             onClick={props.onOpen}
@@ -33,9 +36,12 @@ export function ComposerContextPermissions(props: {
         }
       >
         <Icon aria-hidden="true" className="size-3" />
-        <ComposerContextLabel>{label}</ComposerContextLabel>
+        <ComposerContextLabel>{translateStaticUiCopy(staticUiLocale, label)}</ComposerContextLabel>
       </TooltipTrigger>
-      <TooltipPopup>Permissions{shortcutLabel ? ` · ${shortcutLabel}` : null}</TooltipPopup>
+      <TooltipPopup>
+        {translateStaticUiCopy(staticUiLocale, "Permissions")}
+        {shortcutLabel ? ` · ${shortcutLabel}` : null}
+      </TooltipPopup>
     </Tooltip>
   );
 }

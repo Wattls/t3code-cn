@@ -1,3 +1,5 @@
+import { translateWebSource } from "../../i18n/messages";
+import { useI18n } from "../../i18n/WebI18nContext";
 import { useAtomValue } from "@effect/atom-react";
 import {
   AVAILABLE_CONNECTION_STATE,
@@ -19,6 +21,7 @@ import { useDeadlinePassed } from "../../hooks/useDeadline";
 import { useNowSecond } from "../../hooks/useNowSecond";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
+import { localizeConnectionDiagnosisText } from "./connectionDiagnosisLocale";
 import { stackedThreadToast, toastManager } from "../ui/toast";
 
 /**
@@ -27,6 +30,7 @@ import { stackedThreadToast, toastManager } from "../ui/toast";
  * the headline do not re-render on every attempt.
  */
 export function useConnectionDiagnosis(environment: EnvironmentPresentation) {
+  const { locale } = useI18n();
   const environmentId = environment.environmentId;
   const state = AsyncResult.getOrElse(
     useAtomValue(environmentCatalog.stateAtom(environmentId)),
@@ -48,7 +52,19 @@ export function useConnectionDiagnosis(environment: EnvironmentPresentation) {
           serverVersion: environment.serverConfig?.environment.serverVersion,
         })
       : null;
-  return { diagnosis, state, relayOnly };
+  const localize = (source: string) =>
+    localizeConnectionDiagnosisText(locale, source, environment.label);
+  const localizedDiagnosis =
+    diagnosis === null
+      ? null
+      : {
+          ...diagnosis,
+          headline: localize(diagnosis.headline),
+          hops: diagnosis.hops.map((hop) => ({ ...hop, label: localize(hop.label) })),
+          steps: diagnosis.steps.map(localize),
+          facts: diagnosis.facts.map(([label, value]) => [localize(label), value] as const),
+        };
+  return { diagnosis: localizedDiagnosis, state, relayOnly };
 }
 
 /** The failure headline alone, for banners outside Settings. */
@@ -65,12 +81,26 @@ const HOP_NOTE = { ok: "", failed: "Failed", unchecked: "Not checked" } as const
 
 /** Ticks once per second, and only while a retry is scheduled, so the list around it does not re-render. */
 function RetryCountdown({ retryAt }: { readonly retryAt: number }) {
-  return useDeadlinePassed(retryAt) ? "retrying" : <RetryCountdownTicker retryAt={retryAt} />;
+  const { locale } = useI18n();
+  return useDeadlinePassed(retryAt) ? (
+    translateWebSource(locale, "retrying")
+  ) : (
+    <RetryCountdownTicker retryAt={retryAt} />
+  );
 }
 
 function RetryCountdownTicker({ retryAt }: { readonly retryAt: number }) {
+  const { locale } = useI18n();
   const seconds = Math.ceil((retryAt - useNowSecond()) / 1_000);
-  return <>{seconds > 0 ? `retrying in ${seconds}s` : "retrying"}</>;
+  return (
+    <>
+      {seconds > 0
+        ? locale === "zh-CN"
+          ? `${seconds} 秒后重试`
+          : `retrying in ${seconds}s`
+        : translateWebSource(locale, "retrying")}
+    </>
+  );
 }
 
 /** The collapsed failure: the full headline, then the retry state and a Details toggle. */
@@ -87,13 +117,18 @@ export function ConnectionDiagnosisSummary({
   readonly expanded: boolean;
   readonly onToggle: () => void;
 }) {
+  const { locale: sourceLocale } = useI18n();
   return (
     <div className="text-xs">
       <p className="text-destructive">{diagnosis.headline}</p>
       <p className="flex flex-wrap items-center gap-1 text-muted-foreground">
         {retryAt !== null ? <RetryCountdown retryAt={retryAt} /> : null}
         {retryAt !== null && attempt > 0 ? <span aria-hidden>·</span> : null}
-        {attempt > 0 ? <span>attempt {attempt}</span> : null}
+        {attempt > 0 ? (
+          <span>
+            {translateWebSource(sourceLocale, "attempt")} {attempt}
+          </span>
+        ) : null}
         {retryAt !== null || attempt > 0 ? <span aria-hidden>·</span> : null}
         <button
           type="button"
@@ -101,7 +136,7 @@ export function ConnectionDiagnosisSummary({
           onClick={onToggle}
           className="inline-flex items-center gap-0.5 rounded-sm outline-none hover:text-foreground focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
         >
-          Details
+          {translateWebSource(sourceLocale, "Details")}
           <ChevronRightIcon
             aria-hidden
             className={cn(
@@ -127,14 +162,19 @@ export function ConnectionDiagnosisPanel({
   readonly onRetry: () => void;
   readonly onAddRoute: (() => void) | null;
 }) {
+  const { locale: sourceLocale } = useI18n();
   const { copyToClipboard } = useCopyToClipboard({
-    target: "connection diagnostics",
-    onCopy: () => toastManager.add({ type: "success", title: "Diagnostics copied" }),
+    target: translateWebSource(sourceLocale, "connection diagnostics"),
+    onCopy: () =>
+      toastManager.add({
+        type: "success",
+        title: translateWebSource(sourceLocale, "Diagnostics copied"),
+      }),
     onError: (error) =>
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Could not copy diagnostics",
+          title: translateWebSource(sourceLocale, "Could not copy diagnostics"),
           description: error.message,
         }),
       ),
@@ -154,12 +194,14 @@ export function ConnectionDiagnosisPanel({
               {HOP_MARK[hop.result]}
             </span>
             <span className={cn(hop.result === "ok" && "text-foreground")}>{hop.label}</span>
-            <span>{HOP_NOTE[hop.result]}</span>
+            <span>{translateWebSource(sourceLocale, HOP_NOTE[hop.result])}</span>
           </li>
         ))}
       </ol>
       <div>
-        <p className="font-medium text-foreground">What to try</p>
+        <p className="font-medium text-foreground">
+          {translateWebSource(sourceLocale, "What to try")}
+        </p>
         <ol className="list-decimal pl-4 text-muted-foreground">
           {diagnosis.steps.map((step) => (
             <li key={step}>{step}</li>
@@ -172,7 +214,7 @@ export function ConnectionDiagnosisPanel({
             rel="noreferrer"
             className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
           >
-            More info
+            {translateWebSource(sourceLocale, "More info")}
           </a>
         ) : null}
       </div>
@@ -186,7 +228,7 @@ export function ConnectionDiagnosisPanel({
       </dl>
       <div className="flex flex-wrap gap-2">
         <Button type="button" size="xs" variant="outline" onClick={onRetry}>
-          Retry now
+          {translateWebSource(sourceLocale, "Retry now")}
         </Button>
         <Button
           type="button"
@@ -197,11 +239,11 @@ export function ConnectionDiagnosisPanel({
             copyToClipboard(text, undefined);
           }}
         >
-          Copy diagnostics
+          {translateWebSource(sourceLocale, "Copy diagnostics")}
         </Button>
         {onAddRoute ? (
           <Button type="button" size="xs" variant="outline" onClick={onAddRoute}>
-            Add direct route
+            {translateWebSource(sourceLocale, "Add direct route")}
           </Button>
         ) : null}
       </div>

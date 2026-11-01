@@ -1,3 +1,5 @@
+import { readWebI18n } from "~/i18n/readWebI18n";
+import { translateWebSource } from "~/i18n/messages";
 import type {
   OrchestrationV2PendingBackgroundTask,
   OrchestrationV2ProviderGoal,
@@ -36,6 +38,7 @@ export function childInputNowItem(input: {
   readonly parentAwaitingUser: boolean;
   readonly onOpenThread: (threadId: ThreadId) => void;
 }): (ThreadNowItem & { readonly waitingLabel: string }) | null {
+  const { locale: uiLocale } = readWebI18n();
   const { childThreadInputs, onOpenThread } = input;
   const first = childThreadInputs[0];
   if (!first || input.parentAwaitingUser) return null;
@@ -64,7 +67,9 @@ export function childInputNowItem(input: {
     )),
     actions: (
       <InlineButton onClick={() => onOpenThread(first.id)}>
-        {first.hasPendingApprovals ? "Open approval" : "Open question"}
+        {first.hasPendingApprovals
+          ? translateWebSource(uiLocale, "Open approval")
+          : translateWebSource(uiLocale, "Open question")}
       </InlineButton>
     ),
   };
@@ -77,6 +82,7 @@ export function goalNowItem(input: {
   readonly isWorking: boolean;
   readonly onSendCommand: (text: string, failureMessage: string) => Promise<void>;
 }): ThreadNowItem {
+  const { locale: uiLocale } = readWebI18n();
   const { isWorking, onSendCommand } = input;
   const presentation = presentProviderGoal(input.goal, isWorking);
   return {
@@ -95,7 +101,7 @@ export function goalNowItem(input: {
             <InlineButton
               onClick={() => void onSendCommand("/goal resume", "Failed to resume goal.")}
             >
-              Resume
+              {translateWebSource(uiLocale, "Resume")}
             </InlineButton>
             <span aria-hidden>·</span>
           </>
@@ -238,6 +244,8 @@ export function branchMismatchBannerItem(input: {
   readonly onRestore: () => void;
   readonly onDismiss: () => void;
 }): ComposerBannerStackItem {
+  const { locale: uiLocale } = readWebI18n();
+
   const { mismatch } = input;
   return {
     id: `branch-mismatch:${input.mismatchKey}`,
@@ -245,7 +253,9 @@ export function branchMismatchBannerItem(input: {
     icon: <GitBranchIcon />,
     title: (
       <span className="flex min-w-0 items-baseline gap-1.5">
-        <span className="shrink-0 font-normal text-muted-foreground">Branch changed from</span>
+        <span className="shrink-0 font-normal text-muted-foreground">
+          {translateWebSource(uiLocale, "Branch changed from")}
+        </span>
         <Tooltip>
           <TooltipTrigger
             render={

@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import DOMPurify from "dompurify";
 import { MinusIcon, PlusIcon, RotateCcwIcon } from "lucide-react";
 import { FileSurfaceAction } from "./fileSurfaceChrome";
@@ -76,6 +78,7 @@ export default function DocumentPages(props: {
   readonly output?: boolean;
   readonly details?: string;
 }) {
+  const { locale: previewLocale } = useI18n();
   const { theme, resolvedTheme, themeHalves } = useTheme();
   const [colors, setColors] = useState(documentColors);
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- Read the host DOM's applied theme tokens so the sandboxed document receives the current palette.
@@ -100,7 +103,7 @@ export default function DocumentPages(props: {
             {props.details}
           </span>
           <FileSurfaceAction
-            label="Decrease reading size"
+            label={translateWebSource(previewLocale, "Decrease reading size")}
             disabled={zoom <= 0.5}
             onPress={() => setZoom((value) => Math.max(0.5, value - 0.25))}
           >
@@ -108,14 +111,14 @@ export default function DocumentPages(props: {
           </FileSurfaceAction>
           <span className="min-w-10 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
           <FileSurfaceAction
-            label="Increase reading size"
+            label={translateWebSource(previewLocale, "Increase reading size")}
             disabled={zoom >= 2}
             onPress={() => setZoom((value) => Math.min(2, value + 0.25))}
           >
             <PlusIcon className="size-3.5" />
           </FileSurfaceAction>
           <FileSurfaceAction
-            label="Reset reading size"
+            label={translateWebSource(previewLocale, "Reset reading size")}
             disabled={zoom === 1}
             onPress={() => setZoom(1)}
           >

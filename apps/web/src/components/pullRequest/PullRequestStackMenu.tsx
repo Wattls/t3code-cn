@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { Tooltip, TooltipTrigger, TooltipPopup } from "../ui/tooltip";
 import type {
   EnvironmentId,
@@ -55,6 +57,7 @@ export function PullRequestStackMenu({
   onSelect?: ((reference: PullRequestRef) => void) | undefined;
   onActed: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState<"merge" | "update-branch" | null>(null);
   const [pending, setPending] = useState(false);
@@ -150,14 +153,23 @@ export function PullRequestStackMenu({
             }
           />
           <TooltipPopup>
-            View stack #{stack.number}, layer {position} of {stack.layers.length}
+            {translateStaticUiCopy(staticUiLocale, "View stack #")}
+            {stack.number}
+            {translateStaticUiCopy(staticUiLocale, ", layer") + " "}
+            {position}
+            {" " + translateStaticUiCopy(staticUiLocale, "of") + " "}
+            {stack.layers.length}
             {notice ? ` · ${notice}` : null}
           </TooltipPopup>
         </Tooltip>
         <MenuPopup align="start">
           <MenuGroup>
             <PullRequestStackHeader number={stack.number} notice={notice} stale={!!onRetry} />
-            {onRetry ? <MenuItem onClick={onRetry}>Retry stack refresh</MenuItem> : null}
+            {onRetry ? (
+              <MenuItem onClick={onRetry}>
+                {translateStaticUiCopy(staticUiLocale, "Retry stack refresh")}
+              </MenuItem>
+            ) : null}
             <PullRequestStackLayers
               stack={stack}
               reference={reference}
@@ -178,7 +190,8 @@ export function PullRequestStackMenu({
               {canMerge ? (
                 <MenuItem disabled={mergeDisabled} onClick={() => setConfirmation("merge")}>
                   <PullRequestGlyph.merged aria-hidden />
-                  Merge stack ({mergeLayers.length})
+                  {translateStaticUiCopy(staticUiLocale, "Merge stack (")}
+                  {mergeLayers.length})
                 </MenuItem>
               ) : null}
               {canRebase ? (
@@ -187,12 +200,15 @@ export function PullRequestStackMenu({
                   onClick={() => setConfirmation("update-branch")}
                 >
                   <RefreshCwIcon aria-hidden />
-                  Rebase stack
+                  {translateStaticUiCopy(staticUiLocale, "Rebase stack")}
                 </MenuItem>
               ) : null}
               {mergeHasClosed || mergeLayers.some((layer) => layer.isDraft) ? (
                 <p className="px-2 py-1 text-xs text-muted-foreground">
-                  Every layer being merged must be open and ready for review.
+                  {translateStaticUiCopy(
+                    staticUiLocale,
+                    "Every layer being merged must be open and ready for review.",
+                  )}
                 </p>
               ) : null}
             </>
@@ -211,13 +227,16 @@ export function PullRequestStackMenu({
                   onClick={() => setConfirmation("merge")}
                 >
                   <PullRequestGlyph.merged aria-hidden className="size-3.5" />
-                  Merge stack
+                  {translateStaticUiCopy(staticUiLocale, "Merge stack")}
                 </Button>
               </span>
             }
           />
           <TooltipPopup>
-            Merge stack through #{reference.number} into {stack.base} ({mergeLayers.length}{" "}
+            {translateStaticUiCopy(staticUiLocale, "Merge stack through #")}
+            {reference.number}
+            {" " + translateStaticUiCopy(staticUiLocale, "into") + " "}
+            {stack.base} ({mergeLayers.length}{" "}
             {mergeLayers.length === 1 ? terminology.singular : terminology.plural})
           </TooltipPopup>
         </Tooltip>
@@ -255,10 +274,12 @@ export function PullRequestStackMenu({
           </DialogPanel>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmation(null)}>
-              Cancel
+              {translateStaticUiCopy(staticUiLocale, "Cancel")}
             </Button>
             <Button onClick={() => void run()}>
-              {confirmation === "merge" ? "Merge stack" : "Rebase stack"}
+              {confirmation === "merge"
+                ? translateStaticUiCopy(staticUiLocale, "Merge stack")
+                : translateStaticUiCopy(staticUiLocale, "Rebase stack")}
             </Button>
           </DialogFooter>
         </DialogPopup>

@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { InfoIcon, RotateCwIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
@@ -11,6 +13,7 @@ export function DiffFileStatus({
   truncated?: boolean | undefined;
   retry: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   if (!error && !truncated) return null;
   return (
     <Tooltip>
@@ -19,7 +22,11 @@ export function DiffFileStatus({
           <Button
             size="icon-micro"
             variant="ghost-muted"
-            aria-label={error ? "Retry loading diff" : "Partial diff preview"}
+            aria-label={
+              error
+                ? translateStaticUiCopy(staticUiLocale, "Retry loading diff")
+                : translateStaticUiCopy(staticUiLocale, "Partial diff preview")
+            }
             onClick={(event) => {
               event.stopPropagation();
               if (error) retry();
@@ -31,8 +38,11 @@ export function DiffFileStatus({
       </TooltipTrigger>
       <TooltipPopup>
         {error
-          ? "Retry loading diff"
-          : "This file is too large to show in full. Counts include all changes."}
+          ? translateStaticUiCopy(staticUiLocale, "Retry loading diff")
+          : translateStaticUiCopy(
+              staticUiLocale,
+              "This file is too large to show in full. Counts include all changes.",
+            )}
       </TooltipPopup>
     </Tooltip>
   );

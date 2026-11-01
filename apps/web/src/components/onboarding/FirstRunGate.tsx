@@ -10,6 +10,8 @@ import {
   useClientSettingsHydrationStatus,
 } from "../../hooks/useSettings";
 import { completeOnboarding } from "../../onboarding/firstRun";
+import { useI18n } from "../../i18n/WebI18nContext";
+import { translateWebSource } from "../../i18n/messages";
 import {
   isFirstRunWorkspaceProvenanceAuthoritative,
   isFreshFirstRunWorkspace,
@@ -187,17 +189,19 @@ function FirstRunRecovery({
   readonly reason: "settings" | "connection";
   readonly retrying?: boolean;
 }) {
+  const { locale } = useI18n();
+  const translate = (source: string) => translateWebSource(locale, source);
   const settingsReadFailed = reason === "settings";
   return (
     <main className="flex h-dvh min-h-0 items-center justify-center bg-background px-6 text-foreground">
       <div className="flex max-w-sm flex-col items-center text-center">
         <h1 className="text-lg font-semibold">
-          {settingsReadFailed ? "Could not read settings" : "Still connecting"}
+          {translate(settingsReadFailed ? "Could not read settings" : "Still connecting")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {settingsReadFailed
-            ? "Your saved settings could not be loaded."
-            : "T3 Code could not confirm this workspace."}
+            ? translate("Your saved settings could not be loaded.")
+            : translate("T3 Code could not confirm this workspace.")}
         </p>
         <Button
           className="mt-5"
@@ -213,7 +217,7 @@ function FirstRunRecovery({
           }}
         >
           <RefreshIcon refreshing={retrying} />
-          {settingsReadFailed ? "Retry" : "Reload"}
+          {translate(settingsReadFailed ? "Retry" : "Reload")}
         </Button>
       </div>
     </main>

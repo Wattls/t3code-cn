@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useAuth, useClerk } from "@clerk/react";
 import { readConnectAuthorizeRequest } from "@t3tools/shared/connectAuth";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
@@ -19,6 +21,7 @@ const invalidLinkMessage = {
 } as const;
 
 export function ConnectCliAuthorizeSurface() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [request] = useState(() => readConnectAuthorizeRequest(new URL(window.location.href)));
   const clerk = useClerk();
   const { isLoaded, isSignedIn } = useAuth();
@@ -70,17 +73,23 @@ export function ConnectCliAuthorizeSurface() {
     <StandalonePage>
       <StandalonePageHeader
         context="Browser authorization"
-        title="Connecting your terminal"
+        title={translateStaticUiCopy(staticUiLocale, "Connecting your terminal")}
         description={
           isSignedIn
-            ? "Redirecting to authorize T3 Connect for your CLI…"
-            : "Sign in to continue authorizing T3 Connect for your CLI."
+            ? translateStaticUiCopy(
+                staticUiLocale,
+                "Redirecting to authorize T3 Connect for your CLI…",
+              )
+            : translateStaticUiCopy(
+                staticUiLocale,
+                "Sign in to continue authorizing T3 Connect for your CLI.",
+              )
         }
       />
       {isLoaded && !isSignedIn ? (
         <div className="mt-6">
           <Button type="button" onClick={openSignIn}>
-            Sign in
+            {translateStaticUiCopy(staticUiLocale, "Sign in")}
           </Button>
         </div>
       ) : null}

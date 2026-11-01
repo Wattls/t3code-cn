@@ -1,3 +1,4 @@
+import { translateWebSource } from "~/i18n/messages";
 import { useState } from "react";
 import {
   AuthSourceControlWriteScope,
@@ -6,6 +7,7 @@ import {
 } from "@t3tools/contracts";
 
 import { cn } from "~/lib/utils";
+import { useI18n } from "~/i18n/WebI18nContext";
 import { readEnvironmentScope, useEnvironmentScope } from "~/state/session";
 
 import { Button } from "../ui/button";
@@ -38,6 +40,8 @@ export function PullRequestMarkdownEditor({
   readonly onSave: (next: string) => void;
   readonly onCancel: () => void;
 }) {
+  const { locale: uiLocale } = useI18n();
+  const { t } = useI18n();
   const canWriteSourceControl = useEnvironmentScope(environmentId, AuthSourceControlWriteScope);
   const [draft, setDraft] = useState(value);
   const [preview, setPreview] = useState(false);
@@ -76,7 +80,7 @@ export function PullRequestMarkdownEditor({
       }}
     >
       <ToggleGroup
-        aria-label="Markdown editor mode"
+        aria-label={translateWebSource(uiLocale, "Markdown editor mode")}
         variant="segmented"
         value={[preview ? "preview" : "write"]}
         disabled={saving}
@@ -85,13 +89,15 @@ export function PullRequestMarkdownEditor({
           if (mode === "write" || mode === "preview") setPreview(mode === "preview");
         }}
       >
-        <Toggle value="write">Write</Toggle>
-        <Toggle value="preview">Preview</Toggle>
+        <Toggle value="write">{t("pullRequests.markdown.write")}</Toggle>
+        <Toggle value="preview">{t("pullRequests.markdown.preview")}</Toggle>
       </ToggleGroup>
       {preview ? (
         <div className="rounded-lg border border-border/60 px-3 py-2">
           {empty ? (
-            <p className="text-xs text-muted-foreground">Nothing to preview.</p>
+            <p className="text-xs text-muted-foreground">
+              {t("pullRequests.markdown.nothingToPreview")}
+            </p>
           ) : (
             <PullRequestMarkdown
               text={draft}
@@ -114,7 +120,7 @@ export function PullRequestMarkdownEditor({
       )}
       <div className="flex justify-end gap-2">
         <Button size="xs" variant="ghost" disabled={saving} onClick={onCancel}>
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button
           size="xs"
@@ -130,7 +136,7 @@ export function PullRequestMarkdownEditor({
             onSave(draft);
           }}
         >
-          {saving ? "Saving..." : "Save"}
+          {saving ? t("pullRequests.markdown.saving") : t("common.save")}
         </Button>
       </div>
     </div>

@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { T3CHAT_PLAN_TUNNEL_LIMITS, type RelayT3ChatLink } from "@t3tools/contracts/relay";
 import { MessageSquareIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -36,6 +38,7 @@ function planLabel(link: RelayT3ChatLink): ReactNode {
 
 /** Links a T3 Chat account so paid subscribers get more tunnels. */
 export function T3ChatUserProfilePage() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { linkState, pending, linkUrl, link: handleLink, unlink: handleUnlink } = useT3ChatLink();
   const usage = useManagedTunnelUsage();
 
@@ -56,12 +59,17 @@ export function T3ChatUserProfilePage() {
     >
       {linkState.error ? (
         <div className="border-t py-3 text-xs" role="alert">
-          <p className="font-medium text-destructive-foreground">Could not load T3 Chat link</p>
+          <p className="font-medium text-destructive-foreground">
+            {translateStaticUiCopy(staticUiLocale, "Could not load T3 Chat link")}
+          </p>
           <p className="mt-0.5 text-muted-foreground">{linkState.error}</p>
         </div>
       ) : data === null ? null : !data.available ? (
         <p className="border-t py-4 text-xs text-muted-foreground">
-          This T3 Connect server does not support T3 Chat linking.
+          {translateStaticUiCopy(
+            staticUiLocale,
+            "This T3 Connect server does not support T3 Chat linking.",
+          )}
         </p>
       ) : (
         <ul className="border-t">
@@ -69,14 +77,14 @@ export function T3ChatUserProfilePage() {
             <div className="flex items-start gap-4">
               <div className="min-w-0 flex-1">
                 <h3 className="truncate text-sm leading-4.5 font-medium text-foreground">
-                  {link ? link.email : "Not linked"}
+                  {link ? link.email : translateStaticUiCopy(staticUiLocale, "Not linked")}
                 </h3>
                 <p className="mt-1 text-xs leading-4.5 text-muted-foreground">
                   {link ? (
                     planLabel(link)
                   ) : linkUrl ? (
                     <>
-                      Confirm on{" "}
+                      {translateStaticUiCopy(staticUiLocale, "Confirm on")}{" "}
                       <a
                         className="underline"
                         href={linkUrl}
@@ -85,10 +93,10 @@ export function T3ChatUserProfilePage() {
                       >
                         t3.chat
                       </a>
-                      , then select Refresh.
+                      {translateStaticUiCopy(staticUiLocale, ", then select Refresh.")}
                     </>
                   ) : (
-                    "You confirm the link on t3.chat."
+                    translateStaticUiCopy(staticUiLocale, "You confirm the link on t3.chat.")
                   )}
                 </p>
               </div>
@@ -99,11 +107,15 @@ export function T3ChatUserProfilePage() {
                   disabled={pending !== null}
                   onClick={() => void handleUnlink()}
                 >
-                  {pending === "unlink" ? "Unlinking…" : "Unlink"}
+                  {pending === "unlink"
+                    ? translateStaticUiCopy(staticUiLocale, "Unlinking…")
+                    : translateStaticUiCopy(staticUiLocale, "Unlink")}
                 </Button>
               ) : (
                 <Button size="sm" disabled={pending !== null} onClick={() => void handleLink()}>
-                  {pending === "link" ? "Opening…" : "Link T3 Chat"}
+                  {pending === "link"
+                    ? translateStaticUiCopy(staticUiLocale, "Opening…")
+                    : translateStaticUiCopy(staticUiLocale, "Link T3 Chat")}
                 </Button>
               )}
             </div>

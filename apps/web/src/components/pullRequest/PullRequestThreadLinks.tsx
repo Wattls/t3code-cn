@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { Tooltip, TooltipTrigger, TooltipPopup } from "../ui/tooltip";
 import { scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { settlePromise, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
@@ -50,6 +52,7 @@ function EnabledPullRequestThreadLinks({
   display,
   onPickerOpenChange,
 }: PullRequestThreadLinksProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const parsedUrl = sourceControlClients.parseChangeRequestUrl(url);
   const parsed = parsedUrl?.link ?? null;
   const term = (parsedUrl?.definition ?? sourceControlClients.get(undefined)).changeRequest
@@ -134,7 +137,10 @@ function EnabledPullRequestThreadLinks({
               </Button>
             }
           />
-          <TooltipPopup>{linkedThreadsLabel}. Search in the command palette.</TooltipPopup>
+          <TooltipPopup>
+            {linkedThreadsLabel}
+            {translateStaticUiCopy(staticUiLocale, ". Search in the command palette.")}
+          </TooltipPopup>
         </Tooltip>
       ) : null}
       {display === "menu-item" ? (
@@ -154,16 +160,20 @@ function EnabledPullRequestThreadLinks({
             <PullRequestGlyph.link aria-hidden className="size-3.5" />
           )}
           {linkedHere
-            ? "Unlink from this thread"
+            ? translateStaticUiCopy(staticUiLocale, "Unlink from this thread")
             : currentThreadRef
-              ? "Link to this thread"
-              : "Link to thread"}
+              ? translateStaticUiCopy(staticUiLocale, "Link to this thread")
+              : translateStaticUiCopy(staticUiLocale, "Link to thread")}
         </MenuItem>
       ) : null}
       {display === "picker" ? (
         <Dialog open onOpenChange={onPickerOpenChange}>
           <DialogPopup className="max-w-md" showCloseButton={false}>
-            <DialogTitle className="sr-only">Link {term} to a thread</DialogTitle>
+            <DialogTitle className="sr-only">
+              {translateStaticUiCopy(staticUiLocale, "Link") + " "}
+              {term}
+              {" " + translateStaticUiCopy(staticUiLocale, "to a thread")}
+            </DialogTitle>
             <ThreadPicker
               environmentId={environmentId}
               url={url}
@@ -188,6 +198,7 @@ function ThreadPicker({
   pending: boolean;
   onSelect: (threadId: ThreadId) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const threads = useThreadShells();
   const linking = usePullRequestLinking(environmentId);
   const projects = useProjects();
@@ -211,12 +222,20 @@ function ThreadPicker({
     )
     .toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   return (
-    <Command mode="none" value={query} onValueChange={setQuery} aria-label="Choose a thread">
-      <CommandInput placeholder="Search threads or projects..." disabled={pending} />
+    <Command
+      mode="none"
+      value={query}
+      onValueChange={setQuery}
+      aria-label={translateStaticUiCopy(staticUiLocale, "Choose a thread")}
+    >
+      <CommandInput
+        placeholder={translateStaticUiCopy(staticUiLocale, "Search threads or projects...")}
+        disabled={pending}
+      />
       <CommandList className="max-h-80 overflow-y-auto">
         {candidates.length === 0 ? (
           <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-            No active threads found.
+            {translateStaticUiCopy(staticUiLocale, "No active threads found.")}
           </div>
         ) : (
           candidates.map((thread) => {
@@ -238,7 +257,9 @@ function ThreadPicker({
                 {linked ? (
                   <>
                     <CheckIcon aria-hidden className="size-3.5" />
-                    <span className="text-xs text-muted-foreground">Linked</span>
+                    <span className="text-xs text-muted-foreground">
+                      {translateStaticUiCopy(staticUiLocale, "Linked")}
+                    </span>
                   </>
                 ) : null}
               </CommandItem>

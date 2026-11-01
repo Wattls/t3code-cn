@@ -1,6 +1,9 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useSyncLayout } from "@legendapp/list/react";
 import { type OrchestrationV2CheckpointFileTotals, type RunId } from "@t3tools/contracts";
 import { type MouseEvent, type ReactNode, memo, useLayoutEffect, useRef, useState } from "react";
+import { useI18n } from "../../i18n/WebI18nContext";
 import { type TurnDiffFileChange } from "../../types";
 import { buildTurnDiffTree, type TurnDiffTreeNode } from "../../lib/turnDiffTree";
 import { ChevronRightIcon, FileDiffIcon } from "lucide-react";
@@ -36,6 +39,8 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
   onOpenTurnDiff: (runId: RunId, filePath?: string) => void;
   onFileContextMenu?: ChangedFileContextMenuHandler | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { t } = useI18n();
   const {
     runId,
     files,
@@ -61,7 +66,9 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-foreground">
           <span>
-            {totals.count.toLocaleString()} changed file{totals.count === 1 ? "" : "s"}
+            {t(totals.count === 1 ? "changedFiles.countOne" : "changedFiles.countMany", {
+              count: totals.count,
+            })}
           </span>
           {hasNonZeroStat(totals) && (
             <DiffStatLabel
@@ -82,7 +89,9 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
                     size="icon-xs"
                     variant="ghost-muted"
                     aria-label={
-                      allDirectoriesExpanded ? "Collapse all folders" : "Expand all folders"
+                      allDirectoriesExpanded
+                        ? t("changedFiles.collapseAll")
+                        : t("changedFiles.expandAll")
                     }
                     data-scroll-anchor-ignore
                     onClick={() => {
@@ -98,7 +107,9 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
                 />
               </TooltipTrigger>
               <TooltipPopup side="top">
-                {allDirectoriesExpanded ? "Collapse all folders" : "Expand all folders"}
+                {allDirectoriesExpanded
+                  ? t("changedFiles.collapseAll")
+                  : t("changedFiles.expandAll")}
               </TooltipPopup>
             </Tooltip>
           )}
@@ -109,15 +120,17 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
                   type="button"
                   size="xs"
                   variant="ghost-muted"
-                  aria-label="Open diff"
+                  aria-label={t("changedFiles.openDiff")}
                   onClick={() => onOpenTurnDiff(runId, files[0]?.path)}
                 />
               }
             >
               <FileDiffIcon className="size-3" />
-              <span className="hidden @[24rem]/changed-files:inline">Open diff</span>
+              <span className="hidden @[24rem]/changed-files:inline">
+                {t("changedFiles.openDiff")}
+              </span>
             </TooltipTrigger>
-            <TooltipPopup side="top">Open the full diff</TooltipPopup>
+            <TooltipPopup side="top">{t("changedFiles.openFullDiff")}</TooltipPopup>
           </Tooltip>
         </div>
       </div>
@@ -138,8 +151,10 @@ export const ChangedFilesCard = memo(function ChangedFilesCard(props: {
             variant="ghost-muted"
             onClick={() => onOpenTurnDiff(runId, files[0]?.path)}
           >
-            {hiddenFileCount.toLocaleString()} more file{hiddenFileCount === 1 ? "" : "s"} in the
-            full diff
+            {hiddenFileCount.toLocaleString()}
+            {" " + translateStaticUiCopy(staticUiLocale, "more file")}
+            {hiddenFileCount === 1 ? "" : "s"}
+            {" " + translateStaticUiCopy(staticUiLocale, "in the full diff")}
           </Button>
         </div>
       )}

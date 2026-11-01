@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { filePreviewDelimiter } from "@t3tools/shared/delimitedPreview";
 import type { AssetResource, EnvironmentId, ScopedThreadRef } from "@t3tools/contracts";
 import { formatAttachmentSize } from "@t3tools/client-runtime/state/attachments";
@@ -90,6 +92,7 @@ export function AttachmentFilePreview(props: {
   onRemove?: () => void;
   onClose?: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const kind = filePreviewKind(props);
   const officeKind = officePreviewKind(props);
   const delimiter = filePreviewDelimiter(props);
@@ -248,7 +251,7 @@ export function AttachmentFilePreview(props: {
         const cause = Cause.squash(result.cause);
         toastManager.add({
           type: "error",
-          title: "Could not save file",
+          title: translateStaticUiCopy(staticUiLocale, "Could not save file"),
           description: cause instanceof Error ? cause.message : "Please try again.",
         });
       }
@@ -349,10 +352,13 @@ export function AttachmentFilePreview(props: {
     />
   ) : (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-6 text-center">
-      <p className="text-sm font-medium">No preview for this file</p>
+      <p className="text-sm font-medium">
+        {translateStaticUiCopy(staticUiLocale, "No preview for this file")}
+      </p>
       <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
-        Save it to open in an app that supports {props.name.split(".").at(-1) || "this format"}{" "}
-        files.
+        {translateStaticUiCopy(staticUiLocale, "Save it to open in an app that supports") + " "}
+        {props.name.split(".").at(-1) || "this format"}{" "}
+        {translateStaticUiCopy(staticUiLocale, "files.")}
       </p>
     </div>
   );
@@ -388,7 +394,11 @@ export function AttachmentFilePreview(props: {
         ) : null}
         {showsRawText ? (
           <FileSurfaceAction
-            label={wordWrap ? "Disable word wrap" : "Enable word wrap"}
+            label={
+              wordWrap
+                ? translateStaticUiCopy(staticUiLocale, "Disable word wrap")
+                : translateStaticUiCopy(staticUiLocale, "Enable word wrap")
+            }
             pressed={wordWrap}
             onPress={() => setWordWrapOverride(!wordWrap)}
           >
@@ -397,7 +407,13 @@ export function AttachmentFilePreview(props: {
         ) : null}
         {content || streamsText ? (
           <FileSurfaceAction
-            label={isCopied ? "Copied" : content?.truncated ? "Copy preview" : "Copy contents"}
+            label={
+              isCopied
+                ? translateStaticUiCopy(staticUiLocale, "Copied")
+                : content?.truncated
+                  ? translateStaticUiCopy(staticUiLocale, "Copy preview")
+                  : translateStaticUiCopy(staticUiLocale, "Copy contents")
+            }
             onPress={() => {
               if (content) {
                 void copyToClipboard(content.text, undefined);
@@ -407,8 +423,11 @@ export function AttachmentFilePreview(props: {
               if (!copy) {
                 toastManager.add({
                   type: "error",
-                  title: "Could not copy file",
-                  description: "Wait for the file to finish loading before copying.",
+                  title: translateStaticUiCopy(staticUiLocale, "Could not copy file"),
+                  description: translateStaticUiCopy(
+                    staticUiLocale,
+                    "Wait for the file to finish loading before copying.",
+                  ),
                 });
                 return;
               }
@@ -417,7 +436,7 @@ export function AttachmentFilePreview(props: {
                 .catch((cause: unknown) =>
                   toastManager.add({
                     type: "error",
-                    title: "Could not copy file",
+                    title: translateStaticUiCopy(staticUiLocale, "Could not copy file"),
                     description: cause instanceof Error ? cause.message : "Try again.",
                   }),
                 );
@@ -428,7 +447,11 @@ export function AttachmentFilePreview(props: {
         ) : null}
         {url ? (
           <FileSurfaceAction
-            label={saving ? "Preparing file…" : "Save file"}
+            label={
+              saving
+                ? translateStaticUiCopy(staticUiLocale, "Preparing file…")
+                : translateStaticUiCopy(staticUiLocale, "Save file")
+            }
             disabled={saving}
             onPress={save}
           >
@@ -436,21 +459,27 @@ export function AttachmentFilePreview(props: {
           </FileSurfaceAction>
         ) : null}
         {props.onRemove ? (
-          <FileSurfaceAction label="Remove from draft" onPress={props.onRemove}>
+          <FileSurfaceAction
+            label={translateStaticUiCopy(staticUiLocale, "Remove from draft")}
+            onPress={props.onRemove}
+          >
             <Trash2Icon className="size-3.5" />
           </FileSurfaceAction>
         ) : null}
         {props.onClose ? (
-          <FileSurfaceAction label="Close" onPress={props.onClose}>
+          <FileSurfaceAction
+            label={translateStaticUiCopy(staticUiLocale, "Close")}
+            onPress={props.onClose}
+          >
             <XIcon className="size-3.5" />
           </FileSurfaceAction>
         ) : null}
       </div>
       {content?.truncated ? (
         <FileSurfaceNotice>
-          Preview limited to the first 1 MB
-          {props.sizeBytes > 0 ? ` of a ${props.sizeBytes.toLocaleString()} byte file` : ""}. Save
-          the file to read it in full.
+          {translateStaticUiCopy(staticUiLocale, "Preview limited to the first 1 MB")}
+          {props.sizeBytes > 0 ? ` of a ${props.sizeBytes.toLocaleString()} byte file` : ""}
+          {translateStaticUiCopy(staticUiLocale, ". Save the file to read it in full.")}
         </FileSurfaceNotice>
       ) : null}
       {body}

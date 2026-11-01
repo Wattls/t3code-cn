@@ -8,6 +8,8 @@ import {
 } from "@t3tools/contracts";
 
 import { useUpdateEnvironmentSettings } from "../../hooks/useSettings";
+import { useI18n } from "../../i18n/WebI18nContext";
+import { translateWebSource } from "../../i18n/messages";
 import { useEnvironmentScope } from "../../state/session";
 import { ENVIRONMENT_MACHINE_KIND_LABELS, EnvironmentMachineIcon } from "../EnvironmentMachineIcon";
 import {
@@ -40,6 +42,7 @@ export function EnvironmentIconMenu({
   readonly environmentId: EnvironmentId;
   readonly serverConfig: Pick<ServerConfig, "environment"> | null;
 }) {
+  const { locale, t } = useI18n();
   const updateSettings = useUpdateEnvironmentSettings(environmentId);
   const operateAccess = useEnvironmentScope(environmentId, AuthSettingsWriteScope)
     ? "granted"
@@ -52,13 +55,13 @@ export function EnvironmentIconMenu({
     <MenuSub>
       <MenuSubTrigger>
         <EnvironmentMachineIcon kind={resolved} />
-        Icon
+        {t("environmentIcon.label")}
       </MenuSubTrigger>
       <MenuSubPopup>
         {lock !== null ? (
           <>
             <MenuItem disabled className="whitespace-normal">
-              {lock}
+              {translateWebSource(locale, lock)}
             </MenuItem>
             <MenuSeparator />
           </>
@@ -75,11 +78,14 @@ export function EnvironmentIconMenu({
               <span className="flex min-w-0 items-center gap-2">
                 <EnvironmentMachineIcon kind={kind} className="size-3.5 shrink-0" />
                 <span className="min-w-0 flex-1 truncate">
-                  {ENVIRONMENT_MACHINE_KIND_LABELS[kind]}
+                  {translateWebSource(locale, ENVIRONMENT_MACHINE_KIND_LABELS[kind])}
                 </span>
                 {kind === detected ? (
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {serverConfig?.environment.platform.machine ? "detected" : "default"}
+                    {translateWebSource(
+                      locale,
+                      serverConfig?.environment.platform.machine ? "detected" : "default",
+                    )}
                   </span>
                 ) : null}
               </span>

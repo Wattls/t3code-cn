@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { ServerProcessSignal } from "@t3tools/contracts";
 
 import { InlineButton } from "../ui/button";
@@ -10,6 +12,7 @@ export function ProcessSignalActions({
   disabled: boolean;
   onSignal: (signal: ServerProcessSignal) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <div className="flex items-center justify-end gap-1.5">
       <Tooltip>
@@ -17,7 +20,7 @@ export function ProcessSignalActions({
           render={
             <InlineButton
               disabled={disabled}
-              aria-label="Send SIGINT"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Send SIGINT")}
               tone="muted"
               onClick={() => onSignal("SIGINT")}
             >
@@ -25,14 +28,16 @@ export function ProcessSignalActions({
             </InlineButton>
           }
         />
-        <TooltipPopup side="top">Send SIGINT</TooltipPopup>
+        <TooltipPopup side="top">
+          {translateStaticUiCopy(staticUiLocale, "Send SIGINT")}
+        </TooltipPopup>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger
           render={
             <InlineButton
               disabled={disabled}
-              aria-label="Send SIGKILL"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Send SIGKILL")}
               tone="destructive"
               onClick={() => onSignal("SIGKILL")}
             >
@@ -40,7 +45,9 @@ export function ProcessSignalActions({
             </InlineButton>
           }
         />
-        <TooltipPopup side="top">Send SIGKILL</TooltipPopup>
+        <TooltipPopup side="top">
+          {translateStaticUiCopy(staticUiLocale, "Send SIGKILL")}
+        </TooltipPopup>
       </Tooltip>
     </div>
   );

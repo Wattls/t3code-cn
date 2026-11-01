@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { type EnvironmentContextRecord, resolveEnvironmentMachineKind } from "@t3tools/contracts";
 
 import { useEnvironment } from "~/state/environments";
@@ -13,6 +15,7 @@ export function EnvironmentContextChip(props: {
   record: Pick<EnvironmentContextRecord, "environmentId" | "label">;
   copyMarkdown?: string;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const environment = useEnvironment(props.record.environmentId);
   const label = environment?.label.trim() || props.record.label;
   return (
@@ -33,7 +36,9 @@ export function EnvironmentContextChip(props: {
         }
       />
       <TooltipPopup side="top">
-        {environment ? "T3 Code environment" : "Machine not in this app"}
+        {environment
+          ? translateStaticUiCopy(staticUiLocale, "T3 Code environment")
+          : translateStaticUiCopy(staticUiLocale, "Machine not in this app")}
       </TooltipPopup>
     </Tooltip>
   );

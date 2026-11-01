@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import {
   AuthOrchestrationOperateScope,
   type EnvironmentId,
@@ -78,6 +80,8 @@ interface PlanFollowUpSendInput extends PlanSendBase {
  * (which links the turn to the plan). Resolves whether the turn started.
  */
 export function usePlanFollowUpSend(input: PlanFollowUpSendInput) {
+  const { locale: uiLocale } = useI18n();
+
   const {
     environmentId,
     routeThreadKey,
@@ -224,7 +228,9 @@ export function usePlanFollowUpSend(input: PlanFollowUpSendInput) {
       const error = squashAtomCommandFailure(failure);
       setThreadError(
         threadIdForSend,
-        error instanceof Error ? error.message : "Failed to send plan follow-up.",
+        error instanceof Error
+          ? error.message
+          : translateWebSource(uiLocale, "Failed to send plan follow-up."),
       );
     }
     sendInFlightRef.current = false;
@@ -244,6 +250,8 @@ interface ImplementPlanInNewThreadInput extends PlanSendBase {
  * thread is deleted again if it cannot be started or opened.
  */
 export function useImplementPlanInNewThread(input: ImplementPlanInNewThreadInput) {
+  const { t } = useI18n();
+
   const {
     environmentId,
     routeThreadKey,
@@ -382,11 +390,9 @@ export function useImplementPlanInNewThread(input: ImplementPlanInNewThreadInput
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not start implementation thread",
+            title: t("chat.implementationStartFailed"),
             description:
-              error instanceof Error
-                ? error.message
-                : "An error occurred while creating the new thread.",
+              error instanceof Error ? error.message : t("chat.implementationCreateError"),
           }),
         );
       }

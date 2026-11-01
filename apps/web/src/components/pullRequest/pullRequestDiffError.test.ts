@@ -1,3 +1,5 @@
+import { translateWebMessage } from "~/i18n/messages";
+
 import { describe, expect, it } from "vite-plus/test";
 
 import { describePullRequestDiffError } from "./pullRequestDiffError";
@@ -34,4 +36,16 @@ describe("describePullRequestDiffError", () => {
     expect(result.description).not.toContain("localhost");
     expect(result.description).not.toContain("limit");
   });
+});
+
+it("localizes rate limits without losing the provider name", () => {
+  const result = describePullRequestDiffError(
+    "Too many requests",
+    "GitLab",
+    "merge request",
+    (key, values) => translateWebMessage("zh-CN", key, values),
+  );
+  expect(result.title).toBe("已达到 GitLab 请求频率限制");
+  expect(result.description).toContain("GitLab 暂时限制了请求频率");
+  expect(result.description).not.toContain("GitHub");
 });

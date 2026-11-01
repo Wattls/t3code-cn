@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useAtomValue } from "@effect/atom-react";
 import { ThreadDetailsControl } from "./ThreadDetailsControl";
 import { ThreadHoverCardPopup } from "../ThreadHoverCard";
@@ -104,11 +106,12 @@ function ThreadLineageRowList(props: {
   readonly onShowMore: () => void;
   readonly children: ReactNode;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <>
       {/* ScrollArea's max-height viewport measures badly inside this scrolling panel. */}
       <ul
-        aria-label="Related threads"
+        aria-label={translateStaticUiCopy(staticUiLocale, "Related threads")}
         className="m-0 max-h-[13.5rem] list-none overflow-y-auto overscroll-contain p-0 has-data-workflow-expanded:max-h-[min(28rem,55dvh)]"
       >
         {props.children}
@@ -120,7 +123,9 @@ function ThreadLineageRowList(props: {
           className={`flex h-8 w-full cursor-pointer items-center rounded-lg ${THREAD_DETAILS_PANEL_ROW_CONTENT_CLASS} text-sm font-medium text-muted-foreground/70 hover:bg-black/[0.055] hover:text-foreground/80 dark:hover:bg-white/[0.075]`}
         >
           <PlusIcon aria-hidden className="size-4 shrink-0" />
-          Show {Math.min(props.hiddenCount, THREAD_LINEAGE_PAGE_COUNT)} more
+          {translateStaticUiCopy(staticUiLocale, "Show") + " "}
+          {Math.min(props.hiddenCount, THREAD_LINEAGE_PAGE_COUNT)}
+          {" " + translateStaticUiCopy(staticUiLocale, "more")}
         </button>
       ) : null}
     </>
@@ -133,6 +138,7 @@ function ThreadLineageGroup(props: {
   readonly expanded: boolean;
   readonly children: (rows: ReadonlyArray<ThreadRelationshipWalkRow>) => ReactNode;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [expanded, setExpanded] = useState(props.expanded);
   const [visibleCount, setVisibleCount] = useState(THREAD_LINEAGE_INITIAL_COUNT);
   const { visibleRows, hiddenCount } = resolveThreadLineageWindow(props.rows, visibleCount);
@@ -148,7 +154,12 @@ function ThreadLineageGroup(props: {
           <span className={cn(THREAD_DETAILS_PANEL_LABEL_CLASS, "min-w-0 flex-1 truncate")}>
             {props.label}
           </span>
-          {failedCount > 0 ? <SectionHeaderStatus>{failedCount} failed</SectionHeaderStatus> : null}
+          {failedCount > 0 ? (
+            <SectionHeaderStatus>
+              {failedCount}
+              {" " + translateStaticUiCopy(staticUiLocale, "failed")}
+            </SectionHeaderStatus>
+          ) : null}
           {expanded ? null : (
             <span className="shrink-0 text-xs font-normal tabular-nums text-muted-foreground">
               {props.rows.length}
@@ -233,6 +244,7 @@ function RemoteSubagentRow(props: {
   };
   readonly provider: ServerProvider | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const navigate = useNavigate();
   const environment = useEnvironment(props.agent.remoteChild.environmentId);
   const { remoteChild } = props.agent;
@@ -279,7 +291,8 @@ function RemoteSubagentRow(props: {
           <span
             className={`shrink-0 text-2xs ${failed ? "text-destructive" : "text-muted-foreground"}`}
           >
-            on {remoteChild.label} · {threadRelationshipStatusLabel(status)}
+            {translateStaticUiCopy(staticUiLocale, "on") + " "}
+            {remoteChild.label} · {threadRelationshipStatusLabel(status)}
           </span>
         </TooltipTrigger>
         <TooltipPopup side="left">
@@ -300,6 +313,7 @@ function DelegatedFromRow(props: {
   readonly delegatedFrom: OrchestrationV2DelegatedFrom;
   readonly fallbackLabel: string | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const navigate = useNavigate();
   const { delegatedFrom } = props;
   const environment = useEnvironment(delegatedFrom.environmentId);
@@ -335,13 +349,16 @@ function DelegatedFromRow(props: {
             </span>
           </span>
           {label ? (
-            <span className="shrink-0 text-2xs text-muted-foreground">on {label}</span>
+            <span className="shrink-0 text-2xs text-muted-foreground">
+              {translateStaticUiCopy(staticUiLocale, "on") + " "}
+              {label}
+            </span>
           ) : null}
         </TooltipTrigger>
         <TooltipPopup side="left">
           {environment === null
             ? `Delegated from ${label ?? "a linked environment"}. Connect to it to open the parent thread.`
-            : "Open parent agent"}
+            : translateStaticUiCopy(staticUiLocale, "Open parent agent")}
         </TooltipPopup>
       </Tooltip>
     </li>
@@ -354,6 +371,7 @@ export function ThreadRelationshipsPanel(props: {
   readonly showLineage: boolean;
   readonly showSideChats: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const ref = scopeThreadRef(props.environmentId, props.threadId);
   const projection = useThreadProjection(ref)?.projection ?? null;
   const providersByEnvironment = useEnvironmentProviders();
@@ -468,7 +486,12 @@ export function ThreadRelationshipsPanel(props: {
   const groups = [
     { id: "related", label: null, rows: related, expanded: true },
     { id: "active", label: null, rows: active, expanded: true },
-    { id: "previous", label: "Previous agents", rows: previous, expanded: false },
+    {
+      id: "previous",
+      label: translateStaticUiCopy(staticUiLocale, "Previous agents"),
+      rows: previous,
+      expanded: false,
+    },
   ];
   // Tasks running in a linked environment have no thread here; they get their own rows.
   const remoteSubagents = (projection?.subagents ?? []).filter(
@@ -527,7 +550,7 @@ export function ThreadRelationshipsPanel(props: {
     if (result._tag === "Failure") {
       mergeErrorToastId.current = toastManager.add({
         type: "error",
-        title: "Could not merge back",
+        title: translateStaticUiCopy(staticUiLocale, "Could not merge back"),
       });
       return;
     }
@@ -549,7 +572,7 @@ export function ThreadRelationshipsPanel(props: {
     if (result._tag === "Failure") {
       detachErrorToastId.current = toastManager.add({
         type: "error",
-        title: "Could not disconnect agent session",
+        title: translateStaticUiCopy(staticUiLocale, "Could not disconnect agent session"),
       });
     }
   };
@@ -566,7 +589,10 @@ export function ThreadRelationshipsPanel(props: {
     });
     setStoppingId(null);
     if (result._tag === "Failure") {
-      toastManager.add({ type: "error", title: "Could not stop subagent" });
+      toastManager.add({
+        type: "error",
+        title: translateStaticUiCopy(staticUiLocale, "Could not stop subagent"),
+      });
     }
   };
 
@@ -579,7 +605,10 @@ export function ThreadRelationshipsPanel(props: {
     });
     setStoppingId(null);
     if (result._tag === "Failure") {
-      toastManager.add({ type: "error", title: "Could not stop workflow" });
+      toastManager.add({
+        type: "error",
+        title: translateStaticUiCopy(staticUiLocale, "Could not stop workflow"),
+      });
     }
   };
 
@@ -776,7 +805,7 @@ export function ThreadRelationshipsPanel(props: {
                     aria-label={
                       parentTitle
                         ? `Merge back to ${parentTitle}`
-                        : "Merge back to source conversation"
+                        : translateStaticUiCopy(staticUiLocale, "Merge back to source conversation")
                     }
                     disabled={!canMerge || busyAction !== null}
                     onClick={() => void merge()}
@@ -791,10 +820,16 @@ export function ThreadRelationshipsPanel(props: {
               />
               <TooltipPopup side="left">
                 {latestMergeBackRun === null
-                  ? "Complete a run in this fork before merging it back"
+                  ? translateStaticUiCopy(
+                      staticUiLocale,
+                      "Complete a run in this fork before merging it back",
+                    )
                   : parentTitle
                     ? `Merge this conversation back into ${parentTitle}`
-                    : "Merge this conversation back into its source"}
+                    : translateStaticUiCopy(
+                        staticUiLocale,
+                        "Merge this conversation back into its source",
+                      )}
               </TooltipPopup>
             </Tooltip>
             <span className="shrink-0 border border-transparent ps-1 pe-2.5 text-2xs font-medium text-muted-foreground">
@@ -826,7 +861,9 @@ export function ThreadRelationshipsPanel(props: {
                   <SquareIcon aria-hidden className="size-3 fill-current" />
                 )}
               </TooltipTrigger>
-              <TooltipPopup side="left">Stop subagent</TooltipPopup>
+              <TooltipPopup side="left">
+                {translateStaticUiCopy(staticUiLocale, "Stop subagent")}
+              </TooltipPopup>
             </Tooltip>
           </div>
         ) : null}
@@ -839,7 +876,11 @@ export function ThreadRelationshipsPanel(props: {
       {lineageVisible ? (
         <ThreadDetailsSection
           headingId="thread-details-lineage-heading"
-          title={runningCount > 0 ? `Lineage · ${runningCount} running` : "Lineage"}
+          title={
+            runningCount > 0
+              ? `Lineage · ${runningCount} running`
+              : translateStaticUiCopy(staticUiLocale, "Lineage")
+          }
           // A lone "Previous agents" row names itself; the heading returns for status or actions.
           showHeading={
             runningCount > 0 ||
@@ -858,7 +899,7 @@ export function ThreadRelationshipsPanel(props: {
                       size="icon-xs"
                       variant="ghost"
                       part="icon"
-                      aria-label="More thread actions"
+                      aria-label={translateStaticUiCopy(staticUiLocale, "More thread actions")}
                       disabled={busyAction !== null}
                     />
                   }
@@ -868,7 +909,7 @@ export function ThreadRelationshipsPanel(props: {
                 <MenuPopup align="end" className="min-w-60 max-w-(--available-width)">
                   <MenuItem onClick={() => void detach()}>
                     <UnplugIcon className="size-3.5" />
-                    Disconnect agent session
+                    {translateStaticUiCopy(staticUiLocale, "Disconnect agent session")}
                   </MenuItem>
                 </MenuPopup>
               </Menu>
@@ -907,7 +948,11 @@ export function ThreadRelationshipsPanel(props: {
       {sideChatsVisible ? (
         <ThreadDetailsSection
           headingId="thread-details-side-chats-heading"
-          title={runningSideChats > 0 ? `Side chats · ${runningSideChats} running` : "Side chats"}
+          title={
+            runningSideChats > 0
+              ? `Side chats · ${runningSideChats} running`
+              : translateStaticUiCopy(staticUiLocale, "Side chats")
+          }
           data-thread-side-chats-panel
         >
           <ThreadLineageGroup

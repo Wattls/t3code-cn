@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { DeviceHubAccess } from "@t3tools/client-runtime/state/deviceHubAccess";
 import type { DevicePermission, DeviceSummary, DeviceTextSize } from "@t3tools/contracts";
 import { ChevronDown, X } from "lucide-react";
@@ -86,6 +88,7 @@ export function DeviceToolsPanel(props: {
   readonly onClose: () => void;
   readonly className?: string;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { device, controls } = props;
   const { detail, pending, error, foregroundApp, disabled, act } = controls;
   const settings = detail?.settings;
@@ -96,12 +99,12 @@ export function DeviceToolsPanel(props: {
       className={cn("flex min-h-0 flex-col border-border bg-background text-sm", props.className)}
     >
       <div className="flex h-9 shrink-0 items-center gap-2 border-b px-3">
-        <span className="font-medium">Tools</span>
+        <span className="font-medium">{translateStaticUiCopy(staticUiLocale, "Tools")}</span>
         {pending ? <Spinner size="sm" /> : null}
         <Button
           size="icon-xs"
           variant="ghost-muted"
-          aria-label="Close tools"
+          aria-label={translateStaticUiCopy(staticUiLocale, "Close tools")}
           className="ml-auto"
           onClick={props.onClose}
         >
@@ -114,20 +117,21 @@ export function DeviceToolsPanel(props: {
         ) : null}
         {detail === null && !error ? (
           <div className="flex items-center gap-2 px-3 py-3 text-xs text-muted-foreground">
-            <Spinner size="sm" /> Reading device settings…
+            <Spinner size="sm" />
+            {" " + translateStaticUiCopy(staticUiLocale, "Reading device settings…")}
           </div>
         ) : null}
 
         {props.hostDiagnostics ? (
-          <Section title="Host diagnostics">
+          <Section title={translateStaticUiCopy(staticUiLocale, "Host diagnostics")}>
             <p className="whitespace-pre-line text-xs text-muted-foreground">
               {props.hostDiagnostics}
             </p>
           </Section>
         ) : null}
 
-        <Section title="App">
-          <Row label="Foreground">
+        <Section title={translateStaticUiCopy(staticUiLocale, "App")}>
+          <Row label={translateStaticUiCopy(staticUiLocale, "Foreground")}>
             <span className="truncate font-mono text-xs">{foregroundApp?.id ?? "-"}</span>
           </Row>
           {foregroundApp ? (
@@ -138,7 +142,7 @@ export function DeviceToolsPanel(props: {
                 disabled={disabled}
                 onClick={() => void act({ type: "terminateApp", appId: foregroundApp.id })}
               >
-                Terminate
+                {translateStaticUiCopy(staticUiLocale, "Terminate")}
               </Button>
               <Button
                 size="xs"
@@ -146,7 +150,7 @@ export function DeviceToolsPanel(props: {
                 disabled={disabled}
                 onClick={() => void act({ type: "launchApp", appId: foregroundApp.id })}
               >
-                Relaunch
+                {translateStaticUiCopy(staticUiLocale, "Relaunch")}
               </Button>
             </div>
           ) : null}
@@ -157,17 +161,27 @@ export function DeviceToolsPanel(props: {
             onSubmit={(url) => act({ type: "openUrl", url })}
           />
           <SubmitRow
-            placeholder={isIos ? "Bundle ID to launch" : "Package name to launch"}
+            placeholder={
+              isIos
+                ? translateStaticUiCopy(staticUiLocale, "Bundle ID to launch")
+                : translateStaticUiCopy(staticUiLocale, "Package name to launch")
+            }
             action="Launch"
             disabled={disabled}
             onSubmit={(appId) => act({ type: "launchApp", appId })}
           />
         </Section>
 
-        <Section title={isIos ? "Simulator" : "Emulator"}>
-          <Row label="Appearance">
+        <Section
+          title={
+            isIos
+              ? translateStaticUiCopy(staticUiLocale, "Simulator")
+              : translateStaticUiCopy(staticUiLocale, "Emulator")
+          }
+        >
+          <Row label={translateStaticUiCopy(staticUiLocale, "Appearance")}>
             <ToggleGroup
-              aria-label="Appearance"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Appearance")}
               value={settings?.appearance ? [settings.appearance] : []}
               disabled={disabled}
               onValueChange={(value) => {
@@ -176,11 +190,11 @@ export function DeviceToolsPanel(props: {
                   void act({ type: "setAppearance", value: next });
               }}
             >
-              <Toggle value="light">Light</Toggle>
-              <Toggle value="dark">Dark</Toggle>
+              <Toggle value="light">{translateStaticUiCopy(staticUiLocale, "Light")}</Toggle>
+              <Toggle value="dark">{translateStaticUiCopy(staticUiLocale, "Dark")}</Toggle>
             </ToggleGroup>
           </Row>
-          <Row label="Text size">
+          <Row label={translateStaticUiCopy(staticUiLocale, "Text size")}>
             <ChoiceSelect
               ariaLabel="Text size"
               value={settings?.textSize ?? null}
@@ -191,9 +205,9 @@ export function DeviceToolsPanel(props: {
           </Row>
           {isIos ? (
             <>
-              <Row label="Liquid Glass">
+              <Row label={translateStaticUiCopy(staticUiLocale, "Liquid Glass")}>
                 <ToggleGroup
-                  aria-label="Liquid Glass"
+                  aria-label={translateStaticUiCopy(staticUiLocale, "Liquid Glass")}
                   value={settings?.liquidGlass ? [settings.liquidGlass] : []}
                   disabled={disabled || settings?.liquidGlass === undefined}
                   onValueChange={(value) => {
@@ -203,11 +217,11 @@ export function DeviceToolsPanel(props: {
                     }
                   }}
                 >
-                  <Toggle value="clear">Clear</Toggle>
-                  <Toggle value="tinted">Tinted</Toggle>
+                  <Toggle value="clear">{translateStaticUiCopy(staticUiLocale, "Clear")}</Toggle>
+                  <Toggle value="tinted">{translateStaticUiCopy(staticUiLocale, "Tinted")}</Toggle>
                 </ToggleGroup>
               </Row>
-              <Row label="Color filter">
+              <Row label={translateStaticUiCopy(staticUiLocale, "Color filter")}>
                 <ChoiceSelect
                   ariaLabel="Color filter"
                   value={settings?.colorFilter ?? null}
@@ -218,11 +232,11 @@ export function DeviceToolsPanel(props: {
               </Row>
             </>
           ) : (
-            <Row label="Orientation">
+            <Row label={translateStaticUiCopy(staticUiLocale, "Orientation")}>
               <ChoiceSelect
                 ariaLabel="Orientation"
                 value={null}
-                placeholder="Rotate to…"
+                placeholder={translateStaticUiCopy(staticUiLocale, "Rotate to…")}
                 options={ORIENTATIONS}
                 disabled={disabled}
                 onChange={(value) => act({ type: "setOrientation", value })}
@@ -230,7 +244,7 @@ export function DeviceToolsPanel(props: {
             </Row>
           )}
           <SwitchRow
-            label="Reduce Motion"
+            label={translateStaticUiCopy(staticUiLocale, "Reduce Motion")}
             checked={settings?.reduceMotion}
             disabled={disabled}
             onChange={(value) => act({ type: "setToggle", setting: "reduceMotion", value })}
@@ -238,13 +252,13 @@ export function DeviceToolsPanel(props: {
           {isIos ? (
             <>
               <SwitchRow
-                label="Increase Contrast"
+                label={translateStaticUiCopy(staticUiLocale, "Increase Contrast")}
                 checked={settings?.increaseContrast}
                 disabled={disabled}
                 onChange={(value) => act({ type: "setToggle", setting: "increaseContrast", value })}
               />
               <SwitchRow
-                label="Reduce Transparency"
+                label={translateStaticUiCopy(staticUiLocale, "Reduce Transparency")}
                 checked={settings?.reduceTransparency}
                 disabled={disabled}
                 onChange={(value) =>
@@ -252,7 +266,7 @@ export function DeviceToolsPanel(props: {
                 }
               />
               <SwitchRow
-                label="Show Borders"
+                label={translateStaticUiCopy(staticUiLocale, "Show Borders")}
                 checked={settings?.showBorders}
                 disabled={disabled}
                 onChange={(value) => act({ type: "setToggle", setting: "showBorders", value })}
@@ -266,7 +280,7 @@ export function DeviceToolsPanel(props: {
             </>
           ) : (
             <SwitchRow
-              label="Network"
+              label={translateStaticUiCopy(staticUiLocale, "Network")}
               checked={settings?.networkEnabled}
               disabled={disabled}
               onChange={(value) => act({ type: "setToggle", setting: "networkEnabled", value })}
@@ -274,9 +288,9 @@ export function DeviceToolsPanel(props: {
           )}
         </Section>
 
-        <Section title="Accessibility">
+        <Section title={translateStaticUiCopy(staticUiLocale, "Accessibility")}>
           <SwitchRow
-            label="Overlay element frames"
+            label={translateStaticUiCopy(staticUiLocale, "Overlay element frames")}
             checked={props.axOverlay}
             disabled={props.access === null}
             onChange={(value) => {
@@ -304,9 +318,9 @@ export function DeviceToolsPanel(props: {
         />
 
         {isIos ? (
-          <Section title="Push notification">
+          <Section title={translateStaticUiCopy(staticUiLocale, "Push notification")}>
             <SubmitRow
-              placeholder="Alert text"
+              placeholder={translateStaticUiCopy(staticUiLocale, "Alert text")}
               action="Send"
               disabled={disabled || !foregroundApp}
               onSubmit={(payload) =>
@@ -316,7 +330,9 @@ export function DeviceToolsPanel(props: {
               }
             />
             {!foregroundApp ? (
-              <p className="text-xs text-muted-foreground">Open an app first.</p>
+              <p className="text-xs text-muted-foreground">
+                {translateStaticUiCopy(staticUiLocale, "Open an app first.")}
+              </p>
             ) : null}
           </Section>
         ) : null}
@@ -448,6 +464,7 @@ function LocationSection(props: {
   readonly onSet: (latitude: number, longitude: number) => Promise<void>;
   readonly onClear: () => Promise<void>;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const parsed = { latitude: Number(latitude), longitude: Number(longitude) };
@@ -457,13 +474,13 @@ function LocationSection(props: {
     Math.abs(parsed.latitude) <= 90 &&
     Math.abs(parsed.longitude) <= 180;
   return (
-    <Section title="Location">
+    <Section title={translateStaticUiCopy(staticUiLocale, "Location")}>
       <div className="flex gap-1.5">
         <Input
           size="compact"
           font="mono"
           className="min-w-0 flex-1"
-          placeholder="Latitude"
+          placeholder={translateStaticUiCopy(staticUiLocale, "Latitude")}
           inputMode="decimal"
           value={latitude}
           disabled={props.disabled}
@@ -473,7 +490,7 @@ function LocationSection(props: {
           size="compact"
           font="mono"
           className="min-w-0 flex-1"
-          placeholder="Longitude"
+          placeholder={translateStaticUiCopy(staticUiLocale, "Longitude")}
           inputMode="decimal"
           value={longitude}
           disabled={props.disabled}
@@ -492,9 +509,15 @@ function LocationSection(props: {
             void props.onSet(preset.latitude, preset.longitude);
           }}
         >
-          <SelectTrigger size="xs" className="w-32" aria-label="Location preset">
+          <SelectTrigger
+            size="xs"
+            className="w-32"
+            aria-label={translateStaticUiCopy(staticUiLocale, "Location preset")}
+          >
             <SelectValue>
-              <span className="text-muted-foreground">Preset…</span>
+              <span className="text-muted-foreground">
+                {translateStaticUiCopy(staticUiLocale, "Preset…")}
+              </span>
             </SelectValue>
           </SelectTrigger>
           <SelectPopup align="start" alignItemWithTrigger={false}>
@@ -511,7 +534,7 @@ function LocationSection(props: {
           disabled={props.disabled || !valid}
           onClick={() => void props.onSet(parsed.latitude, parsed.longitude)}
         >
-          Set
+          {translateStaticUiCopy(staticUiLocale, "Set")}
         </Button>
         {props.canClear ? (
           <Button
@@ -524,7 +547,7 @@ function LocationSection(props: {
               void props.onClear();
             }}
           >
-            Clear
+            {translateStaticUiCopy(staticUiLocale, "Clear")}
           </Button>
         ) : null}
       </div>
@@ -543,13 +566,14 @@ function PermissionsSection(props: {
     decision: "grant" | "revoke" | "reset",
   ) => Promise<void>;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [appId, setAppId] = useState("");
   const [permission, setPermission] = useState<DevicePermission>("camera");
   const resolvedAppId = appId.trim() || props.defaultAppId;
   const decide = (decision: "grant" | "revoke" | "reset") =>
     void props.onDecide(resolvedAppId, permission, decision);
   return (
-    <Section title="Permissions">
+    <Section title={translateStaticUiCopy(staticUiLocale, "Permissions")}>
       <Input
         size="compact"
         font="mono"
@@ -575,7 +599,7 @@ function PermissionsSection(props: {
           disabled={props.disabled || !resolvedAppId}
           onClick={() => decide("grant")}
         >
-          Grant
+          {translateStaticUiCopy(staticUiLocale, "Grant")}
         </Button>
         <Button
           size="xs"
@@ -583,7 +607,7 @@ function PermissionsSection(props: {
           disabled={props.disabled || !resolvedAppId}
           onClick={() => decide("revoke")}
         >
-          Revoke
+          {translateStaticUiCopy(staticUiLocale, "Revoke")}
         </Button>
         {props.canReset ? (
           <Button
@@ -592,7 +616,7 @@ function PermissionsSection(props: {
             disabled={props.disabled || !resolvedAppId}
             onClick={() => decide("reset")}
           >
-            Reset
+            {translateStaticUiCopy(staticUiLocale, "Reset")}
           </Button>
         ) : null}
       </div>
@@ -604,12 +628,13 @@ function EventLogSection(props: {
   readonly access: DeviceHubAccess;
   readonly device: DeviceSummary;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [open, setOpen] = useState(false);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger className="flex w-full items-center gap-1.5 border-b px-3 py-2.5 text-left text-xs font-medium text-muted-foreground">
-        Event log
+        {translateStaticUiCopy(staticUiLocale, "Event log")}
         <ChevronDown
           className={cn("ml-auto size-3.5 transition-transform", open && "rotate-180")}
         />
@@ -626,6 +651,7 @@ function EventLogEntries(props: {
   readonly access: DeviceHubAccess;
   readonly device: DeviceSummary;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const entries = useAtomValue(
     deviceEventLogAtom({
       access: props.access,
@@ -636,7 +662,9 @@ function EventLogEntries(props: {
   return (
     <ol className="max-h-64 overflow-y-auto px-3 py-2 font-mono text-2xs leading-relaxed">
       {entries.length === 0 ? (
-        <li className="text-muted-foreground">No events yet.</li>
+        <li className="text-muted-foreground">
+          {translateStaticUiCopy(staticUiLocale, "No events yet.")}
+        </li>
       ) : (
         entries.map((entry) => (
           <li key={entry.id} className="flex gap-2">

@@ -1,7 +1,9 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import { RefreshCwIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { threadSyncLabel, type ThreadSyncPhase } from "../../threadSync";
+import { type ThreadSyncPhase } from "../../threadSync";
 import { cn } from "~/lib/utils";
 import { NoticeText } from "./ComposerBannerStack";
 
@@ -33,6 +35,7 @@ function ThreadNowLine({
   /** Announces the line when it appears; only for something that needs the user. */
   readonly announce?: boolean;
 }) {
+  const { locale } = useI18n();
   return (
     <div
       role={announce ? "alert" : undefined}
@@ -46,7 +49,9 @@ function ThreadNowLine({
           reachable; when it is cut, its details button shows all of it. */}
       <NoticeText
         detailsLabel={
-          typeof item.title === "string" ? `Show details: ${item.title}` : "Show details"
+          typeof item.title === "string"
+            ? `${translateWebSource(locale, "Show details")}: ${item.title}`
+            : translateWebSource(locale, "Show details")
         }
         className="min-w-0 truncate"
       >
@@ -68,10 +73,15 @@ function ThreadNowLine({
 }
 
 function ThreadSyncLine({ phase }: { readonly phase: ThreadSyncPhase }) {
+  const { t } = useI18n();
   return (
     <div className={lineClassName} role="status" data-composer-sync-status={phase}>
       <RefreshCwIcon aria-hidden />
-      <span className="truncate">{threadSyncLabel(phase)}</span>
+      <span className="truncate">
+        {t(
+          phase === "loading" ? "composer.state.messagesLoading" : "composer.state.messagesSyncing",
+        )}
+      </span>
     </div>
   );
 }

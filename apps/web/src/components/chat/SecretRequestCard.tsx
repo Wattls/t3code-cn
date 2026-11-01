@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { pipe } from "effect/Function";
 import {
   SECRET_REQUEST_DEFAULT_PLACEHOLDER,
@@ -54,12 +56,13 @@ function PendingSecretRequestForm(props: {
   readonly environmentId: EnvironmentId;
   readonly item: SecretRequestItem;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { item } = props;
   const inputId = useId();
   const errorId = useId();
   const privacyId = useId();
   const answer = useAtomCommand(serverEnvironment.answerSecretRequest, {
-    label: "answer secret request",
+    label: translateStaticUiCopy(staticUiLocale, "answer secret request"),
     // The failure cause holds the request; keep it out of the console.
     reportFailure: false,
     reportDefect: false,
@@ -143,7 +146,7 @@ function PendingSecretRequestForm(props: {
           />
         </div>
         <Button type="submit" disabled={submitting || secret.trim().length === 0}>
-          Save securely
+          {translateStaticUiCopy(staticUiLocale, "Save securely")}
         </Button>
       </div>
       {error !== null ? (
@@ -166,7 +169,7 @@ function PendingSecretRequestForm(props: {
           disabled={submitting}
           onClick={() => void send({ type: "decline" })}
         >
-          Decline
+          {translateStaticUiCopy(staticUiLocale, "Decline")}
         </Button>
       </div>
     </form>

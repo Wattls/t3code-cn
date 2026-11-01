@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { DeviceHostUpdates } from "./DeviceHostUpdates";
 import type { DevicePlatform, DeviceServiceState, EnvironmentId } from "@t3tools/contracts";
 import { Check } from "lucide-react";
@@ -131,6 +133,7 @@ export function DeviceSetup(props: {
   readonly state: DeviceServiceState;
   readonly onComplete?: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const canConfigure = useEnvironmentScope(props.environmentId, AuthSettingsWriteScope);
   const configure = useAtomCommand(deviceEnvironment.configure);
   const list = useAtomCommand(deviceEnvironment.list, { reportFailure: false });
@@ -158,8 +161,11 @@ export function DeviceSetup(props: {
   return (
     <>
       <WizardHeader
-        title="Set up devices"
-        description="Review what runs on this environment before using simulators and emulators."
+        title={translateStaticUiCopy(staticUiLocale, "Set up devices")}
+        description={translateStaticUiCopy(
+          staticUiLocale,
+          "Review what runs on this environment before using simulators and emulators.",
+        )}
       >
         <WizardSteps
           steps={["Device hub", "Simulators", "Agent access"]}
@@ -173,13 +179,15 @@ export function DeviceSetup(props: {
         <DeviceHostUpdates state={props.state} environmentId={props.environmentId} />
         {step === 0 ? (
           <section className="space-y-3 text-sm">
-            <h3 className="font-medium">Enable the device hub</h3>
+            <h3 className="font-medium">
+              {translateStaticUiCopy(staticUiLocale, "Enable the device hub")}
+            </h3>
             <div className="flex items-start justify-between gap-4">
               <p className="text-muted-foreground">{deviceHubDescription}</p>
               <Switch
                 checked={enabled}
                 disabled={!canConfigure || busy || pending !== null}
-                aria-label="Enable device hub"
+                aria-label={translateStaticUiCopy(staticUiLocale, "Enable device hub")}
                 onCheckedChange={(checked) =>
                   void update("hub", {
                     enabled: Boolean(checked),
@@ -197,7 +205,9 @@ export function DeviceSetup(props: {
 
         {step === 1 || (step === 0 && enabled && localPlatformsUnavailable) ? (
           <section className={cn("space-y-3 text-sm", step === 0 && "mt-4")}>
-            <h3 className="font-medium">Check simulator support</h3>
+            <h3 className="font-medium">
+              {translateStaticUiCopy(staticUiLocale, "Check simulator support")}
+            </h3>
             <DevicePlatformSetup
               state={props.state}
               checking={pending === "check"}
@@ -214,13 +224,18 @@ export function DeviceSetup(props: {
 
         {step === 2 ? (
           <section className="space-y-3 text-sm">
-            <h3 className="font-medium">Allow agent control</h3>
+            <h3 className="font-medium">
+              {translateStaticUiCopy(staticUiLocale, "Allow agent control")}
+            </h3>
             <div className="flex items-start justify-between gap-4">
               <p className="text-muted-foreground">{agentDeviceDescription}</p>
               <Switch
                 checked={props.state.agentAccessEnabled}
                 disabled={!canConfigure || !enabled || busy || pending !== null}
-                aria-label="Allow agents to control devices"
+                aria-label={translateStaticUiCopy(
+                  staticUiLocale,
+                  "Allow agents to control devices",
+                )}
                 onCheckedChange={(checked) =>
                   void update("agent", { agentAccessEnabled: Boolean(checked) })
                 }
@@ -228,7 +243,10 @@ export function DeviceSetup(props: {
             </div>
             <AgentDeviceSetupStatus state={props.state} pending={pending === "agent"} />
             <p className="text-xs text-muted-foreground">
-              Leave this off to keep manual device controls without giving agents access.
+              {translateStaticUiCopy(
+                staticUiLocale,
+                "Leave this off to keep manual device controls without giving agents access.",
+              )}
             </p>
           </section>
         ) : null}
@@ -241,26 +259,30 @@ export function DeviceSetup(props: {
 
       <WizardFooter>
         {step === 0 ? (
-          <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+          <DialogClose render={<Button variant="outline" />}>
+            {translateStaticUiCopy(staticUiLocale, "Cancel")}
+          </DialogClose>
         ) : (
           <Button
             variant="outline"
             disabled={busy || pending !== null}
             onClick={() => setStep(step - 1)}
           >
-            Back
+            {translateStaticUiCopy(staticUiLocale, "Back")}
           </Button>
         )}
         {step < 2 ? (
           <Button disabled={!ready || pending !== null} onClick={() => setStep(step + 1)}>
-            Continue
+            {translateStaticUiCopy(staticUiLocale, "Continue")}
           </Button>
         ) : (
           <Button
             disabled={!canConfigure || !ready || pending !== null}
             onClick={() => void update("complete", { onboardingCompleted: true })}
           >
-            {pending === "complete" ? "Saving…" : "Done"}
+            {pending === "complete"
+              ? translateStaticUiCopy(staticUiLocale, "Saving…")
+              : translateStaticUiCopy(staticUiLocale, "Done")}
           </Button>
         )}
       </WizardFooter>
@@ -277,6 +299,7 @@ export function DeviceHubSetupStatus({
   readonly pending: boolean;
   readonly compact?: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   if (!pending && !deviceHubReadiness(state).ready) return null;
   return (
     <p role="status" className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -284,16 +307,16 @@ export function DeviceHubSetupStatus({
       {pending
         ? state.hostStatus === "installing"
           ? compact
-            ? "Installing…"
-            : "Installing device hub…"
+            ? translateStaticUiCopy(staticUiLocale, "Installing…")
+            : translateStaticUiCopy(staticUiLocale, "Installing device hub…")
           : state.hostStatus === "starting"
             ? compact
-              ? "Starting…"
-              : "Starting device hub…"
+              ? translateStaticUiCopy(staticUiLocale, "Starting…")
+              : translateStaticUiCopy(staticUiLocale, "Starting device hub…")
             : compact
-              ? "Updating…"
-              : "Updating device hub…"
-        : "Device hub is ready."}
+              ? translateStaticUiCopy(staticUiLocale, "Updating…")
+              : translateStaticUiCopy(staticUiLocale, "Updating device hub…")
+        : translateStaticUiCopy(staticUiLocale, "Device hub is ready.")}
     </p>
   );
 }
@@ -304,17 +327,23 @@ function DevicePlatformSetup(props: {
   readonly disabled: boolean;
   readonly onCheck: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <div className="space-y-3">
       <PlatformStatus platform="iOS" status={platformSetupStatus(props.state, "ios")} />
       <PlatformStatus platform="Android" status={platformSetupStatus(props.state, "android")} />
       <DeviceHostDiagnostics hosts={props.state.hosts} hostStatuses={props.state.hostStatuses} />
       <p className="text-xs text-muted-foreground">
-        You can use either platform. Fixing a missing platform does not block the other one.
+        {translateStaticUiCopy(
+          staticUiLocale,
+          "You can use either platform. Fixing a missing platform does not block the other one.",
+        )}
       </p>
       <Button size="compact" variant="outline" disabled={props.disabled} onClick={props.onCheck}>
         {props.checking ? <Spinner size="xs" /> : null}
-        {props.checking ? "Checking…" : "Check again"}
+        {props.checking
+          ? translateStaticUiCopy(staticUiLocale, "Checking…")
+          : translateStaticUiCopy(staticUiLocale, "Check again")}
       </Button>
     </div>
   );
@@ -325,6 +354,7 @@ export function AgentDeviceSetupStatus(props: {
   readonly pending: boolean;
   readonly compact?: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   if (props.pending) {
     const label =
       props.state.hostStatus === "installing"
@@ -353,7 +383,7 @@ export function AgentDeviceSetupStatus(props: {
     return (
       <p role="status" className="flex items-center gap-2 text-xs text-muted-foreground">
         <Check className="size-3 text-success" />
-        Agent tools are ready.
+        {translateStaticUiCopy(staticUiLocale, "Agent tools are ready.")}
       </p>
     );
   }
@@ -365,6 +395,7 @@ function PlatformStatus(props: {
   readonly status: { readonly ready: boolean; readonly message: string };
   readonly compact?: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <div
       className={cn("flex gap-2", !props.compact && "rounded-md border border-border/60 px-3 py-2")}
@@ -379,7 +410,9 @@ function PlatformStatus(props: {
       <div className={cn(props.compact && props.status.ready && "flex items-center gap-2")}>
         <p className="font-medium">{props.platform}</p>
         <p className="text-xs text-muted-foreground">
-          {props.compact && props.status.ready ? "Ready" : props.status.message}
+          {props.compact && props.status.ready
+            ? translateStaticUiCopy(staticUiLocale, "Ready")
+            : props.status.message}
         </p>
       </div>
     </div>

@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import type { ChatComposerProps } from "./ChatComposer";
 import type { PromptUltrathink } from "./TraitsPicker";
 import type { ProviderInstanceEntry } from "../../providerInstances";
@@ -89,6 +91,8 @@ export function ComposerControlsBar(props: {
   modelPickerIconClassName: string | undefined;
   getModelDisabledReason: ChatComposerProps["getModelDisabledReason"];
 }) {
+  const { locale: releaseLocale, t } = useI18n();
+
   const {
     environmentId,
     routeKind,
@@ -165,7 +169,12 @@ export function ComposerControlsBar(props: {
     onPromptEdit,
     planModeEnabled,
   });
-  const effort = describeComposerEffort(traitsInput, props.effortDisplay, controlSize);
+  const effort = describeComposerEffort(
+    traitsInput,
+    props.effortDisplay,
+    controlSize,
+    releaseLocale,
+  );
   const restingBlockDefs = showModeBlock
     ? [
         {
@@ -262,7 +271,9 @@ export function ComposerControlsBar(props: {
       className="shrink-0"
     >
       <CircleAlertIcon className="size-4" />
-      {providerSetupInstanceId ? "Open provider settings" : "No provider available"}
+      {providerSetupInstanceId
+        ? translateWebSource(releaseLocale, "Open provider settings")
+        : t("composer.noProviderAvailable")}
     </ComposerControl>
   ) : (
     <>

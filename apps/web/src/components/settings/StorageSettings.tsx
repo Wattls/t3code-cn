@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { translateWebSource } from "../../i18n/messages";
+import { useI18n } from "../../i18n/WebI18nContext";
 import type {
   StorageCleanupReport,
   StorageCleanupSettings,
@@ -49,6 +53,7 @@ import {
 import { settingsScopeEnvironmentLabel } from "./settingsScopeAxis";
 
 export function WorktreesDirectoryRow() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { connectedEnvironments, targets } = useSettingsScope();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
@@ -74,7 +79,7 @@ export function WorktreesDirectoryRow() {
       resetAction={
         mixed || settings.worktreesDirectory !== "" ? (
           <SettingResetButton
-            label="worktree location"
+            label={translateStaticUiCopy(staticUiLocale, "worktree location")}
             onClick={() => updateSettings({ worktreesDirectory: "" })}
           />
         ) : null
@@ -82,10 +87,14 @@ export function WorktreesDirectoryRow() {
       control={
         <Input
           key={`${scopeKey}:${mixed}:${settings.worktreesDirectory}`}
-          aria-label="Worktree location"
+          aria-label={translateStaticUiCopy(staticUiLocale, "Worktree location")}
           autoCapitalize="none"
           spellCheck={false}
-          placeholder={mixed ? "Mixed" : "Default"}
+          placeholder={
+            mixed
+              ? translateStaticUiCopy(staticUiLocale, "Mixed")
+              : translateStaticUiCopy(staticUiLocale, "Default")
+          }
           defaultValue={mixed ? "" : settings.worktreesDirectory}
           onChange={() => {
             edited.current = true;
@@ -113,6 +122,7 @@ function RetentionControl({
   onChange: (value: number | null) => void;
   minimum?: number;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [draft, setDraft] = useState(value);
   const [savedValue, setSavedValue] = useState(value);
   if (savedValue !== value) {
@@ -148,13 +158,15 @@ function RetentionControl({
               className="w-auto grow-0 text-right"
             />
             <span aria-hidden="true" className="self-center pr-2 text-xs">
-              days
+              {translateStaticUiCopy(staticUiLocale, "days")}
             </span>
             <NumberFieldIncrement aria-label={`Increase ${label}`} />
           </NumberFieldGroup>
         </NumberField>
       ) : (
-        <span className="text-xs text-muted-foreground">Off</span>
+        <span className="text-xs text-muted-foreground">
+          {translateStaticUiCopy(staticUiLocale, "Off")}
+        </span>
       )}
       <Switch
         aria-label={label}
@@ -191,6 +203,8 @@ function CleanupResults({
   report: StorageCleanupReport;
   environmentLabel: string;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: sourceLocale } = useI18n();
   return (
     <>
       {report.entries.map((entry, index) => {
@@ -212,23 +226,23 @@ function CleanupResults({
                   {entry.reason}
                 </span>
                 <span className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 border-l border-border/60 pl-3">
-                  <span>Machine</span>
+                  <span>{translateWebSource(sourceLocale, "Machine")}</span>
                   <span className="text-foreground/80">{environmentLabel}</span>
                   {entry.projectPath && (
                     <>
-                      <span>Project</span>
+                      <span>{translateWebSource(sourceLocale, "Project")}</span>
                       <code className="text-foreground/80">{entry.projectPath}</code>
                     </>
                   )}
                   {entry.path && (
                     <>
-                      <span>Folder</span>
+                      <span>{translateWebSource(sourceLocale, "Folder")}</span>
                       <code className="text-foreground/80">{entry.path}</code>
                     </>
                   )}
                   {entry.threadTitle && (
                     <>
-                      <span>Thread</span>
+                      <span>{translateWebSource(sourceLocale, "Thread")}</span>
                       <span>{entry.threadTitle}</span>
                     </>
                   )}
@@ -255,12 +269,14 @@ function CleanupResults({
       })}
       {report.omittedCount > 0 && (
         <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">
-          {environmentLabel}: {report.omittedCount.toLocaleString()} more results.
+          {environmentLabel}: {report.omittedCount.toLocaleString()}
+          {" " + translateStaticUiCopy(staticUiLocale, "more results.")}
         </p>
       )}
       {report.entries.length === 0 && report.omittedCount === 0 && (
         <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">
-          {environmentLabel}: Nothing needed cleanup.
+          {environmentLabel}
+          {translateWebSource(sourceLocale, ": Nothing needed cleanup.")}
         </p>
       )}
     </>
@@ -277,6 +293,7 @@ const storageCleanupPermissionsAtom = environmentAtomList(
 );
 
 function CleanupSection() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const nowMinute = useNowMinute();
   const nowMs = Date.parse(`${nowMinute}:00.000Z`);
   const { connectedEnvironments } = useSettingsScope();
@@ -366,14 +383,18 @@ function CleanupSection() {
     ).finally(() => setPending(false));
   };
   return (
-    <SettingsSection id="storage-cleanup" title="Cleanup" variant="plain">
+    <SettingsSection
+      id="storage-cleanup"
+      title={translateStaticUiCopy(staticUiLocale, "Cleanup")}
+      variant="plain"
+    >
       <SettingsGroup>
         <SettingsRow
           {...searchableSetting("storage-delete-now")}
           description={
             <span>
               {!hasRules
-                ? "Turn on a cleanup rule to use this."
+                ? translateStaticUiCopy(staticUiLocale, "Turn on a cleanup rule to use this.")
                 : summaries.map(({ environment, label, description }) => (
                     <span key={environment.environmentId} className="block">
                       {supported.length > 1 ? `${label}: ` : ""}
@@ -389,7 +410,9 @@ function CleanupSection() {
               disabled={pending || !hasRules || !state.some((entry) => entry.allowed)}
               onClick={() => void deleteNow()}
             >
-              {pending ? "Deleting…" : "Delete now"}
+              {pending
+                ? translateStaticUiCopy(staticUiLocale, "Deleting…")
+                : translateStaticUiCopy(staticUiLocale, "Delete now")}
             </Button>
           }
         />
@@ -397,7 +420,7 @@ function CleanupSection() {
       {summaries.some(({ report }) => report !== null) && (
         <FoldedSettingsSection
           id="storage-cleanup-last-run"
-          title="Last run"
+          title={translateStaticUiCopy(staticUiLocale, "Last run")}
           headerPlacement="inside"
           summary={lastRunSummary(
             summaries.filter(({ report }) => report !== null),
@@ -434,6 +457,7 @@ function supportsStorageCleanup(
 
 /** Narrows a mixed selection to the machines that support cleanup. */
 function StorageCleanupScopeNotice() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { connectedEnvironments } = useSettingsScope();
   return (
     <SettingsScopeNotice
@@ -446,12 +470,16 @@ function StorageCleanupScopeNotice() {
         )
         .map((environment) => environment.environmentId)}
     >
-      Update the selected environments to use storage cleanup, or choose a machine that supports it.
+      {translateStaticUiCopy(
+        staticUiLocale,
+        "Update the selected environments to use storage cleanup, or choose a machine that supports it.",
+      )}
     </SettingsScopeNotice>
   );
 }
 
 export function WorktreeCleanupSection() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { scope, environments, connectedEnvironments, targets, target } = useSettingsScope();
   const scopedSettings = useScopedSettings();
   const isProjectScope = scope.kind === "project" || scope.kind === "checkout";
@@ -491,33 +519,53 @@ export function WorktreeCleanupSection() {
     )
   ) {
     return (
-      <SettingsSection id="storage-worktrees" title="Cleanup" variant="plain">
+      <SettingsSection
+        id="storage-worktrees"
+        title={translateStaticUiCopy(staticUiLocale, "Cleanup")}
+        variant="plain"
+      >
         <SettingsScopeNotice inline target="all">
-          Update the selected machines to configure project worktree cleanup.
+          {translateStaticUiCopy(
+            staticUiLocale,
+            "Update the selected machines to configure project worktree cleanup.",
+          )}
         </SettingsScopeNotice>
       </SettingsSection>
     );
   }
   if (!supportsStorageCleanup(connectedEnvironments)) {
     return (
-      <SettingsSection id="storage-worktrees" title="Cleanup" variant="plain">
+      <SettingsSection
+        id="storage-worktrees"
+        title={translateStaticUiCopy(staticUiLocale, "Cleanup")}
+        variant="plain"
+      >
         <StorageCleanupScopeNotice />
       </SettingsSection>
     );
   }
 
   return (
-    <SettingsSection id="storage-worktrees" title="Cleanup">
+    <SettingsSection
+      id="storage-worktrees"
+      title={translateStaticUiCopy(staticUiLocale, "Cleanup")}
+    >
       <>
         {isProjectScope && (
           <SettingsRow
-            title="Automatic worktree cleanup"
+            title={translateStaticUiCopy(staticUiLocale, "Automatic worktree cleanup")}
             description={
               mode === "off"
-                ? "Keep this project's worktrees until you delete them manually."
+                ? translateStaticUiCopy(
+                    staticUiLocale,
+                    "Keep this project's worktrees until you delete them manually.",
+                  )
                 : mode === "custom"
-                  ? "Use these rules for this project."
-                  : "Use each machine's worktree cleanup settings."
+                  ? translateStaticUiCopy(staticUiLocale, "Use these rules for this project.")
+                  : translateStaticUiCopy(
+                      staticUiLocale,
+                      "Use each machine's worktree cleanup settings.",
+                    )
             }
             serverScoped
             settingKeys={["worktreeCleanup"]}
@@ -532,21 +580,30 @@ export function WorktreeCleanupSection() {
                     updateSettings({ worktreeCleanup: { mode: "custom", rules: {} } });
                 }}
               >
-                <SelectTrigger size="sm" aria-label="Automatic worktree cleanup">
+                <SelectTrigger
+                  size="sm"
+                  aria-label={translateStaticUiCopy(staticUiLocale, "Automatic worktree cleanup")}
+                >
                   <SelectValue>
                     {mixedModes
-                      ? "Mixed"
+                      ? translateStaticUiCopy(staticUiLocale, "Mixed")
                       : mode === "inherit"
-                        ? "Inherit"
+                        ? translateStaticUiCopy(staticUiLocale, "Inherit")
                         : mode === "off"
-                          ? "Off"
-                          : "Custom"}
+                          ? translateStaticUiCopy(staticUiLocale, "Off")
+                          : translateStaticUiCopy(staticUiLocale, "Custom")}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
-                  <SelectItem value="inherit">Inherit</SelectItem>
-                  <SelectItem value="off">Off</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
+                  <SelectItem value="inherit">
+                    {translateStaticUiCopy(staticUiLocale, "Inherit")}
+                  </SelectItem>
+                  <SelectItem value="off">
+                    {translateStaticUiCopy(staticUiLocale, "Off")}
+                  </SelectItem>
+                  <SelectItem value="custom">
+                    {translateStaticUiCopy(staticUiLocale, "Custom")}
+                  </SelectItem>
                 </SelectPopup>
               </Select>
             }
@@ -555,39 +612,51 @@ export function WorktreeCleanupSection() {
         {(!isProjectScope || (!mixedModes && mode === "custom")) && (
           <>
             <SettingsRow
-              title="Delete worktrees with deleted threads"
+              title={translateStaticUiCopy(staticUiLocale, "Delete worktrees with deleted threads")}
               status={ruleStatus("worktreeOnDelete")}
-              description="Remove unused worktrees when active or archived threads are deleted. Worktrees with local changes are kept."
+              description={translateStaticUiCopy(
+                staticUiLocale,
+                "Remove unused worktrees when active or archived threads are deleted. Worktrees with local changes are kept.",
+              )}
               serverScoped={!isProjectScope}
               control={
                 <Switch
-                  aria-label="Delete worktrees with deleted threads"
+                  aria-label={translateStaticUiCopy(
+                    staticUiLocale,
+                    "Delete worktrees with deleted threads",
+                  )}
                   checked={settings.worktreeOnDelete}
                   onCheckedChange={(worktreeOnDelete) => updateWorktree({ worktreeOnDelete })}
                 />
               }
             />
             <SettingsRow
-              title="Delete merged worktrees"
+              title={translateStaticUiCopy(staticUiLocale, "Delete merged worktrees")}
               status={ruleStatus("worktreeOnMerge")}
-              description="Remove worktrees whose pull request is merged and whose commits are included in the default branch."
+              description={translateStaticUiCopy(
+                staticUiLocale,
+                "Remove worktrees whose pull request is merged and whose commits are included in the default branch.",
+              )}
               serverScoped={!isProjectScope}
               control={
                 <Switch
-                  aria-label="Delete merged worktrees"
+                  aria-label={translateStaticUiCopy(staticUiLocale, "Delete merged worktrees")}
                   checked={settings.worktreeOnMerge}
                   onCheckedChange={(worktreeOnMerge) => updateWorktree({ worktreeOnMerge })}
                 />
               }
             />
             <SettingsRow
-              title="Delete inactive worktrees"
+              title={translateStaticUiCopy(staticUiLocale, "Delete inactive worktrees")}
               status={ruleStatus("worktreeAfterDays")}
-              description="Remove worktrees after their threads have been inactive for this many days. Branches and thread history are kept."
+              description={translateStaticUiCopy(
+                staticUiLocale,
+                "Remove worktrees after their threads have been inactive for this many days. Branches and thread history are kept.",
+              )}
               serverScoped={!isProjectScope}
               control={
                 <RetentionControl
-                  label="Delete inactive worktrees"
+                  label={translateStaticUiCopy(staticUiLocale, "Delete inactive worktrees")}
                   value={settings.worktreeAfterDays}
                   onChange={(worktreeAfterDays) => updateWorktree({ worktreeAfterDays })}
                 />
@@ -604,7 +673,7 @@ export function WorktreeCleanupSection() {
                     true,
                 ) && (
                   <SettingsRow
-                    title="Delete settled worktrees"
+                    title={translateStaticUiCopy(staticUiLocale, "Delete settled worktrees")}
                     status={[
                       ruleStatus("worktreeSettledAfterDays"),
                       environments.length > connectedEnvironments.length
@@ -613,11 +682,14 @@ export function WorktreeCleanupSection() {
                     ]
                       .filter(Boolean)
                       .join(". ")}
-                    description="Remove worktrees this many days after their thread settles. Set 0 days to remove them at the next cleanup. Branches and thread history are kept."
+                    description={translateStaticUiCopy(
+                      staticUiLocale,
+                      "Remove worktrees this many days after their thread settles. Set 0 days to remove them at the next cleanup. Branches and thread history are kept.",
+                    )}
                     serverScoped={!isProjectScope}
                     control={
                       <RetentionControl
-                        label="Delete settled worktrees"
+                        label={translateStaticUiCopy(staticUiLocale, "Delete settled worktrees")}
                         value={settings.worktreeSettledAfterDays}
                         minimum={0}
                         onChange={(worktreeSettledAfterDays) =>
@@ -628,13 +700,16 @@ export function WorktreeCleanupSection() {
                   />
                 )}
               <SettingsRow
-                title="Delete unchanged worktrees"
+                title={translateStaticUiCopy(staticUiLocale, "Delete unchanged worktrees")}
                 status={ruleStatus("worktreeUnchanged")}
-                description="Remove worktrees with no commits beyond the default branch."
+                description={translateStaticUiCopy(
+                  staticUiLocale,
+                  "Remove worktrees with no commits beyond the default branch.",
+                )}
                 serverScoped={!isProjectScope}
                 control={
                   <Switch
-                    aria-label="Delete unchanged worktrees"
+                    aria-label={translateStaticUiCopy(staticUiLocale, "Delete unchanged worktrees")}
                     checked={settings.worktreeUnchanged}
                     onCheckedChange={(worktreeUnchanged) => updateWorktree({ worktreeUnchanged })}
                   />
@@ -649,10 +724,19 @@ export function WorktreeCleanupSection() {
                   status={ruleStatus("worktreeKeepWhen")}
                   description={
                     settings.worktreeKeepWhen === "any-local-files"
-                      ? "Includes ignored files, except node_modules."
+                      ? translateStaticUiCopy(
+                          staticUiLocale,
+                          "Includes ignored files, except node_modules.",
+                        )
                       : settings.worktreeKeepWhen === "tracked-changes"
-                        ? "Deletes untracked and ignored files, including .env."
-                        : "Keeps edits and untracked files. Deletes ignored files, including .env."
+                        ? translateStaticUiCopy(
+                            staticUiLocale,
+                            "Deletes untracked and ignored files, including .env.",
+                          )
+                        : translateStaticUiCopy(
+                            staticUiLocale,
+                            "Keeps edits and untracked files. Deletes ignored files, including .env.",
+                          )
                   }
                   serverScoped={!isProjectScope}
                   control={
@@ -667,17 +751,29 @@ export function WorktreeCleanupSection() {
                           updateWorktree({ worktreeKeepWhen: next });
                       }}
                     >
-                      <SelectTrigger size="sm" aria-label="Keep worktrees with local changes">
+                      <SelectTrigger
+                        size="sm"
+                        aria-label={translateStaticUiCopy(
+                          staticUiLocale,
+                          "Keep worktrees with local changes",
+                        )}
+                      >
                         <SelectValue>
                           {ruleStatus("worktreeKeepWhen")
-                            ? "Mixed"
+                            ? translateStaticUiCopy(staticUiLocale, "Mixed")
                             : KEEP_WHEN_LABELS[settings.worktreeKeepWhen]}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectPopup align="end" alignItemWithTrigger={false}>
-                        <SelectItem value="any-local-files">Any local files</SelectItem>
-                        <SelectItem value="uncommitted-changes">Uncommitted changes</SelectItem>
-                        <SelectItem value="tracked-changes">Edited tracked files</SelectItem>
+                        <SelectItem value="any-local-files">
+                          {translateStaticUiCopy(staticUiLocale, "Any local files")}
+                        </SelectItem>
+                        <SelectItem value="uncommitted-changes">
+                          {translateStaticUiCopy(staticUiLocale, "Uncommitted changes")}
+                        </SelectItem>
+                        <SelectItem value="tracked-changes">
+                          {translateStaticUiCopy(staticUiLocale, "Edited tracked files")}
+                        </SelectItem>
                       </SelectPopup>
                     </Select>
                   }
@@ -693,6 +789,7 @@ export function WorktreeCleanupSection() {
 
 /** Retention for logs and captures, and the manual cleanup run, which covers worktrees too. */
 export function StorageCleanupSections() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { scope, connectedEnvironments, targets } = useSettingsScope();
   const scopedSettings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
@@ -735,7 +832,11 @@ export function StorageCleanupSections() {
     return (
       <>
         {databaseStorageNotice}
-        <SettingsSection id="storage-artifacts" title="Artifacts and logs" variant="plain">
+        <SettingsSection
+          id="storage-artifacts"
+          title={translateStaticUiCopy(staticUiLocale, "Artifacts and logs")}
+          variant="plain"
+        >
           <StorageCleanupScopeNotice />
         </SettingsSection>
       </>
@@ -745,16 +846,22 @@ export function StorageCleanupSections() {
   return (
     <>
       {databaseStorageNotice}
-      <SettingsSection id="storage-artifacts" title="Artifacts and logs">
+      <SettingsSection
+        id="storage-artifacts"
+        title={translateStaticUiCopy(staticUiLocale, "Artifacts and logs")}
+      >
         <AnimatedHeight>
           <SettingsRow
-            title="Delete old browser artifacts"
+            title={translateStaticUiCopy(staticUiLocale, "Delete old browser artifacts")}
             status={artifactsStatus}
-            description="Delete saved browser captures after this many days. Older capture links will no longer open."
+            description={translateStaticUiCopy(
+              staticUiLocale,
+              "Delete saved browser captures after this many days. Older capture links will no longer open.",
+            )}
             serverScoped
             control={
               <RetentionControl
-                label="Delete old browser artifacts"
+                label={translateStaticUiCopy(staticUiLocale, "Delete old browser artifacts")}
                 value={settings.browserArtifactsAfterDays}
                 onChange={(browserArtifactsAfterDays) => update({ browserArtifactsAfterDays })}
               />
@@ -763,13 +870,16 @@ export function StorageCleanupSections() {
         </AnimatedHeight>
         <AnimatedHeight>
           <SettingsRow
-            title="Delete old rotated logs"
+            title={translateStaticUiCopy(staticUiLocale, "Delete old rotated logs")}
             status={logsStatus}
-            description="Delete inactive rotated log files after this many days. Current logs are kept."
+            description={translateStaticUiCopy(
+              staticUiLocale,
+              "Delete inactive rotated log files after this many days. Current logs are kept.",
+            )}
             serverScoped
             control={
               <RetentionControl
-                label="Delete old rotated logs"
+                label={translateStaticUiCopy(staticUiLocale, "Delete old rotated logs")}
                 value={settings.logsAfterDays}
                 onChange={(logsAfterDays) => update({ logsAfterDays })}
               />

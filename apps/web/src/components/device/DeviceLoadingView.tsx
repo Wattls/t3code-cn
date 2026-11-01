@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { ReactNode } from "react";
 import { Smartphone } from "lucide-react";
 
@@ -11,6 +13,7 @@ export function DeviceLoadingView(props: {
   readonly error?: boolean;
   readonly children?: ReactNode;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <div
       role={props.error ? "alert" : "status"}
@@ -35,7 +38,9 @@ export function DeviceLoadingView(props: {
           <div
             className="flex w-24 gap-1"
             aria-label={
-              props.stage === "opening" ? "Step 1 of 2: open device" : "Step 2 of 2: connect video"
+              props.stage === "opening"
+                ? translateStaticUiCopy(staticUiLocale, "Step 1 of 2: open device")
+                : translateStaticUiCopy(staticUiLocale, "Step 2 of 2: connect video")
             }
           >
             <span className="h-1 flex-1 rounded-full bg-foreground/60" />

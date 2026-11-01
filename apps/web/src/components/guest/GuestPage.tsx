@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   EnvironmentId,
   GUEST_MESSAGE_MAX_LENGTH,
@@ -199,6 +201,7 @@ const LANE = "chat-content-lane px-4";
 type GuestAccess = "checking" | "session" | "name" | "none";
 
 export function GuestPage() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [{ credential, shareId }] = useState(takeGuestEntry);
   // A browser that already joined this share goes straight back in, even from the spent link.
   // Sessions are per share, so one for another link never stands in for this one.
@@ -236,7 +239,7 @@ export function GuestPage() {
   return (
     <div className="flex h-dvh flex-col bg-background text-foreground">
       {access === "checking" ? (
-        <Notice title="Connecting..." />
+        <Notice title={translateStaticUiCopy(staticUiLocale, "Connecting...")} />
       ) : access === "name" && credential !== null ? (
         <NameForm
           credential={credential}
@@ -250,7 +253,7 @@ export function GuestPage() {
         <GuestSession shareId={shareId} />
       ) : (
         <Notice
-          title="This link has ended or is not valid"
+          title={translateStaticUiCopy(staticUiLocale, "This link has ended or is not valid")}
           detail="Ask the owner for a new link. Each link works in one browser."
         />
       )}
@@ -259,6 +262,7 @@ export function GuestPage() {
 }
 
 function GuestSession({ shareId }: { readonly shareId: string }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [stream, dispatch] = useReducer(applyGuestStreamEvent, null, () => ({
     ...initialGuestStreamState,
     awaitingRowIds: readAwaitingRowIds(),
@@ -318,10 +322,16 @@ function GuestSession({ shareId }: { readonly shareId: string }) {
   }, [shareId]);
 
   if (stream.ended || (rejected && stream.view !== null)) {
-    return <Notice title="This link has ended" detail="The owner stopped sharing this thread." />;
+    return (
+      <Notice
+        title={translateStaticUiCopy(staticUiLocale, "This link has ended")}
+        detail="The owner stopped sharing this thread."
+      />
+    );
   }
   if (stream.view !== null) {
-    if (stream.projection === null) return <Notice title="Connecting..." />;
+    if (stream.projection === null)
+      return <Notice title={translateStaticUiCopy(staticUiLocale, "Connecting...")} />;
     return (
       <GuestThread
         view={stream.view}
@@ -331,10 +341,10 @@ function GuestSession({ shareId }: { readonly shareId: string }) {
       />
     );
   }
-  if (!rejected) return <Notice title="Connecting..." />;
+  if (!rejected) return <Notice title={translateStaticUiCopy(staticUiLocale, "Connecting...")} />;
   return (
     <Notice
-      title="This link has ended or is not valid"
+      title={translateStaticUiCopy(staticUiLocale, "This link has ended or is not valid")}
       detail="Ask the owner for a new link. Each link works in one browser."
     />
   );
@@ -356,6 +366,7 @@ function NameForm({
   readonly credential: string;
   readonly onJoined: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -371,9 +382,11 @@ function NameForm({
   };
   return (
     <form className="m-auto flex w-full max-w-xs flex-col gap-3 p-6" onSubmit={submit}>
-      <h1 className="text-base font-medium">Join a shared thread</h1>
+      <h1 className="text-base font-medium">
+        {translateStaticUiCopy(staticUiLocale, "Join a shared thread")}
+      </h1>
       <label className="flex flex-col gap-1.5 text-sm" htmlFor="guest-name">
-        Your name
+        {translateStaticUiCopy(staticUiLocale, "Your name")}
         <Input
           id="guest-name"
           autoFocus
@@ -389,10 +402,13 @@ function NameForm({
         </p>
       ) : null}
       <Button type="submit" disabled={submitting || name.trim() === ""}>
-        Join
+        {translateStaticUiCopy(staticUiLocale, "Join")}
       </Button>
       <p className="text-xs text-muted-foreground">
-        The owner sees your name and approves each message before the agent gets it.
+        {translateStaticUiCopy(
+          staticUiLocale,
+          "The owner sees your name and approves each message before the agent gets it.",
+        )}
       </p>
     </form>
   );
@@ -672,6 +688,7 @@ function GuestComposer({
   readonly shareId: GuestShareView["shareId"];
   readonly model: GuestThreadModel;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [text, setText] = useState("");
   const [files, setFiles] = useState<ReadonlyArray<StagedFile>>([]);
   const [sending, setSending] = useState(false);
@@ -744,7 +761,10 @@ function GuestComposer({
       }}
     >
       {files.length > 0 ? (
-        <ul className="flex flex-wrap gap-2" aria-label="Attached files">
+        <ul
+          className="flex flex-wrap gap-2"
+          aria-label={translateStaticUiCopy(staticUiLocale, "Attached files")}
+        >
           {files.map((staged) => (
             <li
               key={staged.key}
@@ -779,8 +799,8 @@ function GuestComposer({
         </ul>
       ) : null}
       <textarea
-        aria-label="Message"
-        placeholder="Message"
+        aria-label={translateStaticUiCopy(staticUiLocale, "Message")}
+        placeholder={translateStaticUiCopy(staticUiLocale, "Message")}
         rows={2}
         maxLength={GUEST_MESSAGE_MAX_LENGTH}
         value={text}
@@ -795,14 +815,17 @@ function GuestComposer({
           type="file"
           multiple
           hidden
-          aria-label="Files to attach"
+          aria-label={translateStaticUiCopy(staticUiLocale, "Files to attach")}
           onChange={(event) => {
             addFiles(Array.from(event.target.files ?? []));
             // The same file can be picked again after it is removed.
             event.target.value = "";
           }}
         />
-        <ComposerControl aria-label="Attach files" onClick={() => fileInputRef.current?.click()}>
+        <ComposerControl
+          aria-label={translateStaticUiCopy(staticUiLocale, "Attach files")}
+          onClick={() => fileInputRef.current?.click()}
+        >
           <ComposerControlIcon icon={PaperclipIcon} />
         </ComposerControl>
         <GuestModelLabel model={model} />
@@ -812,12 +835,12 @@ function GuestComposer({
           </p>
         ) : (
           <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-            The owner approves each message
+            {translateStaticUiCopy(staticUiLocale, "The owner approves each message")}
           </p>
         )}
         <button
           type="submit"
-          aria-label="Send"
+          aria-label={translateStaticUiCopy(staticUiLocale, "Send")}
           disabled={sending || (text.trim() === "" && files.length === 0)}
           className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-message-action text-message-action-foreground shadow-xs hover:bg-message-action-hover focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-64"
         >

@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { ReactNode } from "react";
 
 import { T3Wordmark } from "../T3Wordmark";
@@ -20,12 +22,15 @@ export function StandalonePageHeader({
   readonly title: ReactNode;
   readonly description: ReactNode;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <>
       <div className="flex items-baseline justify-between gap-3 text-muted-foreground">
         <span className="flex items-baseline gap-1.5" role="img" aria-label="T3 Code">
           <T3Wordmark className="h-3 w-auto shrink-0 text-foreground" aria-hidden />
-          <span className="text-lg font-medium tracking-tight">Code</span>
+          <span className="text-lg font-medium tracking-tight">
+            {translateStaticUiCopy(staticUiLocale, "Code")}
+          </span>
         </span>
         {context ? <span className="text-sm">{context}</span> : null}
       </div>

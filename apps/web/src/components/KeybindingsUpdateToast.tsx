@@ -1,3 +1,5 @@
+import type { ResolvedAppLocale } from "@t3tools/shared/appLocale";
+import { translateWebSource } from "~/i18n/messages";
 import { appAtomRegistry, subscribeAtomChanges } from "../rpc/atomRegistry";
 import { primaryEnvironmentIdAtom } from "../state/primaryEnvironment";
 import { primaryServerConfigAtom, primaryServerConfigEventAtom } from "../state/server";
@@ -6,17 +8,20 @@ import { createKeybindingsUpdateToastController } from "./KeybindingsUpdateToast
 import { stackedThreadToast, toastManager } from "./ui/toast";
 
 /** Toasts each keybindings reload the primary server reports. */
-export function startKeybindingsUpdateToasts(): () => void {
+export function startKeybindingsUpdateToasts(
+  readLocale: () => ResolvedAppLocale = () => "en",
+): () => void {
   const controller = createKeybindingsUpdateToastController({});
   return subscribeAtomChanges(primaryServerConfigEventAtom, (event) => {
     const decision = controller.handle(event);
     if (!decision) return;
+    const locale = readLocale();
 
     if (decision._tag === "Success") {
       toastManager.add({
         type: "success",
-        title: "Keybindings updated",
-        description: "Keybindings configuration reloaded successfully.",
+        title: translateWebSource(locale, "Keybindings updated"),
+        description: translateWebSource(locale, "Keybindings configuration reloaded successfully."),
       });
       return;
     }
@@ -25,7 +30,7 @@ export function startKeybindingsUpdateToasts(): () => void {
     toastManager.add(
       stackedThreadToast({
         type: "warning",
-        title: "Invalid keybindings configuration",
+        title: translateWebSource(locale, "Invalid keybindings configuration"),
         description: (
           <KeybindingsConfigWarning
             message={decision.message}

@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   capitalizeTerm,
   sourceControlClients,
@@ -39,6 +41,7 @@ export function PullRequestComposer({
   onReviewSubmitted: () => void;
   openReviewRequest?: number | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const term = sourceControlClients.get(detail.provider).changeRequest.singular;
   const [open, setOpen] = useState(false);
   const [reviewPending, setReviewPending] = useState(false);
@@ -108,7 +111,7 @@ export function PullRequestComposer({
         <div className="mb-3 flex items-center justify-between gap-2">
           {canComment && verdicts.length > 0 ? (
             <ToggleGroup
-              aria-label="Composer mode"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Composer mode")}
               variant="segmented"
               value={[mode]}
               onValueChange={(next) => {
@@ -116,9 +119,11 @@ export function PullRequestComposer({
                 if (value === "comment" || value === "review") setRequestedMode(value);
               }}
             >
-              <Toggle value="comment">Comment</Toggle>
+              <Toggle value="comment">{translateStaticUiCopy(staticUiLocale, "Comment")}</Toggle>
               <Toggle value="review">
-                {pendingComments.length > 0 ? `Review (${pendingComments.length})` : "Review"}
+                {pendingComments.length > 0
+                  ? `Review (${pendingComments.length})`
+                  : translateStaticUiCopy(staticUiLocale, "Review")}
               </Toggle>
             </ToggleGroup>
           ) : (
@@ -131,8 +136,8 @@ export function PullRequestComposer({
               <Button
                 size="icon-xs"
                 variant="ghost"
-                aria-label="Discard pending line comments"
-                title="Discard pending line comments"
+                aria-label={translateStaticUiCopy(staticUiLocale, "Discard pending line comments")}
+                title={translateStaticUiCopy(staticUiLocale, "Discard pending line comments")}
                 disabled={reviewPending}
                 onClick={() => clearComments(reviewKey)}
               >
@@ -141,7 +146,7 @@ export function PullRequestComposer({
             ) : null}
             <PopoverClose
               render={<Button size="icon-xs" variant="ghost" />}
-              aria-label="Close composer"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Close composer")}
             >
               <XIcon className="size-3.5" />
             </PopoverClose>

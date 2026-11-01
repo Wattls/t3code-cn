@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { ScopedThreadRef } from "@t3tools/contracts";
 import { parseThreadLinkPrompt, withoutPromptLinkParams } from "@t3tools/shared/promptLinks";
 import { useLocation, useNavigate } from "@tanstack/react-router";
@@ -10,6 +12,7 @@ import { placeLinkedPrompt } from "./linkedPrompt";
 const handledLinkKeys = new Set<string>();
 
 export function ThreadLinkPrompt({ threadRef }: { readonly threadRef: ScopedThreadRef }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const navigate = useNavigate();
   const location = useLocation({
     select: (current) => ({
@@ -32,7 +35,7 @@ export function ThreadLinkPrompt({ threadRef }: { readonly threadRef: ScopedThre
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not open the linked prompt",
+            title: translateStaticUiCopy(staticUiLocale, "Could not open the linked prompt"),
             description: parsed.error,
           }),
         );
@@ -44,7 +47,7 @@ export function ThreadLinkPrompt({ threadRef }: { readonly threadRef: ScopedThre
       href: `${location.pathname}${withoutPromptLinkParams(location.search)}`,
       replace: true,
     });
-  }, [location, navigate, threadRef]);
+  }, [location, navigate, threadRef, staticUiLocale]);
 
   return null;
 }

@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { translateWebSource } from "../../i18n/messages";
+import { useI18n } from "../../i18n/WebI18nContext";
 import {
   DEFAULT_SERVER_SETTINGS,
   PROJECT_FILE_BACKED_SETTINGS,
@@ -164,13 +168,15 @@ export interface SettingOverridingProject extends ProjectOverrideEntry {
   readonly open: () => void;
 }
 
+const EMPTY_OVERRIDING_PROJECTS: readonly SettingOverridingProject[] = [];
+
 export function SettingInheritance({
   state,
   summary,
   targets,
   environments,
   keys,
-  overridingProjects = [],
+  overridingProjects = EMPTY_OVERRIDING_PROJECTS,
   onClearOverrides,
 }: {
   state: SettingInheritanceState;
@@ -184,6 +190,8 @@ export function SettingInheritance({
   overridingProjects?: readonly SettingOverridingProject[];
   onClearOverrides?: (entries: readonly ProjectOverrideEntry[]) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: sourceLocale } = useI18n();
   const scopeContext = useOptionalSettingsScope();
   const key = keys[0];
   if (!key || targets.length === 0) return null;
@@ -290,7 +298,9 @@ export function SettingInheritance({
                         layer.effective ? "font-medium text-foreground" : "text-muted-foreground",
                       )}
                     >
-                      {layer.key === "environment" ? "Environment" : layer.label}
+                      {layer.key === "environment"
+                        ? translateStaticUiCopy(staticUiLocale, "Environment")
+                        : layer.label}
                     </span>
                     <span
                       className={cn(
@@ -343,7 +353,7 @@ export function SettingInheritance({
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {winningLayer?.key === "environment"
-                              ? "Environment"
+                              ? translateStaticUiCopy(staticUiLocale, "Environment")
                               : winningLayer?.label}
                           </span>
                           <ChevronRightIcon
@@ -377,7 +387,7 @@ export function SettingInheritance({
                     {chain}
                     {hasMultipleEnvironments ? (
                       <p className="px-2 pt-1.5 text-xs text-muted-foreground">
-                        Same on all machines
+                        {translateWebSource(sourceLocale, "Same on all machines")}
                       </p>
                     ) : null}
                   </>
@@ -396,14 +406,17 @@ export function SettingInheritance({
                             aria-hidden
                             className="size-3 [[data-panel-open]_&]:rotate-90"
                           />
-                          Overridden by
+                          {translateStaticUiCopy(staticUiLocale, "Overridden by")}
                         </CollapsibleTrigger>
                       ) : (
-                        <span>Overridden by</span>
+                        <span>{translateStaticUiCopy(staticUiLocale, "Overridden by")}</span>
                       )}
                       {onClearOverrides ? (
                         <InlineButton onClick={() => onClearOverrides(overriding)}>
-                          Reset {overriding.length === 1 ? "it" : "all"}
+                          {translateStaticUiCopy(staticUiLocale, "Reset") + " "}
+                          {overriding.length === 1
+                            ? translateStaticUiCopy(staticUiLocale, "it")
+                            : translateStaticUiCopy(staticUiLocale, "all")}
                         </InlineButton>
                       ) : null}
                     </div>

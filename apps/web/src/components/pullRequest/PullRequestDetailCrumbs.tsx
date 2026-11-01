@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react";
 import type { MouseEvent as ReactMouseEvent } from "react";
@@ -30,6 +32,8 @@ const ROW_CLASS_NAME =
   "col-start-1 row-start-1 flex min-w-0 items-center gap-1 text-sm text-muted-foreground transition-[opacity,transform] ease-out motion-reduce:transform-none motion-reduce:transition-none sm:text-xs";
 
 function BackButton({ onBack, focusable }: { onBack: () => void; focusable: boolean }) {
+  const { locale: uiLocale } = useI18n();
+
   return (
     <Tooltip>
       <TooltipTrigger
@@ -40,13 +44,15 @@ function BackButton({ onBack, focusable }: { onBack: () => void; focusable: bool
             {...(focusable ? {} : { tabIndex: -1 })}
             onClick={onBack}
             className="-ml-1.5"
-            aria-label="Back to this thread's pull requests"
+            aria-label={translateWebSource(uiLocale, "Back to this thread's pull requests")}
           >
             <ArrowLeftIcon aria-hidden className="size-3.5" />
           </Button>
         }
       />
-      <TooltipPopup side="top">Back to pull requests</TooltipPopup>
+      <TooltipPopup side="top">
+        {translateWebSource(uiLocale, "Back to pull requests")}
+      </TooltipPopup>
     </Tooltip>
   );
 }
@@ -62,6 +68,8 @@ function NumberLink({
   openOnHostText: string;
   focusable: boolean;
 }) {
+  const { locale } = useI18n();
+
   return (
     <Tooltip>
       <TooltipTrigger
@@ -78,7 +86,11 @@ function NumberLink({
               "inline-flex shrink-0 cursor-pointer items-center gap-0.5 font-medium underline-offset-2 hover:underline",
               toneClassName,
             )}
-            aria-label={`Open ${sourceControlClients.get(detail.provider).changeRequest.singular} #${detail.number} on host`}
+            aria-label={
+              locale === "zh-CN"
+                ? `在托管平台打开变更请求 #${detail.number}`
+                : `Open ${sourceControlClients.get(detail.provider).changeRequest.singular} #${detail.number} on host`
+            }
           >
             #{detail.number}
             <ExternalLinkIcon aria-hidden className="size-2.5" />
@@ -109,6 +121,8 @@ export function PullRequestDetailCrumbs({
   openOnHostText: string;
   onBack: (() => void) | undefined;
 }) {
+  const { t } = useI18n();
+
   const ready = detail !== null && toneClassName !== null;
   return (
     <div className="pl-4 grid h-7 min-w-0 items-center overflow-hidden">
@@ -144,7 +158,9 @@ export function PullRequestDetailCrumbs({
                 }
               />
               <TooltipPopup side="top">
-                {repositoryUrl ? `Open ${detail.repository} repository` : detail.repository}
+                {repositoryUrl
+                  ? t("pullRequests.detail.openRepository", { repository: detail.repository })
+                  : detail.repository}
               </TooltipPopup>
             </Tooltip>
             <NumberLink

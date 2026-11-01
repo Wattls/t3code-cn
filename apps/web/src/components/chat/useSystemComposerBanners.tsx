@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import { useStableCallback } from "../../hooks/useStableCallback";
 import { type EnvironmentId } from "@t3tools/contracts";
 import { type EnvironmentConnectionPresentation } from "@t3tools/client-runtime/connection";
@@ -56,6 +58,8 @@ interface SystemComposerBannersInput {
  * a server update, and auto-balanced machines that need one.
  */
 export function useSystemComposerBanners(input: SystemComposerBannersInput) {
+  const { t, locale: uiLocale } = useI18n();
+
   const {
     activeEnvironment,
     activeEnvironmentUnavailable,
@@ -94,8 +98,9 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Could not reconnect environment",
-          description: error instanceof Error ? error.message : "Failed to reconnect.",
+          title: t("chat.reconnectFailed"),
+          description:
+            error instanceof Error ? error.message : t("chat.reconnectFailedDescription"),
         }),
       );
     }
@@ -122,8 +127,11 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not disconnect server",
-            description: error instanceof Error ? error.message : "Failed to disconnect.",
+            title: translateWebSource(uiLocale, "Could not disconnect server"),
+            description:
+              error instanceof Error
+                ? error.message
+                : translateWebSource(uiLocale, "Failed to disconnect."),
           }),
         );
       }
@@ -163,14 +171,17 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
           size="xs"
           variant="ghost"
           disabled={disconnectingEnvironment}
-          title="Hide this server's threads. Switch it on again in Environments."
+          title={translateWebSource(
+            uiLocale,
+            "Hide this server's threads. Switch it on again in Environments.",
+          )}
           onClick={() =>
             void handleDisconnectActiveEnvironmentStable(
               activeEnvironmentUnavailableState.environmentId,
             )
           }
         >
-          Disconnect server
+          {translateWebSource(uiLocale, "Disconnect server")}
         </Button>
       ) : undefined;
     const environmentReconnecting =
@@ -205,7 +216,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
                   )
                 }
               >
-                Reconnect
+                {translateWebSource(uiLocale, "Reconnect")}
               </Button>
             ) : null}
             {disconnectAction}
@@ -227,7 +238,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
         variant: updateFailed ? "error" : "default",
         group: "environment",
         icon: <ComposerServerUpdateIcon status={serverUpdateState.status} />,
-        title: `${updateFailed ? "Could not update" : "Updating"} ${versionMismatchServerLabel}`,
+        title: `${updateFailed ? translateWebSource(uiLocale, "Could not update") : translateWebSource(uiLocale, "Updating")} ${versionMismatchServerLabel}`,
         description:
           serverUpdateState.status === "failed"
             ? serverUpdateState.message
@@ -244,7 +255,7 @@ export function useSystemComposerBanners(input: SystemComposerBannersInput) {
             installation={versionMismatchInstallation}
             desktopAppUpdate={versionMismatchDesktopAppUpdate}
             targetVersion={versionMismatch.clientVersion}
-            label="Retry"
+            label={t("pullRequests.unavailable.retry")}
             variant="ghost"
           />
         ),

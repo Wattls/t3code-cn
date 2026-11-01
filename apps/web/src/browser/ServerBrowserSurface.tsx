@@ -1,3 +1,8 @@
+"use client";
+
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
+
 import {
   createPreviewFramePainter,
   createPreviewStreamClient,
@@ -154,6 +159,7 @@ export function ServerBrowserSurface(props: {
   readonly pdfUrl?: string | null;
   readonly ref?: Ref<ServerBrowserHandle>;
 }) {
+  const { locale: newCopyLocale } = useI18n();
   const {
     environmentId,
     threadId,
@@ -773,7 +779,7 @@ export function ServerBrowserSurface(props: {
           <embed
             src={pdfUrl}
             type="application/pdf"
-            title="PDF document"
+            title={translateWebSource(newCopyLocale, "PDF document")}
             className="absolute inset-0 z-10 size-full border-0"
           />
         ) : null}

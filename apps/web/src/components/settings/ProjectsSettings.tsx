@@ -1,3 +1,5 @@
+import { translateWebSource } from "../../i18n/messages";
+import { useI18n } from "../../i18n/WebI18nContext";
 import { EnvironmentId } from "@t3tools/contracts";
 import { LayersIcon } from "lucide-react";
 
@@ -9,12 +11,14 @@ import { SettingsPageContainer } from "./settingsLayout";
 import { ALL_ENVIRONMENTS_VALUE, selectEnvironmentAxis } from "./settingsScopeAxis";
 
 export function ProjectsSettings() {
+  const { locale } = useI18n();
+  const translate = (source: string) => translateWebSource(locale, source);
   const { search: value, scope, selectScope } = useSettingsScope();
   const unavailable =
     scope.kind === "unavailable" ? (
       <SettingsPageContainer>
         <div className="flex flex-col items-start gap-3">
-          <p className="text-sm text-muted-foreground">{scope.message}</p>
+          <p className="text-sm text-muted-foreground">{translate(scope.message)}</p>
           {value.machine || value.checkout ? (
             <Button
               variant="outline"
@@ -22,7 +26,7 @@ export function ProjectsSettings() {
               onClick={() => selectScope(selectEnvironmentAxis(value, ALL_ENVIRONMENTS_VALUE))}
             >
               <LayersIcon />
-              Show all environments
+              {translate("Show all environments")}
             </Button>
           ) : null}
         </div>
@@ -47,7 +51,7 @@ export function ProjectsSettings() {
         unavailable
       ) : (
         <SettingsScopeNotice target="project">
-          Choose a project to manage its name, icon, checkouts and actions.
+          {translate("Choose a project to manage its name, icon, checkouts and actions.")}
         </SettingsScopeNotice>
       )}
     </div>

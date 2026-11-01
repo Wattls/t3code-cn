@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useEffect, useId, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { create } from "zustand";
@@ -63,6 +65,7 @@ export function CustomSnoozeDialogHost() {
 }
 
 function CustomSnoozeDialog() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const id = useId();
   const navigate = useNavigate();
   const [initial] = useState(() => new Date(Date.now() + 3_600_000));
@@ -103,13 +106,18 @@ function CustomSnoozeDialog() {
           }}
         >
           <DialogHeader>
-            <DialogTitle>Custom snooze</DialogTitle>
-            <DialogDescription>Choose when snoozed threads return to your inbox.</DialogDescription>
+            <DialogTitle>{translateStaticUiCopy(staticUiLocale, "Custom snooze")}</DialogTitle>
+            <DialogDescription>
+              {translateStaticUiCopy(
+                staticUiLocale,
+                "Choose when snoozed threads return to your inbox.",
+              )}
+            </DialogDescription>
           </DialogHeader>
           <DialogPanel>
             <div className="flex flex-col gap-4">
               <ToggleGroup
-                aria-label="Schedule type"
+                aria-label={translateStaticUiCopy(staticUiLocale, "Schedule type")}
                 className="w-full *:flex-1"
                 value={[mode]}
                 onValueChange={(next) => {
@@ -118,14 +126,20 @@ function CustomSnoozeDialog() {
                   setError(null);
                 }}
               >
-                <Toggle value="date">Date and time</Toggle>
-                <Toggle value="duration">Duration</Toggle>
+                <Toggle value="date">
+                  {translateStaticUiCopy(staticUiLocale, "Date and time")}
+                </Toggle>
+                <Toggle value="duration">
+                  {translateStaticUiCopy(staticUiLocale, "Duration")}
+                </Toggle>
               </ToggleGroup>
               <div className="flex flex-col gap-4">
                 {mode === "date" ? (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div className="flex min-w-0 flex-col gap-1.5">
-                      <Label htmlFor={`${id}-date`}>Date</Label>
+                      <Label htmlFor={`${id}-date`}>
+                        {translateStaticUiCopy(staticUiLocale, "Date")}
+                      </Label>
                       <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                         <PopoverTrigger
                           render={
@@ -143,7 +157,10 @@ function CustomSnoozeDialog() {
                           })}
                           <CalendarIcon className="size-4 text-muted-foreground" />
                         </PopoverTrigger>
-                        <PopoverPopup align="start" aria-label="Choose snooze date">
+                        <PopoverPopup
+                          align="start"
+                          aria-label={translateStaticUiCopy(staticUiLocale, "Choose snooze date")}
+                        >
                           <Calendar
                             mode="single"
                             required
@@ -161,7 +178,7 @@ function CustomSnoozeDialog() {
                       </Popover>
                     </div>
                     <Label className="flex min-w-0 flex-col items-stretch" htmlFor={`${id}-time`}>
-                      Time
+                      {translateStaticUiCopy(staticUiLocale, "Time")}
                       <Input
                         nativeInput
                         id={`${id}-time`}
@@ -188,15 +205,21 @@ function CustomSnoozeDialog() {
                         setError(null);
                       }}
                     >
-                      <Label htmlFor={`${id}-amount`}>Snooze for</Label>
+                      <Label htmlFor={`${id}-amount`}>
+                        {translateStaticUiCopy(staticUiLocale, "Snooze for")}
+                      </Label>
                       <NumberFieldGroup>
-                        <NumberFieldDecrement aria-label="Decrease duration" />
+                        <NumberFieldDecrement
+                          aria-label={translateStaticUiCopy(staticUiLocale, "Decrease duration")}
+                        />
                         <NumberFieldInput required />
-                        <NumberFieldIncrement aria-label="Increase duration" />
+                        <NumberFieldIncrement
+                          aria-label={translateStaticUiCopy(staticUiLocale, "Increase duration")}
+                        />
                       </NumberFieldGroup>
                     </NumberField>
                     <Label className="flex min-w-0 flex-col items-stretch" htmlFor={`${id}-unit`}>
-                      Unit
+                      {translateStaticUiCopy(staticUiLocale, "Unit")}
                       <Select
                         value={unit}
                         items={{ minutes: "Minutes", hours: "Hours", days: "Days" }}
@@ -210,9 +233,15 @@ function CustomSnoozeDialog() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectPopup>
-                          <SelectItem value="minutes">Minutes</SelectItem>
-                          <SelectItem value="hours">Hours</SelectItem>
-                          <SelectItem value="days">Days</SelectItem>
+                          <SelectItem value="minutes">
+                            {translateStaticUiCopy(staticUiLocale, "Minutes")}
+                          </SelectItem>
+                          <SelectItem value="hours">
+                            {translateStaticUiCopy(staticUiLocale, "Hours")}
+                          </SelectItem>
+                          <SelectItem value="days">
+                            {translateStaticUiCopy(staticUiLocale, "Days")}
+                          </SelectItem>
                         </SelectPopup>
                       </Select>
                     </Label>
@@ -240,12 +269,12 @@ function CustomSnoozeDialog() {
               }}
             >
               <Settings2Icon />
-              Edit snooze options
+              {translateStaticUiCopy(staticUiLocale, "Edit snooze options")}
             </Button>
             <Button type="button" variant="outline" onClick={() => finish(null)}>
-              Cancel
+              {translateStaticUiCopy(staticUiLocale, "Cancel")}
             </Button>
-            <Button type="submit">Snooze</Button>
+            <Button type="submit">{translateStaticUiCopy(staticUiLocale, "Snooze")}</Button>
           </DialogFooter>
         </form>
       </DialogPopup>

@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 /* oxlint-disable react/no-array-index-key -- Spreadsheet rows and columns retain their source positions. */
 import { formatAttachmentSize } from "@t3tools/client-runtime/state/attachments";
 import type { OfficePreviewKind } from "@t3tools/shared/filePreview";
@@ -68,6 +72,8 @@ function ExtendedOfficeViewer(props: {
   readonly kind: OfficePreviewKind;
   readonly sizeBytes?: number;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: previewLocale } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [sheetPages, setSheetPages] = useState(new Map<string, string[][]>());
   const pendingPages = useRef(new Set<string>());
@@ -160,9 +166,12 @@ function ExtendedOfficeViewer(props: {
         role="alert"
         className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-6 text-center"
       >
-        <p className="text-sm font-medium">No preview for this file</p>
+        <p className="text-sm font-medium">
+          {translateWebSource(previewLocale, "No preview for this file")}
+        </p>
         <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
-          {error} Save it or open it in another app.
+          {error}
+          {" " + translateStaticUiCopy(staticUiLocale, "Save it or open it in another app.")}
         </p>
       </div>
     );
@@ -199,7 +208,7 @@ function ExtendedOfficeViewer(props: {
                   if (value !== null) selectPage(value);
                 }}
               >
-                <SelectTrigger aria-label="Sheet" size="xs">
+                <SelectTrigger aria-label={translateWebSource(previewLocale, "Sheet")} size="xs">
                   <SelectValue>{sheet?.name}</SelectValue>
                 </SelectTrigger>
                 <SelectPopup>
@@ -219,7 +228,7 @@ function ExtendedOfficeViewer(props: {
                   if (value !== null) selectPage(value);
                 }}
               >
-                <SelectTrigger aria-label="Chapter" size="xs">
+                <SelectTrigger aria-label={translateWebSource(previewLocale, "Chapter")} size="xs">
                   <SelectValue>{documentPage?.title}</SelectValue>
                 </SelectTrigger>
                 <SelectPopup>
@@ -233,7 +242,12 @@ function ExtendedOfficeViewer(props: {
             </div>
           ) : (
             <span className="flex-1 text-center tabular-nums" aria-live="polite">
-              {navigation === "slide" ? "Slide" : "Page"} {page + 1} of {count}
+              {navigation === "slide"
+                ? translateStaticUiCopy(staticUiLocale, "Slide")
+                : translateStaticUiCopy(staticUiLocale, "Page")}{" "}
+              {page + 1}
+              {" " + translateStaticUiCopy(staticUiLocale, "of") + " "}
+              {count}
             </span>
           )}
           <FileSurfaceAction
@@ -250,8 +264,12 @@ function ExtendedOfficeViewer(props: {
           className="flex min-h-10 shrink-0 flex-wrap items-center gap-x-1 border-b border-border/60 px-3 py-2 text-xs text-muted-foreground tabular-nums"
           role="status"
         >
-          Sheet {page + 1} of {count} · {sheet.rowCount.toLocaleString()} rows ·{" "}
-          {sheet.columns.toLocaleString()} columns
+          {translateWebSource(previewLocale, "Sheet")}
+          {page + 1}
+          {" " + translateStaticUiCopy(staticUiLocale, "of") + " "}
+          {count} · {sheet.rowCount.toLocaleString()}
+          {" " + translateStaticUiCopy(staticUiLocale, "rows ·")} {sheet.columns.toLocaleString()}
+          {" " + translateStaticUiCopy(staticUiLocale, "columns")}
           {fileSize !== undefined
             ? ` · ${fileSize === 0 ? "0 bytes" : formatAttachmentSize(fileSize)}`
             : ""}
@@ -261,7 +279,10 @@ function ExtendedOfficeViewer(props: {
         <>
           {props.kind !== "epub" ? (
             <FileSurfaceNotice>
-              Text and images. Layout and embedded objects may differ from the original.
+              {translateStaticUiCopy(
+                staticUiLocale,
+                "Text and images. Layout and embedded objects may differ from the original.",
+              )}
             </FileSurfaceNotice>
           ) : null}
           <Suspense fallback={<FileSurfaceLoading />}>
@@ -275,15 +296,24 @@ function ExtendedOfficeViewer(props: {
       ) : sheet ? (
         <>
           <FileSurfaceNotice>
-            Cell values only. Charts, images, and formatting are not shown.
+            {translateStaticUiCopy(
+              staticUiLocale,
+              "Cell values only. Charts, images, and formatting are not shown.",
+            )}
             {sheet.truncated
               ? props.kind === "ods"
-                ? " Limited to 500 rows and 50 columns."
-                : " Preview limited to 250,000 rows, 1,024 columns, and bounded cell text."
+                ? " " + translateStaticUiCopy(staticUiLocale, "Limited to 500 rows and 50 columns.")
+                : " " +
+                  translateStaticUiCopy(
+                    staticUiLocale,
+                    "Preview limited to 250,000 rows, 1,024 columns, and bounded cell text.",
+                  )
               : ""}
           </FileSurfaceNotice>
           {sheet.rowCount === 0 ? (
-            <p className="p-6 text-xs text-muted-foreground">This sheet is empty.</p>
+            <p className="p-6 text-xs text-muted-foreground">
+              {translateWebSource(previewLocale, "This sheet is empty.")}
+            </p>
           ) : (
             <VirtualTablePreview
               key={page}

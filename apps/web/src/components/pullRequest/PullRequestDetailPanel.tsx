@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { projectChangeRequestUrl } from "@t3tools/client-runtime/change-request-links";
 import { normalizeThreadPullRequestKey } from "@t3tools/client-runtime/thread-pull-requests";
 import { useAtomValue } from "@effect/atom-react";
@@ -75,6 +77,8 @@ import { PullRequestThreadLinks } from "./PullRequestThreadLinks";
 import { vcsEnvironment } from "~/state/vcs";
 import { RelativeTime } from "~/components/RelativeTime";
 import { useUiStateStore } from "~/uiStateStore";
+import { useI18n } from "../../i18n/WebI18nContext";
+import { translateWebSource } from "../../i18n/messages";
 
 import { Button } from "../ui/button";
 import { toastManager } from "../ui/toast";
@@ -300,6 +304,10 @@ export function PullRequestDetailPanel({
   initialTab?: PullRequestDetailTab;
   onTabChange?: ((tab: PullRequestDetailTab) => void) | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: uiLocale } = useI18n();
+  const { locale, t } = useI18n();
+  const tx = (source: string) => translateWebSource(locale, source);
   const environmentConfigs = useServerConfigs();
   const projects = useProjects();
   const project = projects.find(
@@ -475,11 +483,12 @@ export function PullRequestDetailPanel({
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
   const { copyToClipboard: copyReference } = useCopyToClipboard<string>({
     target: `${terminology.singular} reference`,
-    onCopy: (label) => toastManager.add({ type: "success", title: `${label} copied` }),
+    onCopy: (label) =>
+      toastManager.add({ type: "success", title: t("pullRequests.detail.copied", { label }) }),
     onError: (error, label) =>
       toastManager.add({
         type: "error",
-        title: `Failed to copy ${label}`,
+        title: t("pullRequests.detail.copyFailed", { label: tx(label) }),
         description: error.message,
       }),
   });
@@ -510,7 +519,7 @@ export function PullRequestDetailPanel({
       ? null
       : (sourceControlClients.parseChangeRequestUrl(detail.url)?.link.repositoryUrl ?? null);
   const hostClient = sourceControlClients.get(detail?.provider);
-  const openOnHostText = openOnHostLabel(hostClient);
+  const openOnHostText = tx(openOnHostLabel(hostClient));
   const markdownContext = pullRequestMarkdownContext(detail, threadRef);
   const authorProfileUrl =
     detail?.author && repositoryUrl !== null
@@ -669,23 +678,28 @@ export function PullRequestDetailPanel({
     if (result._tag === "Failure") {
       // Azure DevOps provides no strategy availability; explain policy failures after the attempt.
       const failure = squashAtomCommandFailure(result);
-      const hint =
+      const hint = tx(
         updateMethod === "rebase"
           ? UPDATE_BRANCH_REBASE_FAILURE_HINT
-          : actionFailureHints(terminology.singular)[action];
+          : actionFailureHints(terminology.singular)[action],
+      );
       toastManager.add({
         type: "error",
-        title: actionFailureLabels(terminology.singular)[action],
+        title: tx(actionFailureLabels(terminology.singular)[action]),
         description: readableFailure(failure, hint),
       });
       onActed?.(action, "failed");
       return false;
     }
     if (action === "revert") {
-      toastManager.add({ type: "success", title: `Revert ${terminology.singular} opened` });
+      toastManager.add({
+        type: "success",
+        title:
+          uiLocale === "zh-CN" ? "已创建回退变更请求" : `Revert ${terminology.singular} opened`,
+      });
     }
     if (action === "delete-branch") {
-      toastManager.add({ type: "success", title: "Branch deleted" });
+      toastManager.add({ type: "success", title: translateWebSource(uiLocale, "Branch deleted") });
     }
     if (pullRequestActionNeedsHostRefresh(action)) {
       void refreshFromHost();
@@ -715,7 +729,7 @@ export function PullRequestDetailPanel({
     });
     if (commentResult._tag === "Failure") {
       setPendingAction(null);
-      toastManager.add({ type: "error", title: "Could not post the comment" });
+      toastManager.add({ type: "error", title: t("pullRequests.comments.postFailed") });
       return { commentPosted: false };
     }
     const actionSucceeded = await finishAction(action);
@@ -807,11 +821,13 @@ export function PullRequestDetailPanel({
       writeTaskToComposer(attachTarget, task);
       toastManager.add({
         type: "success",
-        title: "Added to the composer",
+        title: t("pullRequests.handoff.addedToComposer"),
         description:
           task.prompt.length > 0
             ? "The question is in the composer. Read it over, then send."
-            : `The ${terminology.singular} is in the composer. Type your question, then send.`,
+            : uiLocale === "zh-CN"
+              ? "变更请求已添加到输入框。输入问题后发送。"
+              : `The ${terminology.singular} is in the composer. Type your question, then send.`,
       });
       return;
     }
@@ -838,18 +854,20 @@ export function PullRequestDetailPanel({
     if (opened === null) {
       toastManager.add({
         type: "error",
-        title: "Could not open a thread",
-        description: "Try again from the project, or open a thread first.",
+        title: t("pullRequests.handoff.openThreadFailed"),
+        description: t("pullRequests.handoff.openThreadFailedDescription"),
       });
       return;
     }
     toastManager.add({
       type: "success",
-      title: "Asked in a thread",
+      title: t("pullRequests.handoff.askedInThread"),
       description:
         task.prompt.length > 0
           ? "The question is in the composer. Read it over, then send."
-          : `The ${terminology.singular} is in the composer. Type your question, then send.`,
+          : uiLocale === "zh-CN"
+            ? "变更请求已添加到输入框。输入问题后发送。"
+            : `The ${terminology.singular} is in the composer. Type your question, then send.`,
     });
   };
 
@@ -863,8 +881,11 @@ export function PullRequestDetailPanel({
       writeTaskToComposer(attachTarget, task);
       toastManager.add({
         type: "success",
-        title: "Added to the composer",
-        description: "The task is in the composer. Read it over, then send.",
+        title: translateStaticUiCopy(staticUiLocale, "Added to the composer"),
+        description: translateStaticUiCopy(
+          staticUiLocale,
+          "The task is in the composer. Read it over, then send.",
+        ),
       });
       return;
     }
@@ -884,7 +905,10 @@ export function PullRequestDetailPanel({
     setHandoff(kind);
     const toastId = toastManager.add({
       type: "loading",
-      title: `Preparing the ${terminology.singular} checkout...`,
+      title:
+        uiLocale === "zh-CN"
+          ? "正在准备检出变更请求…"
+          : `Preparing the ${terminology.singular} checkout...`,
     });
     const projectRef = scopeProjectRef(
       actingEnvironmentId,
@@ -899,8 +923,8 @@ export function PullRequestDetailPanel({
       setHandoff(null);
       toastManager.update(toastId, {
         type: "error",
-        title: "Could not open a thread for the checkout",
-        description: "Try again from the project, or open a thread first.",
+        title: t("pullRequests.handoff.openCheckoutThreadFailed"),
+        description: t("pullRequests.handoff.openThreadFailedDescription"),
       });
       return;
     }
@@ -913,7 +937,10 @@ export function PullRequestDetailPanel({
       setHandoff(null);
       toastManager.update(toastId, {
         type: "error",
-        title: `Could not prepare the ${terminology.singular} checkout`,
+        title:
+          uiLocale === "zh-CN"
+            ? "无法准备检出变更请求"
+            : `Could not prepare the ${terminology.singular} checkout`,
         description: checkoutFailureDescription(
           isAtomCommandInterrupted(prepared) ? undefined : squashAtomCommandFailure(prepared),
         ),
@@ -933,8 +960,10 @@ export function PullRequestDetailPanel({
       // Sending after failed rebinding would use the previous checkout.
       toastManager.update(toastId, {
         type: "error",
-        title: "Checked out, but the thread stayed where it was",
-        description: `The checkout is ready on \`${prepared.value.branch}\`. Point a thread at it from the branch picker, then ask again.`,
+        title: t("pullRequests.handoff.threadNotMoved"),
+        description: t("pullRequests.handoff.threadNotMovedDescription", {
+          branch: prepared.value.branch,
+        }),
       });
       return;
     }
@@ -945,11 +974,18 @@ export function PullRequestDetailPanel({
         prepared.value.isOnPullRequestHead
           ? {
               type: "success",
-              title: mode === "local" ? "Checked out here" : "Checked out",
+              title:
+                mode === "local"
+                  ? t("pullRequests.handoff.checkedOutHere")
+                  : t("pullRequests.handoff.checkedOut"),
               description:
                 mode === "local"
-                  ? `This repository is on the ${terminology.singular}'s branch, with a thread open on it.`
-                  : `The ${terminology.singular} is in its own worktree, with a thread open on it.`,
+                  ? uiLocale === "zh-CN"
+                    ? "此仓库已切换到变更请求分支，并已打开关联会话。"
+                    : `This repository is on the ${terminology.singular}'s branch, with a thread open on it.`
+                  : uiLocale === "zh-CN"
+                    ? "变更请求已在独立工作树中打开，并已创建关联会话。"
+                    : `The ${terminology.singular} is in its own worktree, with a thread open on it.`,
             }
           : offHeadPullRequestCheckoutToast(terminology),
       );
@@ -961,8 +997,11 @@ export function PullRequestDetailPanel({
       prepared.value.isOnPullRequestHead
         ? {
             type: "success",
-            title: "Checkout ready",
-            description: "The task is in the composer. Read it over, then send.",
+            title: translateStaticUiCopy(staticUiLocale, "Checkout ready"),
+            description: translateStaticUiCopy(
+              staticUiLocale,
+              "The task is in the composer. Read it over, then send.",
+            ),
           }
         : offHeadPullRequestCheckoutToast(terminology),
     );
@@ -1110,14 +1149,18 @@ export function PullRequestDetailPanel({
     projectDefaultMergeMethod,
     lastSelectedMergeMethod,
   );
-  const selectedMergeMethodLabel = PULL_REQUEST_MERGE_METHOD_LABELS[selectedMergeMethod];
-  const pendingAutoMergeLabel = `Auto-merge (${selectedMergeMethodLabel.toLowerCase()})`;
+  const selectedMergeMethodLabel = tx(PULL_REQUEST_MERGE_METHOD_LABELS[selectedMergeMethod]);
+  const pendingAutoMergeLabel = t("pullRequests.autoMerge.method", {
+    method: selectedMergeMethodLabel.toLowerCase(),
+  });
   const conflicting = isPullRequestConflicting(detail);
   const autoMergeArmed = detail?.state === "open" && detail.autoMergeEnabled === true;
   const armedMergeMethod = detail?.autoMergeMethod;
   const armedAutoMergeLabel = armedMergeMethod
-    ? `Auto-merge (${PULL_REQUEST_MERGE_METHOD_LABELS[armedMergeMethod].toLowerCase()})`
-    : "Auto-merge";
+    ? t("pullRequests.autoMerge.method", {
+        method: tx(PULL_REQUEST_MERGE_METHOD_LABELS[armedMergeMethod]).toLowerCase(),
+      })
+    : t("pullRequests.autoMerge.label");
   const workflowApprovalsRequired =
     detail?.state === "open" ? (detail.workflowApprovalsRequired ?? 0) : 0;
   const freshness = detail === null ? null : resolveBaseFreshness(detail);
@@ -1177,7 +1220,7 @@ export function PullRequestDetailPanel({
     !conflicting &&
     allowedMergeMethods.length > 1;
   const statePresentation = detail
-    ? resolvePullRequestState({ state: detail.state, isDraft: detail.isDraft })
+    ? resolvePullRequestState({ state: detail.state, isDraft: detail.isDraft, t })
     : null;
   const showsDeleteBranch = detail !== null && canDeletePullRequestBranch(detail);
   const environmentConnected = environments.some(
@@ -1188,8 +1231,11 @@ export function PullRequestDetailPanel({
     if (detail === null) return;
     const confirmed = await readLocalApi()?.dialogs.confirm(
       [
-        `Delete branch ${detail.headBranch}?`,
-        `This deletes ${detail.headBranch} from ${detail.headRepositoryNameWithOwner ?? detail.repository}. Local branches and worktrees are not changed.`,
+        t("pullRequests.branch.deleteTitle", { branch: detail.headBranch }),
+        t("pullRequests.branch.deleteDescription", {
+          branch: detail.headBranch,
+          repository: detail.headRepositoryNameWithOwner ?? detail.repository,
+        }),
       ].join("\n"),
       { variant: "destructive" },
     );
@@ -1199,10 +1245,10 @@ export function PullRequestDetailPanel({
     workflowApprovalsRequired > 0 && !checksStale && can("approve-workflows");
   const checksSummary = checksStale
     ? checksState === null
-      ? "No checks reported"
-      : pullRequestChecksStatePresentation(checksState).label
+      ? translateWebSource(uiLocale, "No checks reported")
+      : pullRequestChecksStatePresentation(checksState, t).label
     : detail
-      ? summarizePullRequestChecks(detail.checks)
+      ? summarizePullRequestChecks(detail.checks, t)
       : null;
   const approvalCount =
     detail && !detail.commentsTruncated
@@ -1293,7 +1339,7 @@ export function PullRequestDetailPanel({
             <TooltipProvider delay={150} closeDelay={150} timeout={400}>
               {!nativeStack && supportsStackActions && nativeStackQuery.error ? (
                 <Button variant="ghost" size="xs" onClick={nativeStackQuery.refresh}>
-                  Retry stack lookup
+                  {translateWebSource(uiLocale, "Retry stack lookup")}
                 </Button>
               ) : null}
               {nativeStack ? (
@@ -1399,7 +1445,9 @@ export function PullRequestDetailPanel({
             <Button
               size="icon-xs"
               variant="ghost"
-              aria-label={`Collapse ${terminology.singular} panel`}
+              aria-label={
+                uiLocale === "zh-CN" ? "收起变更请求面板" : `Collapse ${terminology.singular} panel`
+              }
               onClick={onClose}
             >
               <PanelRightIcon className="size-3.5" />
@@ -1450,7 +1498,7 @@ export function PullRequestDetailPanel({
                       iconClassName="size-3"
                     />
                     <ArrowLeftIcon
-                      aria-label="receives changes from"
+                      aria-label={t("pullRequests.detail.receivesChangesFrom")}
                       className="size-3 shrink-0 opacity-60"
                     />
                     <Tooltip>
@@ -1524,7 +1572,7 @@ export function PullRequestDetailPanel({
                 }
                 updated={
                   <span>
-                    updated <RelativeTime timestamp={detail.updatedAt} />
+                    {tx("updated")} <RelativeTime timestamp={detail.updatedAt} />
                   </span>
                 }
                 checkout={
@@ -1533,8 +1581,8 @@ export function PullRequestDetailPanel({
                       key={checkoutCommand}
                       value={checkoutCommand}
                       target={`${terminology.singular} checkout command`}
-                      copyLabel="Copy checkout command"
-                      copiedLabel="Checkout command copied"
+                      copyLabel={t("pullRequests.detail.copyCheckoutCommand")}
+                      copiedLabel={t("pullRequests.detail.checkoutCommandCopied")}
                       className="ml-auto font-mono"
                       tooltipSide="bottom"
                       onError={reportCheckoutCommandError}
@@ -1555,11 +1603,15 @@ export function PullRequestDetailPanel({
                     key={detail.headBranch}
                     value={detail.headBranch}
                     target="branch name"
-                    copyLabel={`Copy ${terminology.singular} branch`}
-                    copiedLabel="Branch name copied"
+                    copyLabel={
+                      uiLocale === "zh-CN"
+                        ? "复制变更请求分支"
+                        : `Copy ${terminology.singular} branch`
+                    }
+                    copiedLabel={t("pullRequests.detail.branchCopied")}
                   />
                 }
-                files={`${detail.changedFiles.toLocaleString()} ${detail.changedFiles === 1 ? "file" : "files"}`}
+                files={`${detail.changedFiles.toLocaleString()} ${t("pullRequests.detail.files", { count: detail.changedFiles })}`}
                 diffStat={
                   <PullRequestChangeBreakdownStat
                     environmentId={environmentId}
@@ -1594,7 +1646,11 @@ export function PullRequestDetailPanel({
               ) : (
                 <PullRequestChecksStatusLine
                   className="text-muted-foreground"
-                  aria-label={checksSummary ? `Checks: ${checksSummary}` : "Checks"}
+                  aria-label={
+                    checksSummary
+                      ? t("pullRequests.checks.aria", { status: checksSummary })
+                      : t("pullRequests.checks.title")
+                  }
                   icon={
                     checksState !== null ? (
                       <PullRequestChecksPopover
@@ -1622,10 +1678,10 @@ export function PullRequestDetailPanel({
                     className="inline-flex items-center gap-1"
                     aria-label={
                       activityError
-                        ? "Comments unavailable"
-                        : `${detail.commentCount.toLocaleString()} ${
-                            detail.commentCount === 1 ? "comment" : "comments"
-                          }`
+                        ? t("pullRequests.comments.unavailable")
+                        : t("pullRequests.comments.countMany", {
+                            count: detail.commentCount.toLocaleString(),
+                          })
                     }
                   >
                     <MessageSquareIcon aria-hidden className="size-3" />
@@ -1639,10 +1695,10 @@ export function PullRequestDetailPanel({
                     className="inline-flex items-center gap-1"
                     aria-label={
                       activityError
-                        ? "Commits unavailable"
-                        : `${detail.commits.length.toLocaleString()} ${
-                            detail.commits.length === 1 ? "commit" : "commits"
-                          }`
+                        ? t("pullRequests.commits.unavailable")
+                        : t("pullRequests.commits.count", {
+                            count: detail.commits.length.toLocaleString(),
+                          })
                     }
                   >
                     <GitCommitHorizontalIcon aria-hidden className="size-3" />
@@ -1662,7 +1718,7 @@ export function PullRequestDetailPanel({
                       <PullRequestReviewOutcomeIcon outcome="approved" className="size-3" />
                       {approvalCount.toLocaleString()}
                       <span className="sr-only">
-                        {approvalCount === 1 ? "approval" : "approvals"}
+                        {t("pullRequests.review.approvalCount", { count: approvalCount })}
                       </span>
                     </span>
                   ) : null}
@@ -1672,15 +1728,17 @@ export function PullRequestDetailPanel({
                   variant="ghost-muted"
                   aria-label={
                     timelineOrder === "newest"
-                      ? "Show oldest activity first"
-                      : "Show newest activity first"
+                      ? t("pullRequests.timeline.showOldestFirst")
+                      : t("pullRequests.timeline.showNewestFirst")
                   }
                   onClick={() =>
                     setTimelineOrder((value) => (value === "newest" ? "oldest" : "newest"))
                   }
                 >
                   <ArrowDownUpIcon aria-hidden className="size-3" />
-                  {timelineOrder === "newest" ? "Newest first" : "Oldest first"}
+                  {timelineOrder === "newest"
+                    ? t("pullRequests.comments.newestFirst")
+                    : t("pullRequests.comments.oldestFirst")}
                 </Button>
               </div>
             ) : null}
@@ -1718,8 +1776,14 @@ export function PullRequestDetailPanel({
           <PullRequestsUnavailableState
             {...(isPullRequestNotFound(detailQuery.failure)
               ? {
-                  title: `${capitalizeTerm(terminology.singular)} #${reference.number} not found`,
-                  error: `It may be an issue rather than a ${terminology.singular}, or this account can't see it.`,
+                  title:
+                    uiLocale === "zh-CN"
+                      ? `未找到变更请求 #${reference.number}`
+                      : `${capitalizeTerm(terminology.singular)} #${reference.number} not found`,
+                  error:
+                    uiLocale === "zh-CN"
+                      ? "这可能是议题而不是变更请求，或当前账号没有查看权限。"
+                      : `It may be an issue rather than a ${terminology.singular}, or this account can't see it.`,
                 }
               : { error: detailQuery.error })}
             refreshing={detailQuery.isPending}
@@ -1749,8 +1813,8 @@ export function PullRequestDetailPanel({
                   checksStale={checksStale}
                   activityError={activityError}
                   pendingFinding={handoff}
-                  fixFindingLabel={handoffLabels.fixFinding}
-                  fixCheckLabel={handoffLabels.fixCheck}
+                  fixFindingLabel={tx(handoffLabels.fixFinding)}
+                  fixCheckLabel={tx(handoffLabels.fixCheck)}
                   {...(canFixFindings ? { onFixFinding: startFixFinding } : {})}
                   onRefresh={refreshDetail}
                   onRefreshChecks={refreshFromHost}
@@ -1817,7 +1881,13 @@ export function PullRequestDetailPanel({
               <div className={cn("absolute inset-0", tab !== "code" && "invisible")}>
                 <Suspense
                   fallback={
-                    <DiffPanelLoadingState label={`Loading ${terminology.singular} diff...`} />
+                    <DiffPanelLoadingState
+                      label={
+                        uiLocale === "zh-CN"
+                          ? "正在加载变更请求差异…"
+                          : `Loading ${terminology.singular} diff...`
+                      }
+                    />
                   }
                 >
                   <PullRequestCodeTab
@@ -1829,7 +1899,7 @@ export function PullRequestDetailPanel({
                     selectedCommitOid={selectedCodeCommitOid}
                     onSelectedCommitChange={selectCodeCommit}
                     pendingFinding={handoff}
-                    fixFindingLabel={handoffLabels.fixFinding}
+                    fixFindingLabel={tx(handoffLabels.fixFinding)}
                     {...(canFixFindings ? { onFixFinding: startFixFinding } : {})}
                     onRefresh={refreshDetail}
                     refreshToken={refreshToken}

@@ -1,4 +1,54 @@
-# T3 Code
+# T3 Code CN · 简体中文社区版
+
+基于 [pingdotgg/t3code](https://github.com/pingdotgg/t3code) 的简体中文社区分叉，保留官方功能，并维护中文界面、macOS 原生菜单和相关修复。本项目由社区维护，不是 T3 Tools 官方发行版。
+
+- **代码与反馈**：[ycj715925/t3code-cn](https://github.com/ycj715925/t3code-cn)
+- **安装包**：[GitHub Releases](https://github.com/ycj715925/t3code-cn/releases)
+- **当前基础**：官方 `v0.1.6`，提交 `2359643cffa6ba9ee84d6f2694b935de54a8013e`
+- **当前中文构建**：`0.1.6-zh-test.7`，macOS Apple Silicon，测试发布
+- **汉化参考**：[ZhiweiXiao98/t3code](https://github.com/ZhiweiXiao98/t3code)，来源与许可证见 [NOTICE.zh-CN.md](./NOTICE.zh-CN.md)
+
+## 中文版包含什么
+
+设置、会话列表、输入框、模型选择、权限、Git/PR、文件预览等界面的简体中文翻译；支持简体中文、English 和跟随系统，并保存语言选择。macOS 应用菜单、编辑菜单与会话右键菜单会跟随当前语言。
+
+已修复会话复制、稍后处理、自动收起等右键子菜单未随语言切换的问题，以及源码打包缺少 Clerk / T3 Connect 公开配置、导致账号入口被隐藏的问题。
+
+**账号登录页面保持官方英文，使用原版 Clerk 服务和 `t3code://` 协议。** 模型名称、协议值、代码、路径、用户内容以及提供商返回的原始错误不强制翻译。部分动态时间和辅助功能标签仍可能显示英文。
+
+## 安装与数据
+
+从 [Releases](https://github.com/ycj715925/t3code-cn/releases) 下载 DMG。当前构建使用本机 ad-hoc 签名，没有 Apple Developer ID 签名或 Apple 公证。
+
+应用名称暂为 `T3 Code CN Test (Beta)`，与官方版分开保存数据：
+
+| 内容                | 中文版位置                                     |
+| ------------------- | ---------------------------------------------- |
+| T3 数据             | `~/.t3-zh-test`                                |
+| macOS Chromium 配置 | `~/Library/Application Support/t3code-zh-test` |
+
+安装包不包含任何用户数据库、账号凭据、对话或项目文件；不会自动迁移官方版的历史记录。模型提供商仍需在自己的电脑上安装并认证。
+
+两版使用相同的登录回调协议；同时安装时，浏览器登录可能返回 macOS 当前指定的 App。当前发布的本人登录、第三方登录回跳及远程连接仍待进一步验证，详见 [验证说明](./docs/community-cn.md)。
+
+## 从源码构建
+
+先安装项目要求的 Node、Vite+、pnpm，以及官方桌面构建所需的 Rust 和 macOS 工具链，然后运行：
+
+```bash
+vp i
+sh scripts/build-cn.sh
+```
+
+脚本从 `.env.example` 准备官方公开登录配置，构建并校验 DMG，最终只保留固定名称的 `release-cn/T3-Code-CN-arm64.dmg`。以后再次构建会覆盖该安装包，源码历史由 Git 保存。已有 `.env` 或 `.env.local` 时会保留，并检查必需的公开配置。
+
+此构建脚本目前针对 macOS Apple Silicon；其他平台尚未完成中文社区版的打包验收。更多构建、修复与维护范围见 [中文社区维护说明](./docs/community-cn.md)。
+
+本分叉继续跟进官方稳定版本。官方稳定 macOS 发行版确认接入简体中文界面和语言选择后，将暂停重复移植，保留本仓库、历史提交和已发布版本。
+
+---
+
+## 上游项目介绍（英文）
 
 T3 Code is an "agent harness control surface". It enables control of the agents on your machine with a best-in-class mobile app ([iOS](https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824), [Android](https://play.google.com/store/apps/details?id=com.t3tools.t3code)), [web app](https://app.t3.codes) and [Electron-based desktop app](https://t3.codes).
 

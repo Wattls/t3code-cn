@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { PermissionChecklist, PermissionContinueButton } from "../permissions/PermissionChecklist";
 import { usePermissionStatus } from "../permissions/usePermissionStatus";
 import {
@@ -97,6 +99,7 @@ export function SnapShotSetupDialog({
   onClose: (completed: boolean) => Promise<void>;
   onLeaveStep: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [step, setStep] = useState(() => captureSetupInitialStep(state, initialStep));
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -144,48 +147,61 @@ export function SnapShotSetupDialog({
   const accessCopy =
     state.message && !macPermissions
       ? {
-          title: "Let's try that again",
-          description: "Couldn't check snapshots. Try again to continue.",
+          title: translateStaticUiCopy(staticUiLocale, "Let's try that again"),
+          description: translateStaticUiCopy(
+            staticUiLocale,
+            "Couldn't check snapshots. Try again to continue.",
+          ),
         }
       : backend === "gnome" && extension
         ? extension.status === "enabled" && !accessReady
           ? {
-              title: "Check capture access",
-              description: "The extension isn't ready yet. Try again in a moment.",
+              title: translateStaticUiCopy(staticUiLocale, "Check capture access"),
+              description: translateStaticUiCopy(
+                staticUiLocale,
+                "The extension isn't ready yet. Try again in a moment.",
+              ),
             }
           : GNOME_ACCESS_COPY[extension.status]
         : helperBackend
           ? helper?.status === "ready"
             ? {
-                title: "Capture is ready",
-                description: "Next, choose your shortcut.",
+                title: translateStaticUiCopy(staticUiLocale, "Capture is ready"),
+                description: translateStaticUiCopy(staticUiLocale, "Next, choose your shortcut."),
               }
             : helper?.status === "error"
               ? {
-                  title: "Let's fix capture access",
-                  description: "Try reinstalling the capture helper, then check again.",
+                  title: translateStaticUiCopy(staticUiLocale, "Let's fix capture access"),
+                  description: translateStaticUiCopy(
+                    staticUiLocale,
+                    "Try reinstalling the capture helper, then check again.",
+                  ),
                 }
               : {
                   title:
                     helper?.status === "update-required"
                       ? "Update the capture helper"
                       : "Allow snapshots",
-                  description:
+                  description: translateStaticUiCopy(
+                    staticUiLocale,
                     "T3 Code's capture helper lets you capture other apps and return to your draft. It's included with T3 Code.",
+                  ),
                 }
           : backend === "niri"
             ? {
-                title: "Capture is ready",
-                description: "Next, choose your shortcut.",
+                title: translateStaticUiCopy(staticUiLocale, "Capture is ready"),
+                description: translateStaticUiCopy(staticUiLocale, "Next, choose your shortcut."),
               }
             : backend === "picker"
               ? {
-                  title: "Choose a window each time",
-                  description:
+                  title: translateStaticUiCopy(staticUiLocale, "Choose a window each time"),
+                  description: translateStaticUiCopy(
+                    staticUiLocale,
                     "Your desktop doesn't support automatic capture. You'll choose the window to capture instead.",
+                  ),
                 }
               : {
-                  title: "Allow snapshots",
+                  title: translateStaticUiCopy(staticUiLocale, "Allow snapshots"),
                   description:
                     backend === "portal"
                       ? "Your desktop may ask for permission when you first capture."
@@ -231,7 +247,13 @@ export function SnapShotSetupDialog({
       }}
     >
       <WizardPopup showCloseButton={!busy}>
-        <WizardHeader title={desktop ? `Set up snapshots for ${desktop}` : "Set up snapshots"}>
+        <WizardHeader
+          title={
+            desktop
+              ? `Set up snapshots for ${desktop}`
+              : translateStaticUiCopy(staticUiLocale, "Set up snapshots")
+          }
+        >
           <WizardSteps
             steps={SETUP_STEPS.map((item) => item.label)}
             currentStep={stepIndex}
@@ -266,15 +288,18 @@ export function SnapShotSetupDialog({
                       {
                         id: "screenRecording",
                         icon: <MacScreenRecordingIcon className="size-8 shrink-0 drop-shadow-sm" />,
-                        title: "Screen Recording",
-                        description: "Capture the window you're using.",
+                        title: translateStaticUiCopy(staticUiLocale, "Screen Recording"),
+                        description: translateStaticUiCopy(
+                          staticUiLocale,
+                          "Capture the window you're using.",
+                        ),
                         granted: macPermissions.screenRecording,
                         onAllow: () => void onAction("allow-screen-recording"),
                       },
                       {
                         id: "accessibility",
                         icon: <MacAccessibilityIcon className="size-8 shrink-0 drop-shadow-sm" />,
-                        title: "Accessibility",
+                        title: translateStaticUiCopy(staticUiLocale, "Accessibility"),
                         description: includeAccessibility
                           ? "Include text and controls from the captured app."
                           : "Optional. Include text and controls from the captured app.",
@@ -296,7 +321,7 @@ export function SnapShotSetupDialog({
                     disabled={busy}
                     onClick={() => void onAction(installHelper)}
                   >
-                    Reinstall helper
+                    {translateStaticUiCopy(staticUiLocale, "Reinstall helper")}
                   </Button>
                 ) : null}
               </>
@@ -327,24 +352,34 @@ export function SnapShotSetupDialog({
                     disabled={busy}
                     onClick={() => void onAction("retry-shortcut")}
                   >
-                    {state.mode === "portal" ? "Shortcut permissions" : "Try again"}
+                    {state.mode === "portal"
+                      ? translateStaticUiCopy(staticUiLocale, "Shortcut permissions")
+                      : translateStaticUiCopy(staticUiLocale, "Try again")}
                   </Button>
                 ) : null}
               </div>
             )}
             {step === "shortcut" && !accessReady ? (
               <p role="alert" className="text-destructive">
-                Capture needs attention. Go back to check access.
+                {translateStaticUiCopy(
+                  staticUiLocale,
+                  "Capture needs attention. Go back to check access.",
+                )}
               </p>
             ) : null}
             {error ? (
               <p role="alert" className="text-destructive">
-                Couldn't finish this step. Try again or check Advanced for help.
+                {translateStaticUiCopy(
+                  staticUiLocale,
+                  "Couldn't finish this step. Try again or check Advanced for help.",
+                )}
               </p>
             ) : null}
             {details.length > 0 || (step === "access" && (backend === "gnome" || helperBackend)) ? (
               <details className="text-xs text-muted-foreground">
-                <summary className="cursor-pointer">Advanced</summary>
+                <summary className="cursor-pointer">
+                  {translateStaticUiCopy(staticUiLocale, "Advanced")}
+                </summary>
                 <div className="mt-3 space-y-3">
                   {details.map((detail) => (
                     <p key={detail} className="break-words">
@@ -352,7 +387,12 @@ export function SnapShotSetupDialog({
                     </p>
                   ))}
                   {step === "access" && (backend === "gnome" || helperBackend) ? (
-                    <p>Included with T3 Code. No download needed.</p>
+                    <p>
+                      {translateStaticUiCopy(
+                        staticUiLocale,
+                        "Included with T3 Code. No download needed.",
+                      )}
+                    </p>
                   ) : null}
                   {step === "access" && backend === "gnome" && extension?.status === "enabled" ? (
                     <Button
@@ -361,7 +401,7 @@ export function SnapShotSetupDialog({
                       disabled={busy}
                       onClick={() => void onAction("disable-extension")}
                     >
-                      Disable extension
+                      {translateStaticUiCopy(staticUiLocale, "Disable extension")}
                     </Button>
                   ) : null}
                   {step === "access" && helperBackend && helper?.status !== "not-installed" ? (
@@ -371,7 +411,7 @@ export function SnapShotSetupDialog({
                       disabled={busy}
                       onClick={() => void onAction(removeHelper)}
                     >
-                      Remove capture helper
+                      {translateStaticUiCopy(staticUiLocale, "Remove capture helper")}
                     </Button>
                   ) : null}
                 </div>
@@ -382,11 +422,13 @@ export function SnapShotSetupDialog({
         <WizardFooter>
           {step !== "access" ? (
             <Button variant="ghost" disabled={busy} onClick={() => changeStep("access")}>
-              Back
+              {translateStaticUiCopy(staticUiLocale, "Back")}
             </Button>
           ) : null}
           <Button variant="ghost" disabled={busy} onClick={() => void onClose(false)}>
-            {wasEnabled ? "Close" : "Finish later"}
+            {wasEnabled
+              ? translateStaticUiCopy(staticUiLocale, "Close")
+              : translateStaticUiCopy(staticUiLocale, "Finish later")}
           </Button>
           {step === "access" ? (
             helperBackend && !accessReady && helper?.status !== "ready" ? (
@@ -398,14 +440,14 @@ export function SnapShotSetupDialog({
                 }
               >
                 {checking
-                  ? "Checking…"
+                  ? translateStaticUiCopy(staticUiLocale, "Checking…")
                   : busy
-                    ? "Installing…"
+                    ? translateStaticUiCopy(staticUiLocale, "Installing…")
                     : helper?.status === "error"
-                      ? "Check again"
+                      ? translateStaticUiCopy(staticUiLocale, "Check again")
                       : helper?.status === "update-required"
-                        ? "Update helper"
-                        : "Install helper"}
+                        ? translateStaticUiCopy(staticUiLocale, "Update helper")
+                        : translateStaticUiCopy(staticUiLocale, "Install helper")}
               </Button>
             ) : backend === "gnome" && !accessReady && extension?.status !== "enabled" ? (
               <Button
@@ -420,20 +462,20 @@ export function SnapShotSetupDialog({
                 }
               >
                 {checking
-                  ? "Checking…"
+                  ? translateStaticUiCopy(staticUiLocale, "Checking…")
                   : busy
                     ? install
-                      ? "Installing…"
+                      ? translateStaticUiCopy(staticUiLocale, "Installing…")
                       : enable
-                        ? "Enabling…"
-                        : "Working…"
+                        ? translateStaticUiCopy(staticUiLocale, "Enabling…")
+                        : translateStaticUiCopy(staticUiLocale, "Working…")
                     : install
                       ? extension?.status === "update-required"
-                        ? "Update extension"
-                        : "Install extension"
+                        ? translateStaticUiCopy(staticUiLocale, "Update extension")
+                        : translateStaticUiCopy(staticUiLocale, "Install extension")
                       : enable
-                        ? "Enable extension"
-                        : "Check again"}
+                        ? translateStaticUiCopy(staticUiLocale, "Enable extension")
+                        : translateStaticUiCopy(staticUiLocale, "Check again")}
               </Button>
             ) : (
               <PermissionContinueButton
@@ -444,14 +486,14 @@ export function SnapShotSetupDialog({
                 }}
               >
                 {busy
-                  ? "Working…"
+                  ? translateStaticUiCopy(staticUiLocale, "Working…")
                   : macPermissions
-                    ? "Test capture and continue"
+                    ? translateStaticUiCopy(staticUiLocale, "Test capture and continue")
                     : backend === "direct"
-                      ? "Allow capture"
+                      ? translateStaticUiCopy(staticUiLocale, "Allow capture")
                       : !accessReady && !macPermissions
-                        ? "Try again"
-                        : "Continue"}
+                        ? translateStaticUiCopy(staticUiLocale, "Try again")
+                        : translateStaticUiCopy(staticUiLocale, "Continue")}
               </PermissionContinueButton>
             )
           ) : !configShortcut ? (
@@ -463,7 +505,11 @@ export function SnapShotSetupDialog({
                 if (!shortcutChanged || (await onSaveShortcut())) await onClose(true);
               }}
             >
-              {busy ? "Saving…" : shortcutChanged ? "Save and finish" : "Done"}
+              {busy
+                ? translateStaticUiCopy(staticUiLocale, "Saving…")
+                : shortcutChanged
+                  ? translateStaticUiCopy(staticUiLocale, "Save and finish")
+                  : translateStaticUiCopy(staticUiLocale, "Done")}
             </Button>
           ) : null}
         </WizardFooter>

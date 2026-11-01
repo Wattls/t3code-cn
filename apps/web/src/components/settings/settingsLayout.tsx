@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { SettingsGroup } from "./SettingsGroup";
 import { AuthSettingsWriteScope } from "@t3tools/contracts";
 import { usePrimaryEnvironmentId, usePrimaryEnvironment } from "../../state/environments";
@@ -13,6 +15,8 @@ import {
   usePrimarySettingsAvailable,
 } from "../../hooks/useSettings";
 import { cn } from "../../lib/utils";
+import { useI18n } from "../../i18n/WebI18nContext";
+import { translateWebSource } from "../../i18n/messages";
 import { WorkspacePageContainer, type WorkspacePageWidth } from "../WorkspacePageContainer";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
@@ -181,17 +185,18 @@ export const SETTINGS_PICKER_TRIGGER_CLASSNAME =
   "min-w-0 max-w-none shrink-0 border-input bg-background font-normal text-foreground shadow-xs/5 hover:bg-accent/50 dark:bg-input/32 [&_svg[data-composer-control-chevron]]:stroke-[1.75] [&_svg[data-composer-control-chevron]]:opacity-70";
 
 export function PolicyTooltip({ children }: { readonly children: string }) {
+  const { locale, t } = useI18n();
   return (
     <Tooltip>
       <TooltipTrigger
         delay={200}
         render={
-          <Button size="icon-micro" variant="ghost-muted" aria-label="Background policy details">
+          <Button size="icon-micro" variant="ghost-muted" aria-label={t("settings.policyDetails")}>
             <InfoIcon className="size-3.5" />
           </Button>
         }
       />
-      <TooltipPopup side="top">{children}</TooltipPopup>
+      <TooltipPopup side="top">{translateWebSource(locale, children)}</TooltipPopup>
     </Tooltip>
   );
 }
@@ -215,7 +220,9 @@ export function SettingsSection({
   variant?: "grouped" | "plain";
   children: ReactNode;
 }) {
+  const { locale } = useI18n();
   const targetRef = useSettingsSearchTarget<HTMLElement>(sectionProps.id);
+  const renderedTitle = translateWebSource(locale, title);
 
   return (
     <section
@@ -225,7 +232,7 @@ export function SettingsSection({
       className={cn(!hideTitle && "space-y-2.5", className)}
     >
       {hideTitle ? (
-        <h2 className="sr-only">{title}</h2>
+        <h2 className="sr-only">{renderedTitle}</h2>
       ) : (
         <div
           data-settings-scroll-target
@@ -234,7 +241,7 @@ export function SettingsSection({
           <div className="flex min-w-0 items-center gap-1">
             <h2 className="flex min-h-7 items-center gap-2 text-base font-semibold text-foreground">
               {icon}
-              {title}
+              {renderedTitle}
             </h2>
             {titleAction}
           </div>
@@ -319,6 +326,8 @@ export function SettingsRow({
   mixed?: boolean;
   children?: ReactNode;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale } = useI18n();
   const targetRef = useSettingsSearchTarget<HTMLDivElement>(rowProps.id);
   const primarySettingsAvailable = usePrimarySettingsAvailable();
   const context = useOptionalSettingsScope();
@@ -364,7 +373,9 @@ export function SettingsRow({
   const renderedReset = unavailable ? null : isProjectScope && scopedKeys.length > 0 ? (
     source === "project" || source === "mixed" ? (
       <SettingResetButton
-        label={typeof title === "string" ? title : "override"}
+        label={
+          typeof title === "string" ? title : translateStaticUiCopy(staticUiLocale, "override")
+        }
         tooltip="Reset to inherited value"
         onClick={() => (onResetOverride ? onResetOverride() : clearOverrides(scopedKeys))}
       />
@@ -450,7 +461,10 @@ export function SettingsRow({
           : {})}
       />
     ) : null;
-  const renderedStatus = status;
+  const renderedTitle = typeof title === "string" ? translateWebSource(locale, title) : title;
+  const renderedDescription =
+    typeof description === "string" ? translateWebSource(locale, description) : description;
+  const renderedStatus = typeof status === "string" ? translateWebSource(locale, status) : status;
 
   return (
     <div
@@ -467,7 +481,7 @@ export function SettingsRow({
       <div className="flex flex-col gap-3 @min-[32rem]/settings-row:grid @min-[32rem]/settings-row:grid-cols-[minmax(0,1fr)_minmax(10rem,auto)] @min-[32rem]/settings-row:items-center @min-[32rem]/settings-row:gap-8">
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex min-h-5 items-center gap-1.5">
-            <h3 className="text-sm font-medium text-foreground">{title}</h3>
+            <h3 className="text-sm font-medium text-foreground">{renderedTitle}</h3>
             {renderedInheritance ? (
               <span
                 className={cn(
@@ -485,9 +499,9 @@ export function SettingsRow({
               {renderedReset}
             </span>
           </div>
-          {description ? (
+          {renderedDescription ? (
             <p className="max-w-2xl text-balance text-xs leading-normal text-muted-foreground">
-              {description}
+              {renderedDescription}
             </p>
           ) : null}
           {renderedStatus ? (
@@ -522,6 +536,7 @@ export function SettingResetButton({
   disabled?: boolean;
   onClick: () => void;
 }) {
+  const { locale, t } = useI18n();
   return (
     <Tooltip>
       <TooltipTrigger
@@ -529,7 +544,9 @@ export function SettingResetButton({
           <Button
             size="icon-micro"
             variant="ghost-muted"
-            aria-label={`Reset ${label} to default`}
+            aria-label={t("settings.resetSetting", {
+              setting: translateWebSource(locale, label),
+            })}
             disabled={disabled}
             onClick={(event) => {
               event.stopPropagation();

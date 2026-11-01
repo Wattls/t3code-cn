@@ -1,3 +1,12 @@
+import { DEFAULT_RESOLVED_KEYBINDINGS } from "@t3tools/shared/keybindings";
+import {
+  buildKeybindingCommandOptions,
+  buildWhenVariableOptions,
+  commandLabel,
+  filterKeybindingRows,
+  unknownWhenVariables,
+  whenNodeRemoveLabel,
+} from "./KeybindingsSettings.logic";
 import { assert, describe, expect, it } from "vite-plus/test";
 import type { ResolvedKeybindingsConfig } from "@t3tools/contracts";
 import {
@@ -7,14 +16,20 @@ import {
 
 import { resolveShortcutCommand } from "../../keybindings";
 
+import { translateWebMessage } from "../../i18n/messages";
+
 import {
   buildKeybindingRows,
   keybindingConflictLabels,
   keybindingFromKeyboardEvent,
+  localizedCommandLabel,
   parseWhenExpressionDraft,
   shortcutToKeybindingInput,
   whenAstToExpression,
 } from "./KeybindingsSettings.logic";
+
+const localizedChineseCommandLabel = (command: Parameters<typeof localizedCommandLabel>[0]) =>
+  localizedCommandLabel(command, (key, values) => translateWebMessage("zh-CN", key, values));
 
 describe("KeybindingsSettings.logic", () => {
   it("keeps sibling row identities when a saved binding moves to the end", () => {
@@ -57,6 +72,68 @@ describe("KeybindingsSettings.logic", () => {
     expect(buildKeybindingRows(bindings.slice(1)).map((row) => row.id)).toEqual(
       rows.map((row) => row.id),
     );
+  });
+
+  it("keeps the Usage block stable with translated labels and interleaving commands", () => {
+    const label = (command: Parameters<typeof commandLabel>[0]) => {
+      if (command === "usage.cost") return "M";
+      if (command.startsWith("usage.")) return "Z";
+      if (command === "chat.new") return "N";
+      return "L";
+    };
+    const bindings = DEFAULT_RESOLVED_KEYBINDINGS.filter(
+      (binding) => binding.command.startsWith("usage.") || binding.command === "chat.new",
+    );
+    const forward = buildKeybindingRows(bindings, label).map((row) => row.command);
+    const reversed = buildKeybindingRows(bindings.toReversed(), label).map((row) => row.command);
+    expect(reversed).toEqual(forward);
+    expect(forward.slice(0, 8)).toEqual([
+      "usage.open",
+      "usage.cost",
+      "usage.tokens",
+      "usage.limits",
+      "usage.period.day",
+      "usage.period.week",
+      "usage.period.month",
+      "usage.period.quarter",
+    ]);
+    expect(forward[8]).toBe("chat.new");
+    const options = buildKeybindingCommandOptions([], label);
+    expect(options.indexOf("usage.period.quarter") - options.indexOf("usage.cost")).toBe(6);
+  });
+
+  it("builds searchable rows with readable key and when values", () => {
+    const rows = filterKeybindingRows(
+      buildKeybindingRows([
+        {
+          command: "terminal.toggle",
+          shortcut: {
+            key: "j",
+            modKey: true,
+            metaKey: false,
+            ctrlKey: false,
+            altKey: false,
+            shiftKey: false,
+          },
+          whenAst: {
+            type: "not",
+            node: { type: "identifier", name: "terminalFocus" },
+          },
+        },
+      ] satisfies ResolvedKeybindingsConfig),
+      "terminal",
+    );
+
+    expect(rows).toEqual([
+      expect.objectContaining({
+        command: "terminal.toggle",
+        key: "mod+j",
+        when: "!terminalFocus",
+        defaultKey: "mod+j",
+        defaultWhen: "",
+        source: "Custom",
+      }),
+    ]);
   });
 
   it("captures platform-specific mod shortcuts", () => {
@@ -223,6 +300,176 @@ describe("KeybindingsSettings.logic", () => {
     });
   });
 
+  it("describes the scope of each visual expression removal", () => {
+    const condition = { type: "identifier", name: "terminalFocus" } as const;
+    const negatedCondition = { type: "not", node: condition } as const;
+    const group = { type: "and", left: condition, right: negatedCondition } as const;
+    const negatedGroup = { type: "not", node: group } as const;
+
+    expect(whenNodeRemoveLabel(group, 0)).toBe("Clear all conditions");
+    expect(whenNodeRemoveLabel(condition, 1)).toBe("Remove condition");
+    expect(whenNodeRemoveLabel(negatedCondition, 1)).toBe("Remove condition");
+    expect(whenNodeRemoveLabel(group, 1)).toBe("Remove group and its conditions");
+    expect(whenNodeRemoveLabel(negatedGroup, 1)).toBe("Remove group and its conditions");
+  });
+
+  it("formats static and project script command labels", () => {
+    expect(commandLabel("commandPalette.toggle")).toBe("Command Palette: Toggle");
+    expect(commandLabel("themeEditor.toggle")).toBe("Theme Editor: Toggle");
+    expect(commandLabel("view.reopenClosed")).toBe("Reopen Closed Tab");
+    expect(commandLabel("preview.focusUrl")).toBe("Preview: Focus URL");
+    expect(commandLabel("script.setup-db.run")).toBe("Run Script: Setup Db");
+  });
+
+  it("localizes static and dynamic command labels while preserving the English fallback", () => {
+    expect(localizedChineseCommandLabel("chat.new")).toBe("聊天：新建任务");
+    expect(localizedChineseCommandLabel("chat.newWithoutProject")).toBe("聊天：新建无项目任务");
+    expect(localizedChineseCommandLabel("thread.settle")).toBe("任务：收起或恢复");
+    expect(localizedChineseCommandLabel("thread.jump.3")).toBe("任务：跳转到第 3 个");
+    expect(localizedChineseCommandLabel("modelPicker.jump.7")).toBe("模型选择器：选择第 7 个模型");
+    expect(localizedChineseCommandLabel("script.setup-db.run")).toBe("运行脚本：Setup Db");
+    expect(commandLabel("chat.new")).toBe("Chat: New");
+  });
+
+  it("builds known when variable options from defaults without frontend labels", () => {
+    const options = buildWhenVariableOptions();
+
+    expect(options).toEqual(
+      expect.arrayContaining([
+        "terminalFocus",
+        "terminalOpen",
+        "isWeb",
+        "isDesktop",
+        "modelPickerOpen",
+        "true",
+        "false",
+      ]),
+    );
+    expect(options).not.toContain("customModeActive");
+  });
+
+  it("builds command options from all static commands and resolved project bindings", () => {
+    const options = buildKeybindingCommandOptions([
+      {
+        command: "script.setup-db.run",
+        shortcut: {
+          key: "r",
+          modKey: true,
+          metaKey: false,
+          ctrlKey: false,
+          altKey: false,
+          shiftKey: false,
+        },
+      },
+    ] satisfies ResolvedKeybindingsConfig);
+
+    expect(options).toEqual(
+      expect.arrayContaining([
+        "chat.new",
+        "threadPanel.toggle",
+        "rightPanel.toggleMaximized",
+        "composer.cycleHost",
+        "thread.stop",
+        "usage.open",
+        "script.setup-db.run",
+      ]),
+    );
+    for (const command of ["thread.stop", "composer.cycleHost"]) {
+      expect(DEFAULT_RESOLVED_KEYBINDINGS.some((binding) => binding.command === command)).toBe(
+        false,
+      );
+    }
+  });
+
+  it("uses a supplied command labeler for sorting without changing command option values", () => {
+    const options = buildKeybindingCommandOptions([], (command) => {
+      if (command === "terminal.toggle") return "Alpha";
+      if (command === "chat.new") return "Zulu";
+      return commandLabel(command);
+    });
+
+    expect(options.indexOf("terminal.toggle")).toBeLessThan(options.indexOf("chat.new"));
+    expect(options).toEqual(expect.arrayContaining(["terminal.toggle", "chat.new"]));
+  });
+
+  it("searches localized labels without changing command, key, or when values", () => {
+    const rows = filterKeybindingRows(
+      buildKeybindingRows(
+        [
+          {
+            command: "chat.new",
+            shortcut: {
+              key: "n",
+              modKey: true,
+              metaKey: false,
+              ctrlKey: false,
+              altKey: false,
+              shiftKey: false,
+            },
+            whenAst: {
+              type: "not",
+              node: { type: "identifier", name: "terminalFocus" },
+            },
+          },
+        ] satisfies ResolvedKeybindingsConfig,
+        localizedChineseCommandLabel,
+      ),
+      "新建任务",
+      localizedChineseCommandLabel,
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      command: "chat.new",
+      key: "mod+n",
+      when: "!terminalFocus",
+    });
+  });
+
+  it("reports unknown when variables without rejecting parseable expressions", () => {
+    const parsed = parseWhenExpressionDraft("!terminalFocus && terminalFoc");
+
+    expect(parsed.ok).toBe(true);
+    expect(unknownWhenVariables(parsed.ok ? parsed.value : undefined)).toEqual(["terminalFoc"]);
+  });
+
+  it("marks each default shortcut for multi-binding commands as default", () => {
+    const rows = buildKeybindingRows([
+      {
+        command: "chat.new",
+        shortcut: {
+          key: "n",
+          modKey: true,
+          metaKey: false,
+          ctrlKey: false,
+          altKey: false,
+          shiftKey: false,
+        },
+        whenAst: {
+          type: "not",
+          node: { type: "identifier", name: "terminalFocus" },
+        },
+      },
+      {
+        command: "chat.new",
+        shortcut: {
+          key: "o",
+          modKey: true,
+          metaKey: false,
+          ctrlKey: false,
+          altKey: false,
+          shiftKey: true,
+        },
+        whenAst: {
+          type: "not",
+          node: { type: "identifier", name: "terminalFocus" },
+        },
+      },
+    ] satisfies ResolvedKeybindingsConfig);
+
+    expect(rows.map((row) => row.source)).toEqual(["Default", "Default"]);
+  });
+
   it("reports conflicting shortcuts that share an active when context", () => {
     const rows = buildKeybindingRows([
       {
@@ -265,6 +512,18 @@ describe("KeybindingsSettings.logic", () => {
         when: "",
       }),
     ).toEqual(["Chat: New Local"]);
+
+    expect(
+      keybindingConflictLabels(
+        rows,
+        {
+          rowId: rows[0]?.id ?? "",
+          key: "mod+n",
+          when: "",
+        },
+        localizedChineseCommandLabel,
+      ),
+    ).toEqual(["聊天：新建本地任务"]);
   });
 
   it.each([
@@ -278,6 +537,7 @@ describe("KeybindingsSettings.logic", () => {
         { command: "chat.newLocal", key: "ctrl+k" },
         { command: "thread.copyReference", key: "meta+k" },
       ]),
+      undefined,
       expected.platform,
     );
     const conflictsFor = (key: string) => rows.find((row) => row.key === key)?.conflicts;
@@ -285,7 +545,12 @@ describe("KeybindingsSettings.logic", () => {
     expect(conflictsFor("ctrl+k")).toEqual(expected.ctrl);
     expect(conflictsFor("meta+k")).toEqual(expected.meta);
     expect(
-      keybindingConflictLabels(rows, { rowId: "new", key: "ctrl+k", when: "" }, expected.platform),
+      keybindingConflictLabels(
+        rows,
+        { rowId: "new", key: "ctrl+k", when: "" },
+        undefined,
+        expected.platform,
+      ),
     ).toEqual(["Chat: New Local", ...expected.ctrl].toSorted());
   });
 
@@ -295,6 +560,7 @@ describe("KeybindingsSettings.logic", () => {
         { command: "chat.new", key: "mod+k", when: "!terminalFocus" },
         { command: "chat.newLocal", key: "ctrl+k", when: "terminalFocus" },
       ]),
+      undefined,
       "Linux x86_64",
     );
 

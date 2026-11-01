@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { translateWebSource } from "../../i18n/messages";
+import { useI18n } from "../../i18n/WebI18nContext";
 import type { EnvironmentId, SourceControlProviderAuth } from "@t3tools/contracts";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
@@ -49,6 +53,8 @@ export function SourceControlAccountSettings({
   readonly auth: SourceControlProviderAuth;
   readonly onSaved: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: sourceLocale } = useI18n();
   const { hosts } = useEnvironmentSettings(environmentId, (settings) =>
     readHostCredentialSettings(settings, definition.kind),
   );
@@ -83,9 +89,13 @@ export function SourceControlAccountSettings({
   if (groups.length === 0) {
     return (
       <p className="text-xs text-muted-foreground">
-        Sign in with{" "}
-        <code className="rounded bg-muted px-1 py-px text-2xs">{credentials.loginCommand}</code> on
-        the server host, then rescan to choose accounts here.
+        {translateWebSource(sourceLocale, "Sign in with")}{" "}
+        <code className="rounded bg-muted px-1 py-px text-2xs">{credentials.loginCommand}</code>
+        {" " +
+          translateStaticUiCopy(
+            staticUiLocale,
+            "on the server host, then rescan to choose accounts here.",
+          )}
       </p>
     );
   }
@@ -94,8 +104,10 @@ export function SourceControlAccountSettings({
     <div className="grid gap-4">
       <div className="flex items-center justify-between gap-3">
         <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
-          Choose which <code className="rounded bg-muted px-1 py-px text-2xs">{cliName}</code> login
-          each {label} host uses, or turn a host off.
+          {translateWebSource(sourceLocale, "Choose which")}{" "}
+          <code className="rounded bg-muted px-1 py-px text-2xs">{cliName}</code>
+          {" " + translateStaticUiCopy(staticUiLocale, "login each") + " "}
+          {label} {translateStaticUiCopy(staticUiLocale, "host uses, or turn a host off.")}
         </p>
         <Button
           size="icon-xs"
@@ -120,7 +132,7 @@ export function SourceControlAccountSettings({
                 <span className="text-xs font-medium text-foreground">{group.host}</span>
                 {group.selectable.length === 1 && group.selectable[0] !== undefined ? (
                   <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-                    <span>Signed in as</span>
+                    <span>{translateWebSource(sourceLocale, "Signed in as")}</span>
                     <RedactedLogin revealed={revealed} account={group.selectable[0]} />
                   </p>
                 ) : null}
@@ -134,7 +146,9 @@ export function SourceControlAccountSettings({
             </div>
             {group.selectable.length > 1 ? (
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs text-muted-foreground">Account</span>
+                <span className="text-xs text-muted-foreground">
+                  {translateWebSource(sourceLocale, "Account")}
+                </span>
                 <div className="w-64 max-w-full">
                   <Select
                     value={pinned}
@@ -151,7 +165,9 @@ export function SourceControlAccountSettings({
                         {(value: string) =>
                           value === ACTIVE_ACCOUNT ? (
                             <span className="flex min-w-0 items-center gap-1">
-                              Active {cliName} account
+                              {translateStaticUiCopy(staticUiLocale, "Active") + " "}
+                              {cliName}
+                              {" " + translateStaticUiCopy(staticUiLocale, "account")}
                               {group.activeAccount ? (
                                 <>
                                   (
@@ -172,7 +188,9 @@ export function SourceControlAccountSettings({
                     <SelectPopup align="end" alignItemWithTrigger={false}>
                       <SelectItem value={ACTIVE_ACCOUNT}>
                         <span className="flex min-w-0 items-center gap-1">
-                          Active {cliName} account
+                          {translateStaticUiCopy(staticUiLocale, "Active") + " "}
+                          {cliName}
+                          {" " + translateStaticUiCopy(staticUiLocale, "account")}
                           {group.activeAccount ? (
                             <>
                               (<RedactedLogin revealed={revealed} account={group.activeAccount} />)
@@ -197,7 +215,12 @@ export function SourceControlAccountSettings({
             {stalePin ? (
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs text-warning">
-                  The chosen login is no longer signed in, so the active {cliName} login is used.
+                  {translateStaticUiCopy(
+                    staticUiLocale,
+                    "The chosen login is no longer signed in, so the active",
+                  ) + " "}
+                  {cliName}
+                  {" " + translateStaticUiCopy(staticUiLocale, "login is used.")}
                 </p>
                 <Button
                   size="xs"
@@ -205,7 +228,7 @@ export function SourceControlAccountSettings({
                   disabled={saving}
                   onClick={() => void save(group.host, { account: null })}
                 >
-                  Use active login
+                  {translateWebSource(sourceLocale, "Use active login")}
                 </Button>
               </div>
             ) : null}
@@ -216,14 +239,18 @@ export function SourceControlAccountSettings({
               >
                 <RedactedLogin revealed={revealed} account={entry.account} />
                 <span>
-                  can't be used: {entry.error ?? `${cliName} reports this login as invalid.`}
+                  {translateWebSource(sourceLocale, "can't be used:")}{" "}
+                  {entry.error ?? `${cliName} reports this login as invalid.`}
                 </span>
               </p>
             ))}
             {group.environmentVariable ? (
               <p className="text-xs text-warning">
-                {group.environmentVariable} is set on the server, so it overrides the account chosen
-                here until it is unset.
+                {group.environmentVariable}{" "}
+                {translateWebSource(
+                  sourceLocale,
+                  "is set on the server, so it overrides the account chosen here until it is unset.",
+                )}
               </p>
             ) : null}
           </div>

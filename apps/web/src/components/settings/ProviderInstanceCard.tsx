@@ -1,3 +1,10 @@
+"use client";
+
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+
+import { useI18n } from "../../i18n/WebI18nContext";
+
 import { Spinner } from "~/components/ui/spinner";
 
 import {
@@ -193,15 +200,16 @@ export function deriveProviderModelsForDisplay(input: {
 }
 
 function ProviderAuthEmail(props: { readonly email: string | undefined }) {
+  const { t } = useI18n();
   const email = props.email?.trim();
   if (!email) return null;
 
   return (
     <RedactedSensitiveText
       value={email}
-      ariaLabel="Toggle account email visibility"
-      revealTooltip="Click to reveal email"
-      hideTooltip="Click to hide email"
+      ariaLabel={t("providers.action.toggleEmail")}
+      revealTooltip={t("providers.action.revealEmail")}
+      hideTooltip={t("providers.action.hideEmail")}
       className="max-w-full truncate"
     />
   );
@@ -336,6 +344,8 @@ export function ProviderEnvironmentSection(props: {
   readonly onChange: (environment: ReadonlyArray<ProviderInstanceEnvironmentVariable>) => void;
   readonly secretSources?: ReadonlyArray<SecretSource>;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { t } = useI18n();
   const [storedDraft, setDraft] = useState(() =>
     seedRowsDraft(props.environment, toEnvironmentDraftRows),
   );
@@ -415,12 +425,15 @@ export function ProviderEnvironmentSection(props: {
 
   return (
     <SettingsRow
-      title="Variables"
-      description="API keys, base URLs, and other per-instance CLI settings."
+      title={translateStaticUiCopy(staticUiLocale, "Variables")}
+      description={translateStaticUiCopy(
+        staticUiLocale,
+        "API keys, base URLs, and other per-instance CLI settings.",
+      )}
       control={
         <Button type="button" size="sm" variant="outline" onClick={addVariable}>
           <PlusIcon className="size-3" />
-          Add variable
+          {t("providers.instance.addVariable")}
         </Button>
       }
     >
@@ -479,7 +492,9 @@ export function ProviderEnvironmentSection(props: {
                     }
                   />
                   <TooltipPopup side="top">
-                    {variable.sensitive ? "Sensitive, stored separately" : "Plain text"}
+                    {variable.sensitive
+                      ? translateStaticUiCopy(staticUiLocale, "Sensitive, stored separately")
+                      : translateStaticUiCopy(staticUiLocale, "Plain text")}
                   </TooltipPopup>
                 </Tooltip>
               ) : null;
@@ -505,7 +520,7 @@ export function ProviderEnvironmentSection(props: {
                     className="min-w-0 flex-1"
                     value={variable.valueRedacted ? "" : variable.value}
                     onCommit={(value) => updateVariable(variable.id, { value })}
-                    placeholder="value"
+                    placeholder={translateStaticUiCopy(staticUiLocale, "value")}
                     configured={variable.valueRedacted === true}
                     spellCheck={false}
                     aria-label={`Environment variable value ${index + 1}`}
@@ -528,7 +543,7 @@ export function ProviderEnvironmentSection(props: {
                       }
                       onCommit={(value) => updateVariable(variable.id, { value })}
                       autoComplete="off"
-                      placeholder="value"
+                      placeholder={translateStaticUiCopy(staticUiLocale, "value")}
                       spellCheck={false}
                       aria-label={`Environment variable value ${index + 1}`}
                     />,
@@ -538,7 +553,10 @@ export function ProviderEnvironmentSection(props: {
             );
           })}
           <p className="text-xs text-muted-foreground">
-            Sensitive values are stored separately and never returned to the app.
+            {translateStaticUiCopy(
+              staticUiLocale,
+              "Sensitive values are stored separately and never returned to the app.",
+            )}
           </p>
         </div>
       ) : null}
@@ -553,9 +571,20 @@ function ProjectOverrideInheritance({
   readonly projectEnabled: boolean;
   readonly deviceEnabled: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const layers = [
-    { key: "project", label: "Project", enabled: projectEnabled, effective: true },
-    { key: "device", label: "Device", enabled: deviceEnabled, effective: false },
+    {
+      key: "project",
+      label: translateStaticUiCopy(staticUiLocale, "Project"),
+      enabled: projectEnabled,
+      effective: true,
+    },
+    {
+      key: "device",
+      label: translateStaticUiCopy(staticUiLocale, "Device"),
+      enabled: deviceEnabled,
+      effective: false,
+    },
   ];
   return (
     <Popover>
@@ -567,7 +596,10 @@ function ProjectOverrideInheritance({
                 <Button
                   size="icon-micro"
                   variant="ghost-muted"
-                  aria-label="Overridden for this project. Show where this value comes from"
+                  aria-label={translateStaticUiCopy(
+                    staticUiLocale,
+                    "Overridden for this project. Show where this value comes from",
+                  )}
                 />
               }
             />
@@ -575,7 +607,9 @@ function ProjectOverrideInheritance({
         >
           <LayersIcon className="size-3 text-primary" />
         </TooltipTrigger>
-        <TooltipPopup side="top">Overridden for this project</TooltipPopup>
+        <TooltipPopup side="top">
+          {translateStaticUiCopy(staticUiLocale, "Overridden for this project")}
+        </TooltipPopup>
       </Tooltip>
       <PopoverPopup align="end" width="md" padding="none">
         <ol role="list" className="px-3 py-2.5 text-sm">
@@ -601,7 +635,9 @@ function ProjectOverrideInheritance({
                   layer.effective ? "text-foreground" : "text-muted-foreground",
                 )}
               >
-                {layer.enabled ? "On" : "Off"}
+                {layer.enabled
+                  ? translateStaticUiCopy(staticUiLocale, "On")
+                  : translateStaticUiCopy(staticUiLocale, "Off")}
                 {layer.effective ? (
                   <CheckIcon aria-hidden className="size-3.5 shrink-0 text-primary" />
                 ) : (
@@ -701,14 +737,16 @@ export function ProviderInstanceCard({
   secretSources = NO_SECRET_SOURCES,
   projectOverride,
 }: ProviderInstanceCardProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { t } = useI18n();
   const enabled = projectOverride?.effectiveEnabled ?? resolveProviderInstanceEnabled(instance);
   const effectiveProvider = liveProvider && { ...liveProvider, enabled };
   const compatibility = enabled ? liveProvider?.compatibilityAdvisory : undefined;
   const statusKey = enabled ? getProviderStatusKey(effectiveProvider) : "disabled";
   const statusStyle = PROVIDER_STATUS_STYLES[statusKey];
   const summary = enabled
-    ? getProviderSummary(effectiveProvider)
-    : { headline: "Disabled", detail: null };
+    ? getProviderSummary(effectiveProvider, t)
+    : { headline: t("providers.status.disabled"), detail: null };
   const authEmail = liveProvider?.auth.email?.trim();
   const isAuthenticated = enabled && liveProvider?.auth.status === "authenticated";
   const authLabel =
@@ -720,6 +758,7 @@ export function ProviderInstanceCard({
     liveProvider?.versionAdvisory,
     liveProvider?.compatibilityAdvisory,
     enabled,
+    t,
   );
   const updateCommand = versionAdvisory?.updateCommand ?? null;
   const updateState = liveProvider?.updateState;
@@ -750,15 +789,15 @@ export function ProviderInstanceCard({
     onCopy: ({ providerName }) => {
       toastManager.add({
         type: "success",
-        title: `${providerName} update command copied`,
-        description: "Run it in a terminal when you are ready to update.",
+        title: t("providers.update.commandCopied", { provider: providerName }),
+        description: t("providers.update.commandCopiedDescription"),
       });
     },
     onError: (error, { providerName }) => {
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: `Could not copy ${providerName} update command`,
+          title: t("providers.update.copyFailed", { provider: providerName }),
           description: error.message,
         }),
       );
@@ -910,7 +949,7 @@ export function ProviderInstanceCard({
     isAuthenticated && authEmail ? (
       <>
         {needsAttention ? statusDotNode : null}
-        <span>Authenticated as</span>
+        <span>{t("providers.status.authenticatedAs")}</span>
         <ProviderAuthEmail email={authEmail} />
         {authLabel ? <span>· {authLabel}</span> : null}
         {inlineStatusDetail ? (
@@ -956,7 +995,9 @@ export function ProviderInstanceCard({
           }
         />
         <TooltipPopup side="top">
-          {updateProgress ? "Updating" : versionAdvisory.title}
+          {updateProgress
+            ? translateStaticUiCopy(staticUiLocale, "Updating")
+            : versionAdvisory.title}
         </TooltipPopup>
       </Tooltip>
       <PopoverPopup side="bottom" align="end" width="md" aria-label={versionAdvisory.title}>
@@ -985,10 +1026,10 @@ export function ProviderInstanceCard({
             >
               {isUpdating ? <Spinner /> : <DownloadIcon />}
               {isUpdating
-                ? "Updating"
+                ? translateStaticUiCopy(staticUiLocale, "Updating")
                 : versionAdvisory.targetVersion
                   ? `Install ${getProviderVersionLabel(versionAdvisory.targetVersion)}`
-                  : "Update now"}
+                  : translateStaticUiCopy(staticUiLocale, "Update now")}
             </Button>
           ) : null}
           {updateProgress || updateProblem ? (
@@ -1005,7 +1046,7 @@ export function ProviderInstanceCard({
           {onRunVersionAction && updateCommand ? (
             <div className="flex items-center gap-2 text-3xs font-medium uppercase tracking-wider text-muted-foreground">
               <span aria-hidden className="h-px flex-1 bg-border" />
-              or, update manually using
+              {translateStaticUiCopy(staticUiLocale, "or, update manually using")}
               <span aria-hidden className="h-px flex-1 bg-border" />
             </div>
           ) : null}
@@ -1023,13 +1064,15 @@ export function ProviderInstanceCard({
                       variant="ghost-muted"
                       className="shrink-0"
                       onClick={() => copyToClipboard(updateCommand, { providerName: displayName })}
-                      aria-label="Copy update command"
+                      aria-label={translateStaticUiCopy(staticUiLocale, "Copy update command")}
                     >
                       <CopyIcon className="size-3" />
                     </Button>
                   }
                 />
-                <TooltipPopup side="top">Copy command</TooltipPopup>
+                <TooltipPopup side="top">
+                  {translateStaticUiCopy(staticUiLocale, "Copy command")}
+                </TooltipPopup>
               </Tooltip>
             </div>
           ) : null}
@@ -1113,7 +1156,7 @@ export function ProviderInstanceCard({
             checked={enabled}
             disabled={readOnly || (projectOverride !== undefined && !canWriteSettings)}
             onCheckedChange={(checked) => updateEnabled(Boolean(checked))}
-            aria-label={`Enable ${displayName}`}
+            aria-label={t("providers.action.enable", { provider: displayName })}
           />
         </span>
       </div>
@@ -1143,7 +1186,7 @@ export function ProviderInstanceCard({
             variant="ghost-destructive"
             disabled={readOnly}
             onClick={onDelete}
-            aria-label={`Delete instance ${instanceId}`}
+            aria-label={t("providers.action.delete", { instance: instanceId })}
           >
             <Trash2Icon />
           </Button>
@@ -1182,7 +1225,7 @@ export function ProviderInstanceCard({
             disabled={readOnly}
           >
             <ExternalLinkIcon />
-            Continue authentication
+            {translateStaticUiCopy(staticUiLocale, "Continue authentication")}
           </Button>
         </div>
       ) : null}
@@ -1200,11 +1243,15 @@ export function ProviderInstanceCard({
     />
   ) : (
     <SettingsRow
-      title="Driver"
+      title={translateStaticUiCopy(staticUiLocale, "Driver")}
       description={
         <span>
-          This instance uses <code className="text-foreground">{String(instance.driver)}</code>,
-          which is not available in this build. Its configuration is preserved.
+          {translateStaticUiCopy(staticUiLocale, "This instance uses") + " "}
+          <code className="text-foreground">{String(instance.driver)}</code>
+          {translateStaticUiCopy(
+            staticUiLocale,
+            ", which is not available in this build. Its configuration is preserved.",
+          )}
         </span>
       }
     />
@@ -1213,9 +1260,12 @@ export function ProviderInstanceCard({
   return (
     <>
       <SettingsSection title={displayName} icon={titleIconNode} headerAction={editorHeaderAction}>
-        <SettingsRow title="Status" status={statusContent} />
         <SettingsRow
-          title="Display name"
+          title={translateStaticUiCopy(staticUiLocale, "Status")}
+          status={statusContent}
+        />
+        <SettingsRow
+          title={translateStaticUiCopy(staticUiLocale, "Display name")}
           control={
             <div
               inert={readOnly}
@@ -1237,7 +1287,7 @@ export function ProviderInstanceCard({
                 className="min-w-0 flex-1 @min-[32rem]/settings-row:w-56"
                 value={instance.displayName ?? ""}
                 onCommit={updateDisplayName}
-                placeholder={driverOption?.label ?? "Instance label"}
+                placeholder={driverOption?.label ?? t("providers.instance.placeholder")}
                 spellCheck={false}
               />
             </div>
@@ -1246,7 +1296,7 @@ export function ProviderInstanceCard({
       </SettingsSection>
 
       {setup || environmentFields.length > 0 ? (
-        <SettingsSection title="Setup">
+        <SettingsSection title={translateStaticUiCopy(staticUiLocale, "Setup")}>
           {setup}
           {environmentFields.length > 0 ? (
             <div
@@ -1280,7 +1330,7 @@ export function ProviderInstanceCard({
           <FoldedSettingsSection
             key={instanceId}
             id={`provider-instance-${instanceId}-runtime`}
-            title="Runtime"
+            title={translateStaticUiCopy(staticUiLocale, "Runtime")}
             headerPlacement="outside"
           >
             {runtime ?? runtimeFields}
@@ -1288,7 +1338,7 @@ export function ProviderInstanceCard({
         </div>
       ) : !driverOption || deriveProviderSettingsFields(driverOption).length > 0 ? (
         <SettingsSection
-          title="Runtime"
+          title={translateStaticUiCopy(staticUiLocale, "Runtime")}
           inert={readOnly}
           aria-disabled={readOnly || undefined}
           className={readOnly ? "opacity-50 select-none" : undefined}
@@ -1298,7 +1348,7 @@ export function ProviderInstanceCard({
       ) : null}
 
       <SettingsSection
-        title="Environment"
+        title={translateStaticUiCopy(staticUiLocale, "Environment")}
         inert={readOnly}
         aria-disabled={readOnly || undefined}
         className={readOnly ? "opacity-50 select-none" : undefined}
@@ -1320,11 +1370,13 @@ export function ProviderInstanceCard({
       ) : null}
 
       {driverOption !== undefined ? (
-        <SettingsSection title="Models">
+        <SettingsSection title={translateStaticUiCopy(staticUiLocale, "Models")}>
           <div className="px-3 py-3 sm:px-4">
             <p className="mb-3 text-xs text-muted-foreground">
-              Model preferences and custom models are saved on the selected environment and shared
-              across connected devices.
+              {translateStaticUiCopy(
+                staticUiLocale,
+                "Model preferences and custom models are saved on the selected environment and shared across connected devices.",
+              )}
             </p>
             <ProviderModelsSection
               canManageCustomModels={!readOnly}

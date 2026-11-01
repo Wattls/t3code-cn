@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   buildTraitsTriggerDisplay,
   getDescriptorStringValue,
@@ -6,6 +8,7 @@ import {
 } from "@t3tools/client-runtime/model-traits";
 import type { ProviderOptionDescriptor, RuntimeMode } from "@t3tools/contracts";
 import type { EffortDisplay } from "@t3tools/contracts/settings";
+import type { ResolvedAppLocale } from "@t3tools/shared/appLocale";
 import { CheckIcon, ChevronUpIcon } from "lucide-react";
 import { type KeyboardEvent, type ReactNode, use, useRef } from "react";
 
@@ -77,6 +80,7 @@ export function describeComposerEffort(
   traits: TraitsSelectionInput | null,
   effortDisplay: EffortDisplay,
   size: ComposerControlSize,
+  locale: ResolvedAppLocale = "en",
 ): { suffix: ReactNode; detail: string | null } {
   if (!traits) return { suffix: null, detail: null };
   const visibility = getTraitsSectionVisibility(traits);
@@ -109,7 +113,7 @@ export function describeComposerEffort(
     ? (glyph.special ?? (effortDisplay === "label" ? glyph.label : null))
     : display.label;
   return {
-    detail: display.label,
+    detail: translateStaticUiCopy(locale, display.label),
     suffix: (
       <span
         className={cn(
@@ -119,7 +123,7 @@ export function describeComposerEffort(
         )}
       >
         {word !== null ? (
-          <span data-composer-control-label>{word}</span>
+          <span data-composer-control-label>{translateStaticUiCopy(locale, word)}</span>
         ) : glyph ? (
           <EffortGlyph count={glyph.count} filled={glyph.filled} size={size} />
         ) : null}
@@ -156,6 +160,7 @@ function ColumnRow(props: {
   level: boolean;
   onPick: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const rowProps = {
     type: "button",
     role: "radio",
@@ -170,8 +175,14 @@ function ColumnRow(props: {
   } as const;
   const content = (
     <>
-      <span className="min-w-0 flex-1 truncate">{props.label}</span>
-      {props.isDefault ? <span className="text-muted-foreground/70 text-xs">Default</span> : null}
+      <span className="min-w-0 flex-1 truncate">
+        {translateStaticUiCopy(staticUiLocale, props.label)}
+      </span>
+      {props.isDefault ? (
+        <span className="text-muted-foreground/70 text-xs">
+          {translateStaticUiCopy(staticUiLocale, "Default")}
+        </span>
+      ) : null}
       <CheckIcon aria-hidden="true" className={cn("size-3.5", !props.selected && "invisible")} />
     </>
   );
@@ -180,7 +191,7 @@ function ColumnRow(props: {
     <Tooltip>
       <TooltipTrigger render={<button {...rowProps} />}>{content}</TooltipTrigger>
       <TooltipPopup side="right" className="max-w-56">
-        {props.description}
+        {translateStaticUiCopy(staticUiLocale, props.description)}
       </TooltipPopup>
     </Tooltip>
   );
@@ -202,6 +213,7 @@ function moveBetweenRows(event: KeyboardEvent<HTMLElement>) {
 }
 
 function EffortLevels(props: { traits: TraitsSelectionInput }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const traits = useTraitsSelection(props.traits);
   const { effort, others } = columnControls(
     props.traits.provider,
@@ -239,7 +251,11 @@ function EffortLevels(props: { traits: TraitsSelectionInput }) {
           {([true, false] as const).map((value) => (
             <ColumnRow
               key={String(value)}
-              label={value ? "On" : "Off"}
+              label={
+                value
+                  ? translateStaticUiCopy(staticUiLocale, "On")
+                  : translateStaticUiCopy(staticUiLocale, "Off")
+              }
               selected={(control.descriptor.currentValue === true) === value}
               level={isEffort}
               onPick={() => traits.changeBoolean(descriptor.id, value)}
@@ -288,8 +304,11 @@ function EffortLevels(props: { traits: TraitsSelectionInput }) {
 }
 
 function NoEffortRow() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
-    <div className="flex h-8 items-center px-2 text-muted-foreground text-sm">No effort levels</div>
+    <div className="flex h-8 items-center px-2 text-muted-foreground text-sm">
+      {translateStaticUiCopy(staticUiLocale, "No effort levels")}
+    </div>
   );
 }
 
@@ -362,6 +381,7 @@ function SpeedSegment(props: {
 }
 
 function SpeedControl(props: { traits: TraitsSelectionInput }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const traits = useTraitsSelection(props.traits);
   const { speedSelect, fastToggle } = splitSpeed(
     props.traits.provider,
@@ -390,7 +410,11 @@ function SpeedControl(props: { traits: TraitsSelectionInput }) {
               <SpeedSegment
                 key={String(value)}
                 checked={(fastToggle.currentValue === true) === value}
-                label={value ? "Fast" : "Standard"}
+                label={
+                  value
+                    ? translateStaticUiCopy(staticUiLocale, "Fast")
+                    : translateStaticUiCopy(staticUiLocale, "Standard")
+                }
                 onPick={() => traits.changeBoolean(fastToggle.id, value)}
               />
             ))
@@ -405,6 +429,7 @@ function PermissionsMenu(props: {
   options: ReadonlyArray<RuntimeModeOption>;
   onChange: (mode: RuntimeMode) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const current = props.options.find((option) => option.mode === props.runtimeMode);
   if (!current) return null;
@@ -421,13 +446,13 @@ function PermissionsMenu(props: {
             ref={triggerRef}
             type="button"
             data-composer-permissions-trigger
-            aria-label={`Permissions: ${current.label}`}
+            aria-label={`${translateStaticUiCopy(staticUiLocale, "Permissions")}: ${translateStaticUiCopy(staticUiLocale, current.label)}`}
             className="ms-auto flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2 text-muted-foreground text-xs outline-none hover:bg-foreground/[0.09] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset data-popup-open:bg-foreground/[0.09] data-popup-open:text-foreground"
           />
         }
       >
         <CurrentIcon aria-hidden="true" className="size-3.5" />
-        {current.label}
+        {translateStaticUiCopy(staticUiLocale, current.label)}
         <ChevronUpIcon aria-hidden="true" className="size-3" />
       </MenuTrigger>
       <MenuPopup side="top" align="end" {...composerFloatingLayerProps}>

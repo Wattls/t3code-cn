@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { TerminalIcon } from "lucide-react";
 
 import type { ContextPresentationCapability } from "../contextPresentationRegistry";
@@ -14,6 +16,7 @@ interface TerminalContextInlineChipProps {
 }
 
 export function TerminalContextInlineChip(props: TerminalContextInlineChipProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { label, terminalLabel, lineStart, lineEnd, text, detailsMode, expired = false } = props;
 
   if (!expired && text.length > 0 && detailsMode === "popover") {
@@ -36,7 +39,7 @@ export function TerminalContextInlineChip(props: TerminalContextInlineChipProps)
           </div>
           <pre
             className="max-h-80 overflow-auto whitespace-pre bg-muted p-3 font-mono text-foreground text-xs leading-relaxed outline-none [tab-size:4] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-            aria-label="Captured terminal output"
+            aria-label={translateStaticUiCopy(staticUiLocale, "Captured terminal output")}
             tabIndex={0}
           >
             {text}

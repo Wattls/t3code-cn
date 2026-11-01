@@ -13,6 +13,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "../components/
 import { SidebarInset } from "../components/ui/sidebar";
 import { WorkspacePageHeader } from "../components/WorkspacePageHeader";
 import { useNewThreadHandler } from "../hooks/useHandleNewThread";
+import { useI18n } from "../i18n/WebI18nContext";
 import {
   readProject,
   useAllEnvironmentShellsBootstrapped,
@@ -91,6 +92,8 @@ function IndexDraftLanding() {
 }
 
 function DraftStartError({ onRetry }: { readonly onRetry: () => void }) {
+  const { t } = useI18n();
+
   const contentArea = workspaceAreaProps("home", 1, "Home");
   return (
     <SidebarInset
@@ -101,14 +104,12 @@ function DraftStartError({ onRetry }: { readonly onRetry: () => void }) {
       {isElectron ? <WorkspacePageHeader electron /> : null}
       <Empty className="flex-1">
         <EmptyHeader className="max-w-md">
-          <EmptyTitle>Couldn’t start a new thread</EmptyTitle>
-          <EmptyDescription>
-            The project is still available. Try opening the draft again.
-          </EmptyDescription>
+          <EmptyTitle>{t("home.startFailed")}</EmptyTitle>
+          <EmptyDescription>{t("home.startFailedDescription")}</EmptyDescription>
           <div className="mt-5 flex justify-center">
             <Button size="sm" onClick={onRetry}>
               <RefreshIcon size="md" />
-              Try again
+              {t("common.retry")}{" "}
             </Button>
           </div>
         </EmptyHeader>

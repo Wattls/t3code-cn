@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { ChevronDownIcon } from "lucide-react";
 
 import { updateClientSettings, useClientSettings } from "../../hooks/useSettings";
@@ -14,16 +16,20 @@ import { SettingResetButton, SettingsRow } from "./settingsLayout";
 import { searchableSetting } from "./settingsSearch";
 
 export function ThreadDetailsItemsRow() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const visibility = useClientSettings(resolveThreadDetailsVisibility);
   const enabled = THREAD_DETAILS_ITEMS.filter((item) => visibility[item.id]).length;
   return (
     <SettingsRow
       {...searchableSetting("thread-details-items")}
-      description="Choose what the thread details card shows. You can also right-click the card."
+      description={translateStaticUiCopy(
+        staticUiLocale,
+        "Choose what the thread details card shows. You can also right-click the card.",
+      )}
       resetAction={
         isDefaultThreadDetailsVisibility(visibility) ? null : (
           <SettingResetButton
-            label="thread details"
+            label={translateStaticUiCopy(staticUiLocale, "thread details")}
             onClick={() => updateClientSettings(RESET_THREAD_DETAILS_ITEMS)}
           />
         )
@@ -40,7 +46,10 @@ export function ThreadDetailsItemsRow() {
               />
             }
           >
-            {enabled} of {THREAD_DETAILS_ITEMS.length} on
+            {enabled}
+            {" " + translateStaticUiCopy(staticUiLocale, "of") + " "}
+            {THREAD_DETAILS_ITEMS.length}
+            {" " + translateStaticUiCopy(staticUiLocale, "on")}
             <ChevronDownIcon aria-hidden />
           </MenuTrigger>
           <MenuPopup align="end">

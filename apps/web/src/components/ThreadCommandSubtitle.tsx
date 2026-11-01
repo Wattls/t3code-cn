@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { ProviderDriverKind } from "@t3tools/contracts";
 import { FolderGit2Icon, FolderIcon, GitBranchIcon } from "lucide-react";
 import { ProjectFavicon, type ProjectFaviconProject } from "./ProjectFavicon";
@@ -43,6 +45,7 @@ export function ThreadCommandSubtitle(props: {
   variant?: ThreadCommandSubtitleVariant;
   className?: string;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const variant = props.variant ?? THREAD_COMMAND_SUBTITLE_VARIANT;
   const isWorktree = props.worktreePath != null && props.worktreePath.trim().length > 0;
   const showHarness =
@@ -103,7 +106,9 @@ export function ThreadCommandSubtitle(props: {
       {props.isCurrent ? (
         <>
           {projectLabel || branchLabel || showHarness ? <CommandPaletteMetaDot /> : null}
-          <span className="shrink-0">Current thread</span>
+          <span className="shrink-0">
+            {translateStaticUiCopy(staticUiLocale, "Current thread")}
+          </span>
         </>
       ) : null}
     </span>

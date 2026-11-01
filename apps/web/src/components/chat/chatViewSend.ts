@@ -1,3 +1,5 @@
+import { readWebI18n } from "~/i18n/readWebI18n";
+import { translateWebSource } from "~/i18n/messages";
 import {
   CommandId,
   type EnvironmentId,
@@ -87,7 +89,10 @@ export async function startFanoutThread(input: {
   try {
     if (uncertainThreadId) {
       throw new Error(
-        "The previous request may have started. Open its thread to check before sending again.",
+        translateWebSource(
+          readWebI18n().locale,
+          "The previous request may have started. Open its thread to check before sending again.",
+        ),
       );
     }
     requestMayHaveStarted = true;
@@ -109,17 +114,23 @@ export async function startFanoutThread(input: {
       stackedThreadToast({
         type: "error",
         title: `Could not start ${input.model}`,
-        description: error instanceof Error ? error.message : "Failed to send message.",
+        description:
+          error instanceof Error
+            ? error.message
+            : translateWebSource(readWebI18n().locale, "Failed to send message."),
         ...(retainedThreadId
           ? {
               timeout: 0,
               data: {
                 secondaryActionProps: {
-                  children: "Allow retry",
+                  children: translateWebSource(readWebI18n().locale, "Allow retry"),
                   onClick: () => {
                     void readLocalApi()
                       ?.dialogs.confirm(
-                        "The previous request may already be running. Check its thread first. Allow another send that could create a duplicate thread?",
+                        translateWebSource(
+                          readWebI18n().locale,
+                          "The previous request may already be running. Check its thread first. Allow another send that could create a duplicate thread?",
+                        ),
                       )
                       .then(
                         (confirmed) => {
@@ -137,7 +148,7 @@ export async function startFanoutThread(input: {
                 },
               },
               actionProps: {
-                children: "Open thread",
+                children: translateWebSource(readWebI18n().locale, "Open thread"),
                 onClick: () => input.openThread(retainedThreadId),
               },
             }
@@ -184,10 +195,18 @@ export async function rewindToMessage(input: {
   const { message, environmentId, draftTarget } = input;
   try {
     if (input.composerHasPendingAttachments) {
-      throw new Error("Wait for attachments to finish preparing before rewinding.");
+      throw new Error(
+        translateWebSource(
+          readWebI18n().locale,
+          "Wait for attachments to finish preparing before rewinding.",
+        ),
+      );
     }
     const connection = readPreparedConnection(environmentId);
-    if (!connection) throw new Error("The environment is not connected.");
+    if (!connection)
+      throw new Error(
+        translateWebSource(readWebI18n().locale, "The environment is not connected."),
+      );
     const files = await prepareRevertedMessageAttachments({
       message,
       environmentId,
@@ -247,7 +266,12 @@ export async function rewindToMessage(input: {
     store.addFiles(draftTarget, restoredFiles, { allowDuplicates: true });
     return { error: null, prompt: nextPrompt };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Failed to revert thread state." };
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : translateWebSource(readWebI18n().locale, "Failed to revert thread state."),
+    };
   }
 }
 

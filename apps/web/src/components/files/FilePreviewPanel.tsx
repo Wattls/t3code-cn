@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { DownloadIcon, CopyIcon, CheckIcon } from "lucide-react";
 import { useCopyToClipboard } from "~/hooks/useCopyToClipboard";
 import { Spinner } from "~/components/ui/spinner";
@@ -175,6 +177,7 @@ function WorkspaceImagePreview(props: {
   readonly alt: string;
   readonly workspaceMutationId: string | null;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const resource = workspaceAssetResource({
     kind:
       mediaFileReference(props.absolutePath, props.workspaceRoot).relativePath !== undefined
@@ -203,7 +206,7 @@ function WorkspaceImagePreview(props: {
     return (
       <MediaActions source={actionsSource}>
         <div className="flex min-h-0 flex-1 items-center justify-center px-6 text-center text-xs leading-relaxed text-destructive">
-          Unable to load workspace image.
+          {translateStaticUiCopy(staticUiLocale, "Unable to load workspace image.")}
         </div>
       </MediaActions>
     );
@@ -231,6 +234,7 @@ export function WorkspaceBrowserPreview(props: {
   readonly title: string;
   readonly workspaceMutationId: string | null;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const pdf = isPdfPreviewFile(props.absolutePath);
   const resource = workspaceAssetResource({
     kind: pdf ? "media-file" : "workspace-file",
@@ -254,7 +258,7 @@ export function WorkspaceBrowserPreview(props: {
   if (assetUrl._tag === "Failure") {
     return (
       <div className="flex min-h-0 flex-1 items-center justify-center px-6 text-center text-xs leading-relaxed text-destructive">
-        Unable to load file preview.
+        {translateStaticUiCopy(staticUiLocale, "Unable to load file preview.")}
       </div>
     );
   }
@@ -1004,6 +1008,7 @@ export default function FilePreviewPanel({
   selectedFilePending,
   workspaceMutationId,
 }: FilePreviewPanelProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const relativePath =
     attachment === undefined ? resolveFilePreviewPath(requestedPath, cwd) : requestedPath;
   const draft = typeof composerDraftTarget === "string";
@@ -1220,7 +1225,7 @@ export default function FilePreviewPanel({
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Unable to open file in browser",
+          title: translateStaticUiCopy(staticUiLocale, "Unable to open file in browser"),
           description: error instanceof Error ? error.message : "An error occurred.",
         }),
       );
@@ -1232,7 +1237,7 @@ export default function FilePreviewPanel({
       return (
         <div className="flex min-h-0 flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
           <Spinner className="size-4" />
-          Checking file access...
+          {translateStaticUiCopy(staticUiLocale, "Checking file access...")}
         </div>
       );
     }
@@ -1303,7 +1308,11 @@ export default function FilePreviewPanel({
           ) : null}
           {showsRawText ? (
             <FileSurfaceAction
-              label={wordWrap ? "Disable word wrap" : "Enable word wrap"}
+              label={
+                wordWrap
+                  ? translateStaticUiCopy(staticUiLocale, "Disable word wrap")
+                  : translateStaticUiCopy(staticUiLocale, "Enable word wrap")
+              }
               pressed={wordWrap}
               onPress={() => setWordWrapOverride(!wordWrap)}
             >
@@ -1311,13 +1320,20 @@ export default function FilePreviewPanel({
             </FileSurfaceAction>
           ) : null}
           {canOpenInBrowser ? (
-            <FileSurfaceAction label="Open file in preview browser" onPress={handleOpenInBrowser}>
+            <FileSurfaceAction
+              label={translateStaticUiCopy(staticUiLocale, "Open file in preview browser")}
+              onPress={handleOpenInBrowser}
+            >
               <Globe2 className="size-3.5" />
             </FileSurfaceAction>
           ) : null}
           {!isHostFile && previewPath !== null ? (
             <FileSurfaceAction
-              label={explorerOpen ? "Hide file explorer" : "Show file explorer"}
+              label={
+                explorerOpen
+                  ? translateStaticUiCopy(staticUiLocale, "Hide file explorer")
+                  : translateStaticUiCopy(staticUiLocale, "Show file explorer")
+              }
               pressed={explorerOpen}
               onPress={toggleExplorer}
             >
@@ -1328,7 +1344,10 @@ export default function FilePreviewPanel({
       ) : null}
       {relativePath && !attachment && !isHostFile && !canWriteFiles && !fileAccess.isPending ? (
         <div className="shrink-0 border-b px-3 py-1.5 text-2xs text-muted-foreground">
-          Read-only connection. Unsaved edits are kept until write access returns.
+          {translateStaticUiCopy(
+            staticUiLocale,
+            "Read-only connection. Unsaved edits are kept until write access returns.",
+          )}
         </div>
       ) : null}
       {previewPath &&
@@ -1338,7 +1357,9 @@ export default function FilePreviewPanel({
       file.data?.truncated &&
       (draft || isMarkdown || isMermaid || isHtml) ? (
         <div className="shrink-0 border-b border-warning/20 bg-warning-surface px-3 py-1.5 text-2xs text-warning-foreground">
-          Preview limited to the first 1 MB of a {file.data.byteLength.toLocaleString()} byte file.
+          {translateStaticUiCopy(staticUiLocale, "Preview limited to the first 1 MB of a") + " "}
+          {file.data.byteLength.toLocaleString()}
+          {" " + translateStaticUiCopy(staticUiLocale, "byte file.")}
         </div>
       ) : null}
       <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -1452,7 +1473,7 @@ export default function FilePreviewPanel({
                 </p>
                 {attemptedPath ? (
                   <p className="text-muted-foreground">
-                    Attempted path
+                    {translateStaticUiCopy(staticUiLocale, "Attempted path")}
                     <code className="block break-all font-mono text-foreground select-all">
                       {attemptedPath}
                     </code>
@@ -1460,11 +1481,14 @@ export default function FilePreviewPanel({
                 ) : null}
                 {!isHostFile ? (
                   <p className="text-muted-foreground">
-                    Workspace folder:{" "}
+                    {translateStaticUiCopy(staticUiLocale, "Workspace folder:")}{" "}
                     <code className="break-all font-mono select-all">
                       {file.readError?.cwd ?? cwd}
                     </code>
-                    . Check the link's path or locate the file in Files.
+                    {translateStaticUiCopy(
+                      staticUiLocale,
+                      ". Check the link's path or locate the file in Files.",
+                    )}
                   </p>
                 ) : null}
               </div>
@@ -1568,6 +1592,7 @@ export function WorkspaceLargeTextPreview(props: {
   revealRequestId: number;
   wordWrap: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const resource = {
     _tag: "media-file",
     threadId: props.threadRef.threadId,
@@ -1581,7 +1606,7 @@ export function WorkspaceLargeTextPreview(props: {
   const showError = (cause: unknown) => {
     toastManager.add({
       type: "error",
-      title: "Could not read file",
+      title: translateStaticUiCopy(staticUiLocale, "Could not read file"),
       description: cause instanceof Error ? cause.message : "Try again.",
     });
   };
@@ -1613,14 +1638,24 @@ export function WorkspaceLargeTextPreview(props: {
       />
     );
   if (assetUrl._tag !== "Success" || loaded === null)
-    return <div className="p-6 text-xs text-muted-foreground">Loading…</div>;
+    return (
+      <div className="p-6 text-xs text-muted-foreground">
+        {translateStaticUiCopy(staticUiLocale, "Loading…")}
+      </div>
+    );
   const src = `${loaded.url}${loaded.url.includes("?") ? "&" : "?"}revision=${encodeURIComponent(loaded.revision)}`;
   return (
     <>
       <div className={FILE_SURFACE_SUBHEADER_CLASS}>
-        <span className="min-w-0 flex-1 text-xs text-muted-foreground">Full file</span>
+        <span className="min-w-0 flex-1 text-xs text-muted-foreground">
+          {translateStaticUiCopy(staticUiLocale, "Full file")}
+        </span>
         <FileSurfaceAction
-          label={isCopied ? "Copied" : "Copy contents"}
+          label={
+            isCopied
+              ? translateStaticUiCopy(staticUiLocale, "Copied")
+              : translateStaticUiCopy(staticUiLocale, "Copy contents")
+          }
           onPress={() => {
             const copy = copyContents.current;
             if (!copy) return;
@@ -1632,7 +1667,11 @@ export function WorkspaceLargeTextPreview(props: {
           {isCopied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
         </FileSurfaceAction>
         <FileSurfaceAction
-          label={saving ? "Preparing file…" : "Save file"}
+          label={
+            saving
+              ? translateStaticUiCopy(staticUiLocale, "Preparing file…")
+              : translateStaticUiCopy(staticUiLocale, "Save file")
+          }
           disabled={saving}
           onPress={() => {
             setSaving(true);
@@ -1655,7 +1694,13 @@ export function WorkspaceLargeTextPreview(props: {
           <DownloadIcon className="size-3.5" />
         </FileSurfaceAction>
       </div>
-      <Suspense fallback={<div className="p-6 text-xs text-muted-foreground">Loading…</div>}>
+      <Suspense
+        fallback={
+          <div className="p-6 text-xs text-muted-foreground">
+            {translateStaticUiCopy(staticUiLocale, "Loading…")}
+          </div>
+        }
+      >
         <LargeTextViewer
           key={`${src}:${revision}`}
           name={props.name}

@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   formatFilePathForClipboard,
   type MediaActionId,
@@ -117,6 +119,7 @@ export function MediaActions({
   source: MediaActionSource;
   children: ReactElement;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { save, copyImage, canReadMedia, assertCanReadMedia } = useMediaActions(source);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const menuOpen = useRef(false);
@@ -139,19 +142,29 @@ export function MediaActions({
         typeof ClipboardItem !== "undefined";
       const items: ContextMenuItem<MediaActionId>[] = [];
       if (reference?.kind === "file") {
-        items.push({ id: "copy-full-path", label: "Copy full path" });
+        items.push({
+          id: "copy-full-path",
+          label: translateStaticUiCopy(staticUiLocale, "Copy full path"),
+        });
         if (reference.relativePath)
-          items.push({ id: "copy-relative-path", label: "Copy relative path" });
+          items.push({
+            id: "copy-relative-path",
+            label: translateStaticUiCopy(staticUiLocale, "Copy relative path"),
+          });
       } else if (reference?.kind === "url") {
-        items.push({ id: "copy-url", label: "Copy URL" });
+        items.push({ id: "copy-url", label: translateStaticUiCopy(staticUiLocale, "Copy URL") });
       }
       if (source.onOpenFile)
-        items.push({ id: "open-file", label: "Open in file viewer", disabled: !canReadMedia });
+        items.push({
+          id: "open-file",
+          label: translateStaticUiCopy(staticUiLocale, "Open in file viewer"),
+          disabled: !canReadMedia,
+        });
       items.push({ id: "save", label: `Save ${noun}`, disabled: unavailable });
       if (source.kind === "image") {
         items.push({
           id: "copy-image",
-          label: "Copy image",
+          label: translateStaticUiCopy(staticUiLocale, "Copy image"),
           disabled: unavailable || !canCopyImage,
         });
       }

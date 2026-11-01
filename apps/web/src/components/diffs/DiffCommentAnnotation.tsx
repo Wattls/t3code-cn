@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { MessageCircle, Trash2 } from "lucide-react";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
@@ -42,6 +44,7 @@ export function DiffCommentAnnotation({
   secondaryAction,
   focusOnMount = true,
 }: DiffCommentAnnotationProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [localDraftText, setLocalDraftText] = useState("");
   const displayedText = kind === "draft" && !onTextChange ? localDraftText : text;
   const trimmedText = displayedText.trim();
@@ -71,7 +74,7 @@ export function DiffCommentAnnotation({
             <Button
               variant="ghost-muted"
               size="icon-xs"
-              aria-label="Delete comment"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Delete comment")}
               onClick={onDelete}
             >
               <Trash2 className="size-3" />
@@ -114,9 +117,11 @@ export function DiffCommentAnnotation({
         }}
       />
       <div className="mt-1.5 flex items-center gap-1">
-        <span className="mr-auto text-3xs text-muted-foreground/70">⌘/Ctrl Enter to send</span>
+        <span className="mr-auto text-3xs text-muted-foreground/70">
+          {translateStaticUiCopy(staticUiLocale, "⌘/Ctrl Enter to send")}
+        </span>
         <Button variant="ghost-muted" size="xs" onClick={onCancel}>
-          Cancel
+          {translateStaticUiCopy(staticUiLocale, "Cancel")}
         </Button>
         {secondaryAction ? (
           <Button

@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { RegistryContext, useAtomValue } from "@effect/atom-react";
 import {
   isModifierPairShortcut,
@@ -79,6 +81,7 @@ type ShortcutCheck =
     };
 
 export function SnapShotSettings() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const settings = useClientSettings((current) => ({
     snapShotAnimations: current.snapShotAnimations,
     snapShotEnabled: current.snapShotEnabled,
@@ -350,7 +353,7 @@ export function SnapShotSettings() {
 
   return (
     <SettingsPageContainer>
-      <SettingsSection id="snap-shot" title="SnapShots">
+      <SettingsSection id="snap-shot" title={translateStaticUiCopy(staticUiLocale, "SnapShots")}>
         <SettingsUnavailableGroup message={unavailableMessage}>
           <SettingsRow
             {...searchableSetting("snap-shot-enabled")}
@@ -380,7 +383,7 @@ export function SnapShotSettings() {
                 <Switch
                   checked={settings.snapShotEnabled || Boolean(wizard)}
                   disabled={!captureAvailable || setupBusy}
-                  aria-label="Enable snapshots"
+                  aria-label={translateStaticUiCopy(staticUiLocale, "Enable snapshots")}
                   onCheckedChange={(checked) => {
                     if (!checked) void save({ snapShotEnabled: false });
                     else if (state?.windows) void save({ snapShotEnabled: true });
@@ -394,7 +397,10 @@ export function SnapShotSettings() {
             <>
               <SettingsRow
                 {...searchableSetting("snap-shot-accessibility")}
-                description="Include text and controls when the app makes them available."
+                description={translateStaticUiCopy(
+                  staticUiLocale,
+                  "Include text and controls when the app makes them available.",
+                )}
                 status={snapShotAccessibilityUnavailableMessage(state)}
                 control={
                   <Switch
@@ -405,7 +411,10 @@ export function SnapShotSettings() {
                     disabled={
                       !captureAvailable || Boolean(snapShotAccessibilityUnavailableMessage(state))
                     }
-                    aria-label="Include app text in snapshots"
+                    aria-label={translateStaticUiCopy(
+                      staticUiLocale,
+                      "Include app text in snapshots",
+                    )}
                     onCheckedChange={(checked) => void saveIncludeAccessibility(checked)}
                   />
                 }
@@ -414,8 +423,14 @@ export function SnapShotSettings() {
                 {...searchableSetting("snap-shot-shortcut")}
                 description={
                   state?.linuxBackend === "picker"
-                    ? "Choose a window to capture from any app."
-                    : "Capture the window you're using without switching apps."
+                    ? translateStaticUiCopy(
+                        staticUiLocale,
+                        "Choose a window to capture from any app.",
+                      )
+                    : translateStaticUiCopy(
+                        staticUiLocale,
+                        "Capture the window you're using without switching apps.",
+                      )
                 }
                 status={managedShortcut ? undefined : shortcutStatus}
                 control={
@@ -426,7 +441,7 @@ export function SnapShotSettings() {
                       disabled={setupBusy}
                       onClick={() => void openSetup("shortcut")}
                     >
-                      Change shortcut
+                      {translateStaticUiCopy(staticUiLocale, "Change shortcut")}
                     </Button>
                   ) : (
                     <>
@@ -438,7 +453,9 @@ export function SnapShotSettings() {
                             disabled={!canSaveShortcut || setupBusy}
                             onClick={() => void saveShortcut()}
                           >
-                            {setupBusy ? "Saving…" : "Save"}
+                            {setupBusy
+                              ? translateStaticUiCopy(staticUiLocale, "Saving…")
+                              : translateStaticUiCopy(staticUiLocale, "Save")}
                           </Button>
                           <Button
                             size="xs"
@@ -451,7 +468,7 @@ export function SnapShotSettings() {
                               setShortcutCheck({ status: "idle", availability: null });
                             }}
                           >
-                            Cancel
+                            {translateStaticUiCopy(staticUiLocale, "Cancel")}
                           </Button>
                         </>
                       ) : state?.mode === "portal" &&
@@ -463,7 +480,7 @@ export function SnapShotSettings() {
                           disabled={setupBusy || state.shortcutPending}
                           onClick={() => void setup("retry-shortcut")}
                         >
-                          Shortcut permissions
+                          {translateStaticUiCopy(staticUiLocale, "Shortcut permissions")}
                         </Button>
                       ) : null}
                     </>
@@ -472,7 +489,10 @@ export function SnapShotSettings() {
               />
               <SettingsRow
                 {...searchableSetting("snap-shot-sound")}
-                description="Choose the sound played when capture starts."
+                description={translateStaticUiCopy(
+                  staticUiLocale,
+                  "Choose the sound played when capture starts.",
+                )}
                 control={
                   <Menu>
                     <MenuTrigger
@@ -482,13 +502,16 @@ export function SnapShotSettings() {
                       disabled={!captureAvailable}
                     >
                       {soundSelection === "off" ? (
-                        "Off"
+                        translateStaticUiCopy(staticUiLocale, "Off")
                       ) : soundSelection === "soft-pop" ? (
                         <>
-                          Whoosh <span className="text-muted-foreground">(Default)</span>
+                          {translateStaticUiCopy(staticUiLocale, "Whoosh") + " "}
+                          <span className="text-muted-foreground">
+                            {translateStaticUiCopy(staticUiLocale, "(Default)")}
+                          </span>
                         </>
                       ) : (
-                        "Click"
+                        translateStaticUiCopy(staticUiLocale, "Click")
                       )}
                     </MenuTrigger>
                     <MenuPopup align="end">
@@ -499,14 +522,17 @@ export function SnapShotSettings() {
                         value={soundSelection}
                       >
                         <MenuRadioItem closeOnClick value="off">
-                          Off
+                          {translateStaticUiCopy(staticUiLocale, "Off")}
                         </MenuRadioItem>
                         <div className={soundOptionRowClassName}>
                           <MenuRadioItem closeOnClick value="soft-pop">
-                            Whoosh <span className="text-muted-foreground">(Default)</span>
+                            {translateStaticUiCopy(staticUiLocale, "Whoosh") + " "}
+                            <span className="text-muted-foreground">
+                              {translateStaticUiCopy(staticUiLocale, "(Default)")}
+                            </span>
                           </MenuRadioItem>
                           <MenuItem
-                            aria-label="Play Whoosh"
+                            aria-label={translateStaticUiCopy(staticUiLocale, "Play Whoosh")}
                             closeOnClick={false}
                             onClick={() => playSnapShotSound("soft-pop")}
                           >
@@ -515,10 +541,10 @@ export function SnapShotSettings() {
                         </div>
                         <div className={soundOptionRowClassName}>
                           <MenuRadioItem closeOnClick value="camera-shutter">
-                            Click
+                            {translateStaticUiCopy(staticUiLocale, "Click")}
                           </MenuRadioItem>
                           <MenuItem
-                            aria-label="Play Click"
+                            aria-label={translateStaticUiCopy(staticUiLocale, "Play Click")}
                             closeOnClick={false}
                             onClick={() => playSnapShotSound("camera-shutter")}
                           >
@@ -532,26 +558,32 @@ export function SnapShotSettings() {
               />
               <SettingsRow
                 {...searchableSetting("snap-shot-flash")}
-                description="Show a gentle cue on the captured window."
+                description={translateStaticUiCopy(
+                  staticUiLocale,
+                  "Show a gentle cue on the captured window.",
+                )}
                 status={feedbackUnavailable}
                 control={
                   <Switch
                     checked={!feedbackUnavailable && settings.snapShotFlash}
                     disabled={!captureAvailable || Boolean(feedbackUnavailable)}
-                    aria-label="Flash captured window"
+                    aria-label={translateStaticUiCopy(staticUiLocale, "Flash captured window")}
                     onCheckedChange={(checked) => void save({ snapShotFlash: checked })}
                   />
                 }
               />
               <SettingsRow
                 {...searchableSetting("snap-shot-animations")}
-                description="Animate captured windows into your draft."
+                description={translateStaticUiCopy(
+                  staticUiLocale,
+                  "Animate captured windows into your draft.",
+                )}
                 status={feedbackUnavailable}
                 control={
                   <Switch
                     checked={!feedbackUnavailable && settings.snapShotAnimations}
                     disabled={!captureAvailable || Boolean(feedbackUnavailable)}
-                    aria-label="Animate snapshots"
+                    aria-label={translateStaticUiCopy(staticUiLocale, "Animate snapshots")}
                     onCheckedChange={(checked) => void save({ snapShotAnimations: checked })}
                   />
                 }

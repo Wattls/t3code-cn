@@ -1,3 +1,6 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { useI18n } from "../../i18n/WebI18nContext";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 import { ExternalLinkIcon, PackagePlusIcon, PaletteIcon, SearchIcon } from "lucide-react";
@@ -35,12 +38,12 @@ const DOWNLOAD_FORMAT = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 1,
 });
 const SUGGESTED_SEARCHES = ["Dracula", "Catppuccin", "Nord", "Tokyo Night"];
-const SORT_OPTIONS: ReadonlyArray<{ value: OpenVsxThemeSort; label: string }> = [
-  { value: "downloadCount", label: "Most downloaded" },
-  { value: "rating", label: "Best rated" },
-  { value: "timestamp", label: "Newest" },
-  { value: "relevance", label: "Most relevant" },
-];
+const SORT_OPTION_MESSAGE_KEYS = {
+  downloadCount: "appearance.theme.search.sort.downloaded",
+  rating: "appearance.theme.search.sort.rated",
+  timestamp: "appearance.theme.search.sort.newest",
+  relevance: "appearance.theme.search.sort.relevant",
+} as const;
 const SEARCH_DEBOUNCE_MS = 350;
 
 function sourceHost(url: string): string | null {
@@ -234,6 +237,8 @@ export function ThemeSearchSection({
   signal: AbortSignal;
   onInstalled: (themes: ReadonlyArray<ThemeDefinition>, context: { updated: boolean }) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<OpenVsxThemeSort>("downloadCount");
   const [results, setResults] = useState<ReadonlyArray<OpenVsxThemeExtension> | null>(null);
@@ -251,7 +256,8 @@ export function ThemeSearchSection({
   };
 
   const handleSortChange = (value: OpenVsxThemeSort | null) => {
-    const nextSort = SORT_OPTIONS.find((option) => option.value === value)?.value;
+    const nextSort =
+      value !== null && value in SORT_OPTION_MESSAGE_KEYS ? (value as OpenVsxThemeSort) : undefined;
     if (!nextSort) return;
     setSortBy(nextSort);
     themeSearch.setSortBy(nextSort);
@@ -294,10 +300,10 @@ export function ThemeSearchSection({
     <section className="space-y-3" aria-labelledby="theme-search-heading">
       <div>
         <h3 className="text-sm font-medium" id="theme-search-heading">
-          Search community themes
+          {t("appearance.theme.search.title")}
         </h3>
         <p className="mt-0.5 text-muted-foreground text-xs">
-          Find open-source themes from Open VSX.
+          {t("appearance.theme.search.description")}
         </p>
       </div>
       <InputGroup>
@@ -305,7 +311,7 @@ export function ThemeSearchSection({
           {isSearching ? <Spinner aria-hidden /> : <SearchIcon aria-hidden />}
         </InputGroupAddon>
         <InputGroupInput
-          aria-label="Search Open VSX themes"
+          aria-label={t("appearance.theme.search.label")}
           autoFocus
           onChange={(event) => changeQuery(event.currentTarget.value)}
           onKeyDown={(event) => {
@@ -313,7 +319,7 @@ export function ThemeSearchSection({
             if (event.key === "Enter" && !isSearching && installingId === null)
               themeSearch.searchNow();
           }}
-          placeholder="Search themes..."
+          placeholder={t("appearance.theme.search.placeholder")}
           size="lg"
           type="search"
           value={query}
@@ -323,7 +329,7 @@ export function ThemeSearchSection({
       {!isSearching || results !== null ? (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-            <p className="text-muted-foreground text-xs">Popular</p>
+            <p className="text-muted-foreground text-xs">{t("appearance.theme.search.popular")}</p>
             {SUGGESTED_SEARCHES.map((suggestion) => (
               <Button
                 key={suggestion}
@@ -344,21 +350,27 @@ export function ThemeSearchSection({
           </div>
           {results && results.length > 0 ? (
             <div className="flex shrink-0 items-center justify-end gap-2">
-              <p className="text-muted-foreground text-xs">Sort</p>
+              <p className="text-muted-foreground text-xs">{t("appearance.theme.search.sort")}</p>
               <Select
                 disabled={installingId !== null}
                 value={sortBy}
                 onValueChange={handleSortChange}
               >
-                <SelectTrigger size="sm" className="w-40" aria-label="Sort themes">
-                  <SelectValue>
-                    {SORT_OPTIONS.find((option) => option.value === sortBy)?.label}
-                  </SelectValue>
+                <SelectTrigger
+                  size="sm"
+                  className="w-40"
+                  aria-label={t("appearance.theme.search.sortLabel")}
+                >
+                  <SelectValue>{t(SORT_OPTION_MESSAGE_KEYS[sortBy])}</SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
-                  {SORT_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} hideIndicator value={option.value}>
-                      {option.label}
+                  {(
+                    Object.entries(SORT_OPTION_MESSAGE_KEYS) as Array<
+                      [OpenVsxThemeSort, (typeof SORT_OPTION_MESSAGE_KEYS)[OpenVsxThemeSort]]
+                    >
+                  ).map(([value, messageKey]) => (
+                    <SelectItem key={value} hideIndicator value={value}>
+                      {t(messageKey)}
                     </SelectItem>
                   ))}
                 </SelectPopup>
@@ -370,7 +382,7 @@ export function ThemeSearchSection({
 
       <div className="sr-only" role="status">
         {isSearching
-          ? "Searching themes..."
+          ? translateStaticUiCopy(staticUiLocale, "Searching themes...")
           : results
             ? `${results.length} supported ${results.length === 1 ? "theme" : "themes"} found.`
             : ""}
@@ -384,15 +396,17 @@ export function ThemeSearchSection({
 
       {isSearching && results === null ? (
         <div className="flex min-h-20 items-center justify-center gap-2 text-muted-foreground text-sm">
-          <Spinner /> Searching themes...
+          <Spinner /> {t("appearance.theme.search.finding")}
         </div>
       ) : null}
 
       {results ? (
         results.length === 0 ? (
           <div className="flex min-h-40 flex-col items-center justify-center rounded-2xl border border-dashed text-center">
-            <p className="text-sm font-medium">No supported open-source themes found</p>
-            <p className="mt-1 text-muted-foreground text-xs">Try a broader search.</p>
+            <p className="text-sm font-medium">{t("appearance.theme.search.empty")}</p>
+            <p className="mt-1 text-muted-foreground text-xs">
+              {t("appearance.theme.search.tryBroader")}
+            </p>
           </div>
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">
@@ -401,8 +415,12 @@ export function ThemeSearchSection({
               const isInstalled = getCustomThemes().some(
                 (theme) => theme.collection?.id === extension.collectionId,
               );
-              const action = isInstalled ? "Update" : "Install";
-              const progressAction = isInstalled ? "Updating" : "Installing";
+              const action = isInstalled
+                ? t("appearance.theme.search.update")
+                : t("appearance.theme.search.add");
+              const progressAction = isInstalled
+                ? t("appearance.theme.search.updating")
+                : t("appearance.theme.search.adding");
               return (
                 <article
                   className="group flex min-w-0 flex-col gap-3 rounded-xl border border-border/70 bg-card/60 p-3 transition-colors hover:bg-accent/20"
@@ -413,19 +431,21 @@ export function ThemeSearchSection({
                     <div className="min-w-0 flex-1">
                       <h4 className="truncate text-sm font-medium">{extension.name}</h4>
                       <p className="truncate text-muted-foreground text-xs">
-                        {extension.publisher} · {DOWNLOAD_FORMAT.format(extension.downloadCount)}{" "}
-                        downloads
+                        {extension.publisher} ·{" "}
+                        {t("appearance.theme.search.downloads", {
+                          count: DOWNLOAD_FORMAT.format(extension.downloadCount),
+                        })}
                       </p>
                     </div>
                   </div>
                   <p className="line-clamp-2 min-h-8 text-muted-foreground text-xs leading-4">
-                    {extension.description || "A community color theme for your editor."}
+                    {extension.description || t("appearance.theme.search.fallbackDescription")}
                   </p>
                   <div className="mt-auto flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2">
                       {extension.sourceUrl ? (
                         <Button
-                          aria-label={`View source for ${extension.name}`}
+                          aria-label={`${t("appearance.theme.search.source")}: ${extension.name}`}
                           render={<a href={extension.sourceUrl} rel="noreferrer" target="_blank" />}
                           size="icon-micro"
                           variant="ghost-muted"
@@ -466,14 +486,17 @@ export function ThemeSearchSection({
       >
         <AlertDialogPopup>
           <AlertDialogHeader>
-            <AlertDialogTitle>Update “{pendingUpdate?.name}”?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("appearance.theme.search.updateTitle", { theme: pendingUpdate?.name ?? "" })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This replaces its installed variants, including any local edits. Variants no longer in
-              the extension will be removed.
+              {t("appearance.theme.search.updateDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogClose render={<Button variant="outline" />}>Cancel</AlertDialogClose>
+            <AlertDialogClose render={<Button variant="outline" />}>
+              {t("appearance.theme.cancel")}
+            </AlertDialogClose>
             <Button
               onClick={() => {
                 const extension = pendingUpdate;
@@ -481,7 +504,7 @@ export function ThemeSearchSection({
                 if (extension) void handleInstall(extension, true);
               }}
             >
-              Update theme
+              {t("appearance.theme.search.updateAction")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogPopup>

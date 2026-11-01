@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { translateWebSource } from "../../i18n/messages";
+import { useI18n } from "../../i18n/WebI18nContext";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { ExternalLinkIcon } from "lucide-react";
 import { useState } from "react";
@@ -26,6 +30,8 @@ export function SourceControlTokenSettings({
   readonly credentials: SourceControlHostCredentials;
   readonly onSaved: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: sourceLocale } = useI18n();
   const { tokens } = useEnvironmentSettings(environmentId, (settings) =>
     readHostCredentialSettings(settings, definition.kind),
   );
@@ -71,12 +77,15 @@ export function SourceControlTokenSettings({
       {/* Locked while saving: a successful save clears the draft, which would drop edits made mid-request. */}
       <fieldset disabled={saving} className="contents">
         <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
-          A token saved here is used before{" "}
+          {translateWebSource(sourceLocale, "A token saved here is used before")}{" "}
           <code className="rounded bg-muted px-1 py-px text-2xs">{credentials.tokenEnvVar}</code>{" "}
-          and the{" "}
-          <code className="rounded bg-muted px-1 py-px text-2xs">{credentials.cliName}</code> login,
-          so {definition.label} works without the {credentials.cliLabel}. Give it{" "}
-          {credentials.tokenAccess}.{" "}
+          {translateStaticUiCopy(staticUiLocale, "and the")}{" "}
+          <code className="rounded bg-muted px-1 py-px text-2xs">{credentials.cliName}</code>
+          {" " + translateStaticUiCopy(staticUiLocale, "login, so") + " "}
+          {definition.label}
+          {" " + translateStaticUiCopy(staticUiLocale, "works without the") + " "}
+          {credentials.cliLabel}
+          {translateStaticUiCopy(staticUiLocale, ". Give it")} {credentials.tokenAccess}.{" "}
           {normalizedHost || defaultHost ? (
             <InlineButton
               render={
@@ -87,14 +96,16 @@ export function SourceControlTokenSettings({
                 />
               }
             >
-              Create a token
+              {translateWebSource(sourceLocale, "Create a token")}
               <ExternalLinkIcon aria-hidden className="size-3" />
             </InlineButton>
           ) : null}
         </p>
         <div className="grid gap-3 sm:grid-cols-[12rem_1fr]">
           <div className="grid gap-1.5">
-            <Label htmlFor={`${definition.kind}-token-host-${environmentId}`}>Host</Label>
+            <Label htmlFor={`${definition.kind}-token-host-${environmentId}`}>
+              {translateWebSource(sourceLocale, "Host")}
+            </Label>
             <Input
               id={`${definition.kind}-token-host-${environmentId}`}
               autoComplete="off"
@@ -105,7 +116,9 @@ export function SourceControlTokenSettings({
             />
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor={`${definition.kind}-token-${environmentId}`}>Token</Label>
+            <Label htmlFor={`${definition.kind}-token-${environmentId}`}>
+              {translateWebSource(sourceLocale, "Token")}
+            </Label>
             <SecretInput
               id={`${definition.kind}-token-${environmentId}`}
               size="sm"
@@ -129,11 +142,11 @@ export function SourceControlTokenSettings({
                 disabled={saving}
                 onClick={() => void save(normalizedHost, "")}
               >
-                Remove
+                {translateWebSource(sourceLocale, "Remove")}
               </Button>
             ) : null}
             <Button type="submit" size="xs" disabled={!normalizedHost || !draft.trim() || saving}>
-              Save
+              {translateWebSource(sourceLocale, "Save")}
             </Button>
           </div>
         </div>

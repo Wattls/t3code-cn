@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { AuthProvidersManageScope } from "@t3tools/contracts";
 import { readPreparedConnection, useEnvironmentScope } from "../../state/session";
 import {
@@ -101,6 +103,7 @@ interface CodexSetupSectionProps {
 }
 
 export function CodexSetupSection(props: CodexSetupSectionProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [requested, setRequested] = useState(false);
   const existingState = getOnboardingProviderState(props.provider);
   const existingReady = props.enabled && existingState === "ready";
@@ -115,7 +118,7 @@ export function CodexSetupSection(props: CodexSetupSectionProps) {
           existingReady ? (
             props.provider?.auth.email?.trim() ? (
               <>
-                Signed in as{" "}
+                {translateStaticUiCopy(staticUiLocale, "Signed in as")}{" "}
                 <RedactedSensitiveText
                   value={props.provider.auth.email.trim()}
                   ariaLabel="Toggle account email visibility"
@@ -126,24 +129,26 @@ export function CodexSetupSection(props: CodexSetupSectionProps) {
                 .
               </>
             ) : (
-              "Connected with your Codex CLI."
+              translateStaticUiCopy(staticUiLocale, "Connected with your Codex CLI.")
             )
           ) : existingChecking ? (
-            "Checking your Codex CLI..."
+            translateStaticUiCopy(staticUiLocale, "Checking your Codex CLI...")
           ) : props.provider?.installed ? (
             existingSummary.headline
           ) : (
-            "Code with your ChatGPT subscription."
+            translateStaticUiCopy(staticUiLocale, "Code with your ChatGPT subscription.")
           )
         }
         control={
           existingReady ? (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success-foreground">
               <CheckIcon className="size-3.5" />
-              Ready
+              {translateStaticUiCopy(staticUiLocale, "Ready")}
             </span>
           ) : existingChecking ? (
-            <span className="text-xs text-muted-foreground">Checking...</span>
+            <span className="text-xs text-muted-foreground">
+              {translateStaticUiCopy(staticUiLocale, "Checking...")}
+            </span>
           ) : existingAuthenticated ? (
             <span className="text-xs text-muted-foreground">{existingSummary.headline}</span>
           ) : (
@@ -155,14 +160,14 @@ export function CodexSetupSection(props: CodexSetupSectionProps) {
                 props.onModeChange("managed");
               }}
             >
-              Continue with ChatGPT
+              {translateStaticUiCopy(staticUiLocale, "Continue with ChatGPT")}
             </ChatGptConnectionButton>
           )
         }
         secondaryControl={
           !existingAuthenticated && !existingReady && !existingChecking ? (
             <Button size="sm" variant="ghost-muted" onClick={() => props.onModeChange("existing")}>
-              Use existing CLI
+              {translateStaticUiCopy(staticUiLocale, "Use existing CLI")}
             </Button>
           ) : null
         }
@@ -174,17 +179,20 @@ export function CodexSetupSection(props: CodexSetupSectionProps) {
           description={<CodexSignInDescription />}
           control={
             <Button size="sm" variant="outline" className="min-w-44" disabled>
-              Open sign-in page
+              {translateStaticUiCopy(staticUiLocale, "Open sign-in page")}
             </Button>
           }
           secondaryControl={
             <Button size="sm" variant="ghost-muted" disabled>
-              Cancel
+              {translateStaticUiCopy(staticUiLocale, "Cancel")}
             </Button>
           }
         />
       ) : (
-        <SettingsRow title="ChatGPT account" description="Preparing sign-in." />
+        <SettingsRow
+          title={translateStaticUiCopy(staticUiLocale, "ChatGPT account")}
+          description={translateStaticUiCopy(staticUiLocale, "Preparing sign-in.")}
+        />
       )
     ) : (
       <ManagedCodexSetup
@@ -255,6 +263,7 @@ function ManagedCodexSetup({
   readonly onAutoStartConsumed: () => void;
   readonly allowExistingCli?: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const target = { environmentId, input: { instanceId } };
   const authQuery = useEnvironmentQuery(serverEnvironment.providerAuthState(target));
   const installQuery = useEnvironmentQuery(serverEnvironment.providerInstallState(target));
@@ -611,7 +620,7 @@ function ManagedCodexSetup({
   ) : authenticated ? (
     provider?.auth.email?.trim() ? (
       <>
-        Signed in as{" "}
+        {translateStaticUiCopy(staticUiLocale, "Signed in as")}{" "}
         <RedactedSensitiveText
           value={provider.auth.email.trim()}
           ariaLabel="Toggle account email visibility"
@@ -657,24 +666,29 @@ function ManagedCodexSetup({
       }}
     >
       {finishingSignIn
-        ? "Finishing sign-in..."
+        ? translateStaticUiCopy(staticUiLocale, "Finishing sign-in...")
         : handoffQuery.data?.phase === "finished"
           ? transferFailed
-            ? "Retry connection"
-            : "Finishing sign-in..."
+            ? translateStaticUiCopy(staticUiLocale, "Retry connection")
+            : translateStaticUiCopy(staticUiLocale, "Finishing sign-in...")
           : auth?.phase === "waiting"
             ? remoteWeb
-              ? "Open ChatGPT sign-in"
-              : "Open sign-in page"
+              ? translateStaticUiCopy(staticUiLocale, "Open ChatGPT sign-in")
+              : translateStaticUiCopy(staticUiLocale, "Open sign-in page")
             : presentation === "onboarding"
-              ? "Open sign-in page"
-              : "Signing in..."}
+              ? translateStaticUiCopy(staticUiLocale, "Open sign-in page")
+              : translateStaticUiCopy(staticUiLocale, "Signing in...")}
     </Button>
   );
   const callbackCompletion =
     !handoff && auth?.phase === "waiting" && url ? (
       <div className="flex w-full flex-col gap-3 text-xs leading-relaxed text-muted-foreground">
-        <p>If sign-in doesn't return to T3 Code, paste the URL from the final localhost page.</p>
+        <p>
+          {translateStaticUiCopy(
+            staticUiLocale,
+            "If sign-in doesn't return to T3 Code, paste the URL from the final localhost page.",
+          )}
+        </p>
         <form
           className="flex flex-col gap-2 sm:flex-row sm:items-center"
           onSubmit={(event) => {
@@ -694,10 +708,13 @@ function ManagedCodexSetup({
         >
           <div className="min-w-0 flex-1">
             <Input
-              aria-label="ChatGPT sign-in redirect URL"
+              aria-label={translateStaticUiCopy(staticUiLocale, "ChatGPT sign-in redirect URL")}
               type="password"
               autoComplete="off"
-              placeholder="Paste the URL from the sign-in tab"
+              placeholder={translateStaticUiCopy(
+                staticUiLocale,
+                "Paste the URL from the sign-in tab",
+              )}
               value={callbackUrl}
               maxLength={16_384}
               disabled={pending || readOnly}
@@ -711,7 +728,7 @@ function ManagedCodexSetup({
             type="submit"
             disabled={pending || readOnly || !callbackUrl.trim()}
           >
-            Connect
+            {translateStaticUiCopy(staticUiLocale, "Connect")}
           </Button>
         </form>
         {!remoteWeb ? (
@@ -721,16 +738,18 @@ function ManagedCodexSetup({
               variant="ghost-muted"
               onClick={() => void ensureLocalApi().shell.openExternal(url)}
             >
-              Try sign-in in your browser
+              {translateStaticUiCopy(staticUiLocale, "Try sign-in in your browser")}
               <ExternalLinkIcon className="size-3.5" />
             </Button>
           </div>
         ) : null}
         {handoffUrl ? (
           <details>
-            <summary className="cursor-pointer">Other ways to connect</summary>
+            <summary className="cursor-pointer">
+              {translateStaticUiCopy(staticUiLocale, "Other ways to connect")}
+            </summary>
             <Button className="mt-2" size="sm" variant="outline" render={<a href={handoffUrl} />}>
-              Use T3 desktop for automatic return
+              {translateStaticUiCopy(staticUiLocale, "Use T3 desktop for automatic return")}
             </Button>
           </details>
         ) : null}
@@ -747,7 +766,7 @@ function ManagedCodexSetup({
   ) : callbackCompletion ? (
     <div className="space-y-3 text-xs leading-relaxed text-muted-foreground">
       <CodexSignInDescription
-        label="Having trouble signing in?"
+        label={translateStaticUiCopy(staticUiLocale, "Having trouble signing in?")}
         expanded={callbackHelpOpen}
         controls={callbackHelpId}
         onToggle={() => setCallbackHelpOpen((open) => !open)}
@@ -795,7 +814,7 @@ function ManagedCodexSetup({
             ) : authenticated ? (
               provider?.auth.email?.trim() ? (
                 <>
-                  Signed in as{" "}
+                  {translateStaticUiCopy(staticUiLocale, "Signed in as")}{" "}
                   <RedactedSensitiveText
                     value={provider.auth.email.trim()}
                     ariaLabel="Toggle account email visibility"
@@ -806,7 +825,7 @@ function ManagedCodexSetup({
                   .
                 </>
               ) : (
-                "Connected to ChatGPT."
+                translateStaticUiCopy(staticUiLocale, "Connected to ChatGPT.")
               )
             ) : callbackCompletion && !needsManualCallback ? (
               <CodexSignInDescription
@@ -823,14 +842,14 @@ function ManagedCodexSetup({
             ) : authActive || auth?.phase === "failed" || auth?.phase === "cancelled" ? (
               accountDescription
             ) : (
-              "Code with your ChatGPT subscription."
+              translateStaticUiCopy(staticUiLocale, "Code with your ChatGPT subscription.")
             )
           }
           control={
             authenticated && !busy ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success-foreground">
                 <CheckIcon className="size-3.5" />
-                Ready
+                {translateStaticUiCopy(staticUiLocale, "Ready")}
               </span>
             ) : authActive ? (
               waitingControl
@@ -848,10 +867,10 @@ function ManagedCodexSetup({
                 }}
               >
                 {installActive || pending
-                  ? "Setting up..."
+                  ? translateStaticUiCopy(staticUiLocale, "Setting up...")
                   : hasSavedAccount
-                    ? "Reconnect account"
-                    : "Continue with ChatGPT"}
+                    ? translateStaticUiCopy(staticUiLocale, "Reconnect account")
+                    : translateStaticUiCopy(staticUiLocale, "Continue with ChatGPT")}
               </ChatGptConnectionButton>
             )
           }
@@ -873,7 +892,7 @@ function ManagedCodexSetup({
                     );
                 }}
               >
-                Cancel
+                {translateStaticUiCopy(staticUiLocale, "Cancel")}
               </Button>
             ) : !authActive && !authenticated && hasSavedAccount ? (
               <Button
@@ -882,7 +901,7 @@ function ManagedCodexSetup({
                 disabled={unavailable || busy}
                 onClick={() => void setup("chatgpt-change-account")}
               >
-                Use a different account
+                {translateStaticUiCopy(staticUiLocale, "Use a different account")}
               </Button>
             ) : !authActive && !authenticated && allowExistingCli ? (
               <Button
@@ -891,7 +910,7 @@ function ManagedCodexSetup({
                 disabled={readOnly || busy}
                 onClick={() => onModeChange("existing")}
               >
-                Use existing CLI
+                {translateStaticUiCopy(staticUiLocale, "Use existing CLI")}
               </Button>
             ) : null
           }
@@ -908,10 +927,13 @@ function ManagedCodexSetup({
   }
 
   return (
-    <section aria-label="Codex setup" className="divide-y divide-border/50">
+    <section
+      aria-label={translateStaticUiCopy(staticUiLocale, "Codex setup")}
+      className="divide-y divide-border/50"
+    >
       {accountPicker}
       <SettingsRow
-        title="ChatGPT account"
+        title={translateStaticUiCopy(staticUiLocale, "ChatGPT account")}
         description={accountDescription}
         control={
           <div className="flex max-w-88 flex-wrap items-center justify-end gap-2">
@@ -930,7 +952,7 @@ function ManagedCodexSetup({
                       onSignInCancelled?.();
                     }}
                   >
-                    Cancel
+                    {translateStaticUiCopy(staticUiLocale, "Cancel")}
                   </Button>
                 )}
               </>
@@ -950,7 +972,7 @@ function ManagedCodexSetup({
                   );
                 }}
               >
-                Cancel
+                {translateStaticUiCopy(staticUiLocale, "Cancel")}
               </Button>
             ) : authenticated ? (
               <>
@@ -960,7 +982,7 @@ function ManagedCodexSetup({
                   disabled={unavailable || busy}
                   onClick={() => setAccountPickerOpen(true)}
                 >
-                  Change account
+                  {translateStaticUiCopy(staticUiLocale, "Change account")}
                 </Button>
                 <Button
                   size="sm"
@@ -968,7 +990,7 @@ function ManagedCodexSetup({
                   disabled={unavailable || busy}
                   onClick={() => void run(() => logoutAuth(target))}
                 >
-                  Disconnect
+                  {translateStaticUiCopy(staticUiLocale, "Disconnect")}
                 </Button>
               </>
             ) : (
@@ -986,10 +1008,10 @@ function ManagedCodexSetup({
                   }}
                 >
                   {pending
-                    ? "Setting up..."
+                    ? translateStaticUiCopy(staticUiLocale, "Setting up...")
                     : hasSavedAccount
-                      ? "Reconnect account"
-                      : "Continue with ChatGPT"}
+                      ? translateStaticUiCopy(staticUiLocale, "Reconnect account")
+                      : translateStaticUiCopy(staticUiLocale, "Continue with ChatGPT")}
                 </ChatGptConnectionButton>
                 {hasSavedAccount ? (
                   <Button
@@ -998,7 +1020,7 @@ function ManagedCodexSetup({
                     disabled={unavailable || busy}
                     onClick={() => void setup("chatgpt-change-account")}
                   >
-                    Use a different account
+                    {translateStaticUiCopy(staticUiLocale, "Use a different account")}
                   </Button>
                 ) : null}
                 {allowExistingCli ? (
@@ -1008,7 +1030,7 @@ function ManagedCodexSetup({
                     disabled={readOnly || busy}
                     onClick={() => onModeChange("existing")}
                   >
-                    Use existing CLI
+                    {translateStaticUiCopy(staticUiLocale, "Use existing CLI")}
                   </Button>
                 ) : null}
               </>
@@ -1048,6 +1070,7 @@ export function CodexManagedRuntimeFields({
   readonly instanceId: ProviderInstanceId;
   readonly provider: ServerProvider | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const installation = useEnvironmentQuery(
     serverEnvironment.providerInstallState({
       environmentId,
@@ -1058,49 +1081,66 @@ export function CodexManagedRuntimeFields({
   return (
     <>
       <SettingsRow
-        title="Binary path"
-        description="Selected by T3 Code."
+        title={translateStaticUiCopy(staticUiLocale, "Binary path")}
+        description={translateStaticUiCopy(staticUiLocale, "Selected by T3 Code.")}
         control={
           <div className="w-full sm:w-80">
             <Input
-              aria-label="Codex binary path"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Codex binary path")}
               value={executablePath}
               title={executablePath}
-              placeholder={installation.error ? "Could not read runtime path" : "Not installed"}
+              placeholder={
+                installation.error
+                  ? translateStaticUiCopy(staticUiLocale, "Could not read runtime path")
+                  : translateStaticUiCopy(staticUiLocale, "Not installed")
+              }
               disabled
             />
           </div>
         }
       />
       <SettingsRow
-        title="CODEX_HOME path"
-        description="Shared Codex config, sessions, and state."
+        title={translateStaticUiCopy(staticUiLocale, "CODEX_HOME path")}
+        description={translateStaticUiCopy(
+          staticUiLocale,
+          "Shared Codex config, sessions, and state.",
+        )}
         control={
           <div className="w-full sm:w-80">
             <Input
-              aria-label="Codex home path"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Codex home path")}
               value={provider?.runtimePaths?.homePath ?? ""}
               title={provider?.runtimePaths?.homePath}
-              placeholder="Unavailable"
+              placeholder={translateStaticUiCopy(staticUiLocale, "Unavailable")}
               disabled
             />
           </div>
         }
       />
       <SettingsRow
-        title="Shadow home path"
+        title={translateStaticUiCopy(staticUiLocale, "Shadow home path")}
         description={
           provider?.runtimePaths?.shadowHomePath
-            ? "Account-specific home sharing the Codex state above."
-            : "This instance uses the shared Codex home directly."
+            ? translateStaticUiCopy(
+                staticUiLocale,
+                "Account-specific home sharing the Codex state above.",
+              )
+            : translateStaticUiCopy(
+                staticUiLocale,
+                "This instance uses the shared Codex home directly.",
+              )
         }
         control={
           <div className="w-full sm:w-80">
             <Input
-              aria-label="Codex shadow home path"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Codex shadow home path")}
               value={provider?.runtimePaths?.shadowHomePath ?? ""}
               title={provider?.runtimePaths?.shadowHomePath ?? undefined}
-              placeholder={provider?.runtimePaths ? "Not used" : "Unavailable"}
+              placeholder={
+                provider?.runtimePaths
+                  ? translateStaticUiCopy(staticUiLocale, "Not used")
+                  : translateStaticUiCopy(staticUiLocale, "Unavailable")
+              }
               disabled
             />
           </div>
@@ -1121,12 +1161,13 @@ function CodexSignInDescription({
   readonly controls?: string;
   readonly onToggle?: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   if (!onToggle) return <div className="leading-relaxed">{label}</div>;
   return (
     <button
       type="button"
       className="inline-flex items-center gap-1.5 rounded-sm text-left leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-      aria-label="Having trouble signing in?"
+      aria-label={translateStaticUiCopy(staticUiLocale, "Having trouble signing in?")}
       aria-expanded={expanded}
       aria-controls={controls}
       onClick={onToggle}

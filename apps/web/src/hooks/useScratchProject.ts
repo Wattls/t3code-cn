@@ -18,14 +18,16 @@ import {
   usePrimaryEnvironmentId,
 } from "~/state/environments";
 import { projectEnvironment } from "~/state/projects";
+import type { WebTranslate } from "~/i18n/WebI18nContext";
+import { readWebI18n } from "~/i18n/readWebI18n";
 import { type NewThreadHandler, useNewThreadHandler } from "./useHandleNewThread";
 
-function reportScratchFailure(title: string, error: unknown) {
+function reportScratchFailure(title: string, error: unknown, t: WebTranslate) {
   toastManager.add(
     stackedThreadToast({
       type: "error",
       title,
-      description: error instanceof Error ? error.message : "An error occurred.",
+      description: error instanceof Error ? error.message : t("common.error"),
     }),
   );
 }
@@ -40,6 +42,7 @@ export function createScratchProjectActions(input: {
   readonly registry: AtomRegistry.AtomRegistry;
   readonly handleNewThread: NewThreadHandler;
 }) {
+  const { t } = readWebI18n();
   const scratchWorkspaceRootFor = (environmentId: EnvironmentId | null): string | null => {
     let environment: ScratchEnvironment | undefined;
     for (const entry of input.environments()) {
@@ -61,7 +64,7 @@ export function createScratchProjectActions(input: {
 
   const openScratchProject = async (
     environmentId: EnvironmentId,
-    failureTitle = "Could not start without a project",
+    failureTitle = t("newProject.scratchError"),
   ): Promise<EnvironmentProject | null> => {
     const command = projectEnvironment.openScratch;
     const result = await runAtomCommand(
@@ -72,7 +75,7 @@ export function createScratchProjectActions(input: {
     );
     if (result._tag === "Success") return result.value;
     if (!isAtomCommandInterrupted(result)) {
-      reportScratchFailure(failureTitle, squashAtomCommandFailure(result));
+      reportScratchFailure(failureTitle, squashAtomCommandFailure(result), t);
     }
     return null;
   };
@@ -82,9 +85,7 @@ export function createScratchProjectActions(input: {
     if (project) {
       await input
         .handleNewThread(scopeProjectRef(project.environmentId, project.id))
-        .catch((error: unknown) =>
-          reportScratchFailure("Could not start without a project", error),
-        );
+        .catch((error: unknown) => reportScratchFailure(t("newProject.scratchError"), error, t));
     }
   };
 

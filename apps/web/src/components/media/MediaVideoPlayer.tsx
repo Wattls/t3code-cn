@@ -1,10 +1,14 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { settlePromise } from "@t3tools/client-runtime/state/runtime";
 import { AsyncResult } from "effect/reactivity";
+import { translateWebSource } from "~/i18n/messages";
 import { PlayIcon, RotateCwIcon, TriangleAlertIcon } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 
 import { observeIntersection } from "../../lib/observeIntersection";
 import { cn } from "../../lib/utils";
+import { useI18n } from "../../i18n/WebI18nContext";
 import { prepareVideoFirstFrame } from "../../lib/videoFirstFrame";
 import { Button } from "../ui/button";
 import { OpenMediaLink } from "./OpenMediaLink";
@@ -45,6 +49,9 @@ export function MediaVideoPlayer({
   onRetry,
   actionsSource,
 }: MediaVideoPlayerProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: uiLocale } = useI18n();
+  const { t } = useI18n();
   const [playbackSource, setPlaybackSource] = useState<{
     src: string;
     revision: string | null;
@@ -138,7 +145,8 @@ export function MediaVideoPlayer({
         >
           <span className="inline-flex items-center gap-1.5">
             <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0" />
-            Video unavailable{label ? ` · ${label}` : ""}
+            {t("media.videoUnavailable")}
+            {label ? ` · ${label}` : ""}
           </span>
           <span className="flex flex-wrap items-center justify-center gap-2">
             {latestSrc !== null || onRetry ? (
@@ -149,7 +157,7 @@ export function MediaVideoPlayer({
                 onClick={() => void retry()}
               >
                 <RotateCwIcon />
-                {retrying ? "Retrying…" : "Retry video"}
+                {retrying ? t("media.retrying") : t("media.retryVideo")}
               </Button>
             ) : null}
             <OpenMediaLink originalUrl={originalUrl} src={latestSrc ?? src} fileName={label} />
@@ -160,7 +168,7 @@ export function MediaVideoPlayer({
           key={loadAttempt}
           ref={attachVideo}
           src={src}
-          aria-label={label || "Video preview"}
+          aria-label={label || t("media.videoPreview")}
           aria-hidden={onOpen ? true : undefined}
           autoPlay={onOpen ? false : autoPlay}
           controls={!onOpen}
@@ -192,7 +200,11 @@ export function MediaVideoPlayer({
       ) : (
         <span
           role="status"
-          aria-label={failed ? "Video preview unavailable" : "Loading video"}
+          aria-label={
+            failed
+              ? translateWebSource(uiLocale, "Video preview unavailable")
+              : t("media.loadingVideo")
+          }
           className={cn("block aspect-video w-full rounded-lg bg-muted/60", stateClassName)}
           style={style}
         />
@@ -200,7 +212,7 @@ export function MediaVideoPlayer({
       {onOpen ? (
         <button
           type="button"
-          aria-label={label ? `Play ${label}` : "Play video"}
+          aria-label={label ? `Play ${label}` : translateStaticUiCopy(staticUiLocale, "Play video")}
           onClick={onOpen}
           className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
         >

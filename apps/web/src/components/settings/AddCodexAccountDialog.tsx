@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { AuthProvidersManageScope } from "@t3tools/contracts";
 import { readEnvironmentScope, useEnvironmentScope } from "../../state/session";
 import { useAtomValue } from "@effect/atom-react";
@@ -36,6 +38,7 @@ export function AddCodexAccountDialog({
     | undefined;
   readonly renderSetup: (instanceId: ProviderInstanceId, provider: ServerProvider) => ReactNode;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const canManageProviders = useEnvironmentScope(environmentId, AuthProvidersManageScope);
   const settings = useEnvironmentSettings(environmentId);
   const providers = useAtomValue(serverEnvironment.providersValueAtom(environmentId));
@@ -93,15 +96,23 @@ export function AddCodexAccountDialog({
     >
       <WizardPopup size="wide">
         <WizardHeader
-          title={instanceId ? displayName : "Add ChatGPT account"}
-          description="Each account has its own Codex instance and sign-in. Choose the other account on the sign-in page."
+          title={
+            instanceId ? displayName : translateStaticUiCopy(staticUiLocale, "Add ChatGPT account")
+          }
+          description={translateStaticUiCopy(
+            staticUiLocale,
+            "Each account has its own Codex instance and sign-in. Choose the other account on the sign-in page.",
+          )}
         />
         <WizardPanel>
           {instanceId ? (
             provider?.setup ? (
               renderSetup(instanceId, provider)
             ) : (
-              <SettingsRow title="Codex runtime" description="Preparing managed setup." />
+              <SettingsRow
+                title={translateStaticUiCopy(staticUiLocale, "Codex runtime")}
+                description={translateStaticUiCopy(staticUiLocale, "Preparing managed setup.")}
+              />
             )
           ) : (
             <form
@@ -113,15 +124,18 @@ export function AddCodexAccountDialog({
               }}
             >
               <SettingsRow
-                title="Account name"
-                description="Shown in the provider list and model picker."
+                title={translateStaticUiCopy(staticUiLocale, "Account name")}
+                description={translateStaticUiCopy(
+                  staticUiLocale,
+                  "Shown in the provider list and model picker.",
+                )}
                 control={
                   <Input
-                    aria-label="Account name"
+                    aria-label={translateStaticUiCopy(staticUiLocale, "Account name")}
                     value={name}
                     disabled={pending}
                     onChange={(event) => setName(event.target.value)}
-                    placeholder="e.g. Personal or Work"
+                    placeholder={translateStaticUiCopy(staticUiLocale, "e.g. Personal or Work")}
                   />
                 }
               />
@@ -132,19 +146,21 @@ export function AddCodexAccountDialog({
         <WizardFooter>
           {instanceId ? (
             <Button variant="outline" onClick={onClose}>
-              Finish later
+              {translateStaticUiCopy(staticUiLocale, "Finish later")}
             </Button>
           ) : (
             <>
               <Button variant="outline" disabled={pending} onClick={onClose}>
-                Cancel
+                {translateStaticUiCopy(staticUiLocale, "Cancel")}
               </Button>
               <Button
                 type="submit"
                 form="add-codex-account"
                 disabled={pending || !name.trim() || !canManageProviders}
               >
-                {pending ? "Adding account…" : "Continue"}
+                {pending
+                  ? translateStaticUiCopy(staticUiLocale, "Adding account…")
+                  : translateStaticUiCopy(staticUiLocale, "Continue")}
               </Button>
             </>
           )}

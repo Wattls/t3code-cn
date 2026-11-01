@@ -1,3 +1,6 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { translateWebSource } from "~/i18n/messages";
 import { ExternalLinkIcon, PaperclipIcon } from "lucide-react";
 import { markdownImageSourceFragment } from "@t3tools/client-runtime/markdown-images";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
@@ -13,6 +16,7 @@ import type { PluggableList } from "unified";
 import { useAssetUrlRefresh, useAssetUrlState } from "~/assets/assetUrls";
 import { cn } from "~/lib/utils";
 import { PULL_REQUESTS_PANEL_REF } from "~/rightPanelStore";
+import { useI18n } from "~/i18n/WebI18nContext";
 
 import ChatMarkdown from "../ChatMarkdown";
 import { MediaVideoPlayer } from "../media/MediaVideoPlayer";
@@ -36,6 +40,7 @@ function PullRequestHostVideo({
   url: string;
   fetchUrl: string;
 }) {
+  const { locale: uiLocale } = useI18n();
   const resource: AssetResource = { _tag: SOURCE_CONTROL_MEDIA_ASSET, cwd, url: fetchUrl };
   const assetUrl = useAssetUrlState(environmentId, resource);
   const refreshAssetUrl = useAssetUrlRefresh(environmentId, resource);
@@ -45,7 +50,7 @@ function PullRequestHostVideo({
     <MediaVideoPlayer
       src={src === null ? null : src + markdownImageSourceFragment(url)}
       originalUrl={url}
-      label="Pull request video"
+      label={translateWebSource(uiLocale, "Pull request video")}
       className="w-full"
       videoClassName="rounded-lg border border-border/60"
       onRetry={refreshAssetUrl}
@@ -68,6 +73,9 @@ export function PullRequestMarkdown({
   lineBreaks?: boolean;
   className?: string;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: uiLocale } = useI18n();
+  const { locale } = useI18n();
   const segments = splitPullRequestBody(text);
   const context = useContext(PullRequestMarkdownContext);
   const resolvedThreadRef = threadRef ?? context?.threadRef ?? undefined;
@@ -113,7 +121,7 @@ export function PullRequestMarkdown({
               key={`${segment.id}:${segment.url}`}
               src={segment.url}
               originalUrl={segment.url}
-              label="Pull request video"
+              label={translateWebSource(uiLocale, "Pull request video")}
               className="w-full"
               videoClassName="rounded-lg border border-border/60"
             />
@@ -130,7 +138,10 @@ export function PullRequestMarkdown({
           >
             <PaperclipIcon aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
             <span className="min-w-0 flex-1 truncate">
-              Open attachment on {hostMedia?.definition.label ?? new URL(segment.url).hostname}
+              {locale === "zh-CN"
+                ? "在以下平台打开附件："
+                : translateStaticUiCopy(staticUiLocale, "Open attachment on") + " "}
+              {hostMedia?.definition.label ?? new URL(segment.url).hostname}
             </span>
             <ExternalLinkIcon aria-hidden className="size-3 shrink-0 text-muted-foreground" />
           </a>

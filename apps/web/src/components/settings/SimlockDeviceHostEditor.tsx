@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useAtomValue } from "@effect/atom-react";
 import { useId, useState, type ReactNode } from "react";
 import type { EnvironmentId, SimlockDeviceHostConfig } from "@t3tools/contracts";
@@ -53,6 +55,7 @@ export function SimlockDeviceHostEditor(props: {
   ) => void;
   onClose: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [draft, setDraft] = useState(props.host);
   const [urlEdited, setUrlEdited] = useState(false);
   const machineGateways = useAtomValue(
@@ -126,16 +129,26 @@ export function SimlockDeviceHostEditor(props: {
           }}
         >
           <DialogHeader>
-            <DialogTitle>{props.isNew ? "Add Simlock host" : "Edit Simlock host"}</DialogTitle>
+            <DialogTitle>
+              {props.isNew
+                ? translateStaticUiCopy(staticUiLocale, "Add Simlock host")
+                : translateStaticUiCopy(staticUiLocale, "Edit Simlock host")}
+            </DialogTitle>
             <DialogDescription>
               {several
-                ? "Each selected environment's server leases devices from your Simlock gateway with its own agent token, and releases them when they close."
-                : "The environment's server leases devices from your Simlock gateway and releases them when they close."}
+                ? translateStaticUiCopy(
+                    staticUiLocale,
+                    "Each selected environment's server leases devices from your Simlock gateway with its own agent token, and releases them when they close.",
+                  )
+                : translateStaticUiCopy(
+                    staticUiLocale,
+                    "The environment's server leases devices from your Simlock gateway and releases them when they close.",
+                  )}
             </DialogDescription>
           </DialogHeader>
           <DialogPanel>
             <label className="block space-y-1.5 text-sm">
-              <span>Name</span>
+              <span>{translateStaticUiCopy(staticUiLocale, "Name")}</span>
               <Input
                 autoFocus
                 required
@@ -148,7 +161,7 @@ export function SimlockDeviceHostEditor(props: {
               />
             </label>
             <label className="block space-y-1.5 text-sm">
-              <span>Gateway URL</span>
+              <span>{translateStaticUiCopy(staticUiLocale, "Gateway URL")}</span>
               <Input
                 required
                 type="url"
@@ -169,7 +182,11 @@ export function SimlockDeviceHostEditor(props: {
                   environmentId={environment.environmentId}
                   hostId={props.isNew ? null : props.host.id}
                   gatewayUrl={checkUrl}
-                  label={several ? `Agent token · ${environment.label}` : "Agent token"}
+                  label={
+                    several
+                      ? `Agent token · ${environment.label}`
+                      : translateStaticUiCopy(staticUiLocale, "Agent token")
+                  }
                   token={tokens.get(environment.environmentId) ?? { kind: "cleared" }}
                   hasSaved={savedToken(environment)}
                   busy={props.busy}
@@ -179,11 +196,21 @@ export function SimlockDeviceHostEditor(props: {
                 />
               ))}
               <p className="text-xs text-muted-foreground">
-                Leases, drives, and streams devices. Create one{several ? " per environment" : ""}{" "}
-                with <code>simlock --gateway token create --role agent</code>, or leave it blank to
-                add it later. A blank token uses the machine's{" "}
-                <code>AGENT_DEVICE_DAEMON_AUTH_TOKEN</code> when its{" "}
-                <code>AGENT_DEVICE_DAEMON_BASE_URL</code> is this gateway.
+                {translateStaticUiCopy(
+                  staticUiLocale,
+                  "Leases, drives, and streams devices. Create one",
+                )}
+                {several ? " " + translateStaticUiCopy(staticUiLocale, "per environment") : ""}{" "}
+                {translateStaticUiCopy(staticUiLocale, "with") + " "}
+                <code>simlock --gateway token create --role agent</code>
+                {translateStaticUiCopy(
+                  staticUiLocale,
+                  ", or leave it blank to add it later. A blank token uses the machine's",
+                )}{" "}
+                <code>AGENT_DEVICE_DAEMON_AUTH_TOKEN</code>
+                {" " + translateStaticUiCopy(staticUiLocale, "when its")}{" "}
+                <code>AGENT_DEVICE_DAEMON_BASE_URL</code>
+                {" " + translateStaticUiCopy(staticUiLocale, "is this gateway.")}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
@@ -191,8 +218,17 @@ export function SimlockDeviceHostEditor(props: {
               {limit("maxLeaseMinutes", "Lease minutes", 5, 240)}
             </div>
             <p className="text-xs text-muted-foreground">
-              A lease ends after the lease minutes even while in use.
-              {props.isNew ? null : " Saving restarts this host, which releases its devices."}
+              {translateStaticUiCopy(
+                staticUiLocale,
+                "A lease ends after the lease minutes even while in use.",
+              )}
+              {props.isNew
+                ? null
+                : " " +
+                  translateStaticUiCopy(
+                    staticUiLocale,
+                    "Saving restarts this host, which releases its devices.",
+                  )}
             </p>
             {problem === null || !gatewayUrl ? null : (
               <p className="text-xs text-destructive" role="alert">
@@ -202,10 +238,11 @@ export function SimlockDeviceHostEditor(props: {
           </DialogPanel>
           <DialogFooter>
             <Button type="button" variant="ghost" disabled={props.busy} onClick={props.onClose}>
-              Cancel
+              {translateStaticUiCopy(staticUiLocale, "Cancel")}
             </Button>
             <Button type="submit" disabled={props.busy || problem !== null}>
-              {props.busy ? <Spinner size="xs" /> : null} Save host
+              {props.busy ? <Spinner size="xs" /> : null}
+              {" " + translateStaticUiCopy(staticUiLocale, "Save host")}
             </Button>
           </DialogFooter>
         </form>
@@ -224,6 +261,7 @@ function SimlockTokenField(props: {
   busy: boolean;
   onChange: (token: SimlockTokenEntry) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const id = useId();
   const entered = props.token.kind === "new" ? props.token.value.trim() : "";
   // A cleared field asks about the machine's own token, which a blank one falls back to.
@@ -245,7 +283,9 @@ function SimlockTokenField(props: {
   const identity = AsyncResult.isSuccess(check) ? check.value : null;
   const status =
     props.gatewayUrl === null ? null : check._tag === "Initial" || check.waiting ? (
-      <span className="text-muted-foreground">Checking…</span>
+      <span className="text-muted-foreground">
+        {translateStaticUiCopy(staticUiLocale, "Checking…")}
+      </span>
     ) : identity ? (
       <span className="text-muted-foreground">
         {identity.tokenSource === "env"
@@ -289,7 +329,7 @@ function SimlockTokenField(props: {
             type="button"
             size="icon-sm"
             variant="ghost-destructive"
-            aria-label="Clear agent token"
+            aria-label={translateStaticUiCopy(staticUiLocale, "Clear agent token")}
             disabled={props.busy}
             onClick={() => props.onChange({ kind: "cleared" })}
           >

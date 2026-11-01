@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+
 import type { PullRequestReplyAvailability } from "./pullRequestDetail.logic";
 
 export function PullRequestMoreReplies({
@@ -5,13 +7,19 @@ export function PullRequestMoreReplies({
   hasMoreReplies,
   url,
 }: PullRequestReplyAvailability) {
+  const { t } = useI18n();
   if (!hasMoreReplies) return null;
   return (
     <div className="flex flex-wrap items-baseline gap-2 py-1 text-xs text-muted-foreground">
       <span>
         {moreReplies > 0
-          ? `${moreReplies.toLocaleString()} more ${moreReplies === 1 ? "reply" : "replies"}`
-          : "More replies"}
+          ? t(
+              moreReplies === 1
+                ? "pullRequests.comments.moreReplyOne"
+                : "pullRequests.comments.moreReplyMany",
+              { count: moreReplies.toLocaleString() },
+            )
+          : t("pullRequests.comments.moreReplies")}
       </span>
       {url ? (
         <a
@@ -20,7 +28,7 @@ export function PullRequestMoreReplies({
           rel="noopener noreferrer"
           className="hover:text-foreground hover:underline"
         >
-          View on host
+          {t("pullRequests.comments.viewOnHost")}
         </a>
       ) : null}
     </div>

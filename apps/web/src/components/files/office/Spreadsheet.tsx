@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { observeResize } from "~/lib/observeResize";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -45,6 +47,7 @@ export default function Spreadsheet(props: {
   onDetails: (text: string) => void;
   onError: (cause: unknown) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { onError, bytes: source, onDetails } = props;
   const [opened, setOpened] = useState<Opened>();
   const [error, setError] = useState("");
@@ -108,7 +111,7 @@ export default function Spreadsheet(props: {
       />
       <div
         role="tablist"
-        aria-label="Sheets"
+        aria-label={translateStaticUiCopy(staticUiLocale, "Sheets")}
         className="flex h-9 shrink-0 items-center gap-1 overflow-x-auto border-t border-border px-2"
         onKeyDown={(event) => {
           const current = opened.tabs.findIndex(

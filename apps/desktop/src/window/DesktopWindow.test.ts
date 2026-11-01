@@ -1,7 +1,11 @@
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, describe, it } from "@effect/vitest";
 import * as Deferred from "effect/Deferred";
-import { DesktopSnapShotId } from "@t3tools/contracts";
+import {
+  DesktopSnapShotId,
+  DEFAULT_CLIENT_SETTINGS,
+  type AppLocalePreference,
+} from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Fiber from "effect/Fiber";
@@ -9,6 +13,7 @@ import * as Layer from "effect/Layer";
 import * as Logger from "effect/Logger";
 import * as Option from "effect/Option";
 import * as Ref from "effect/Ref";
+import * as Queue from "effect/Queue";
 import * as Schema from "effect/Schema";
 import * as TestClock from "effect/testing/TestClock";
 
@@ -162,6 +167,7 @@ const layerDesktopClientSettings = Layer.mock(DesktopClientSettings.DesktopClien
 
 const layerElectronApp = Layer.mock(ElectronApp.ElectronApp)({
   quit: Effect.void,
+  systemLocale: Effect.succeed("en-US"),
 });
 
 const layerDesktopAssets = Layer.succeed(DesktopAssets.DesktopAssets, {
@@ -233,6 +239,7 @@ function layerTest(input: {
   readonly openedExternalUrls?: unknown[];
   readonly copiedTexts?: string[];
   readonly onPopupTemplate?: (input: ElectronMenu.ElectronMenuTemplateInput) => Effect.Effect<void>;
+  readonly clientSettingsLayer?: Layer.Layer<DesktopClientSettings.DesktopClientSettings>;
   readonly previewZoomReapplies?: number[];
   readonly onReveal?: (window: Electron.BrowserWindow) => void;
   readonly focusedWindow?: Electron.BrowserWindow;
@@ -307,7 +314,7 @@ function layerTest(input: {
         }),
         layerDesktopEnvironment,
         layerDesktopAppSettings,
-        layerDesktopClientSettings,
+        input.clientSettingsLayer ?? layerDesktopClientSettings,
         layerDesktopServerExposure,
         DesktopState.layer,
         layerElectronApp,
@@ -462,6 +469,67 @@ const captureOne = DesktopSnapShotId.make("11111111-1111-4111-8111-111111111111"
 const captureTwo = DesktopSnapShotId.make("22222222-2222-4222-8222-222222222222");
 
 describe("DesktopWindow", () => {
+  it.effect("native editing menus read the current UI language on each opening", () =>
+    Effect.gen(function* () {
+      const fake = makeFakeBrowserWindow();
+      const createCount = yield* Ref.make(0);
+      const mainWindow = yield* Ref.make<Option.Option<Electron.BrowserWindow>>(Option.none());
+      const locale = yield* Ref.make<AppLocalePreference>("en");
+      const openedMenus = yield* Queue.unbounded<ElectronMenu.ElectronMenuTemplateInput>();
+      const clientSettingsLayer = Layer.mock(DesktopClientSettings.DesktopClientSettings)({
+        get: Ref.get(locale).pipe(
+          Effect.map((appLocale) => Option.some({ ...DEFAULT_CLIENT_SETTINGS, appLocale })),
+        ),
+      });
+      const layer = layerTest({
+        window: fake.window,
+        createCount,
+        mainWindow,
+        clientSettingsLayer,
+        onPopupTemplate: (input) => Queue.offer(openedMenus, input).pipe(Effect.asVoid),
+      });
+      yield* Effect.gen(function* () {
+        const windows = yield* DesktopWindow.DesktopWindow;
+        yield* windows.handleBackendReady(new URL("http://127.0.0.1:3773"));
+        const openMenu = fake.webContentsListeners.get("context-menu");
+        assert.isDefined(openMenu);
+        for (const [appLocale, labels] of [
+          [
+            "en",
+            ["No suggestions", "Copy Link", "Copy Image", "Cut", "Copy", "Paste", "Select All"],
+          ],
+          ["zh-CN", ["无拼写建议", "复制链接", "复制图片", "剪切", "复制", "粘贴", "全选"]],
+        ] as const) {
+          yield* Ref.set(locale, appLocale);
+          openMenu(
+            { preventDefault: () => {} },
+            {
+              misspelledWord: "misspeling",
+              dictionarySuggestions: [],
+              linkURL: "https://example.com/",
+              mediaType: "image",
+              editFlags: { canCut: false, canCopy: true, canPaste: true, canSelectAll: true },
+            },
+          );
+          const menu = yield* Queue.take(openedMenus);
+          assert.deepEqual(
+            menu.template.filter((item) => item.type !== "separator").map((item) => item.label),
+            [...labels],
+          );
+          assert.deepEqual(
+            menu.template.filter((item) => item.role).map((item) => [item.role, item.enabled]),
+            [
+              ["cut", false],
+              ["copy", true],
+              ["paste", true],
+              ["selectAll", true],
+            ],
+          );
+        }
+      }).pipe(Effect.provide(layer));
+    }),
+  );
+
   it("restores bounds only when the window fits within a connected display", () => {
     const persistedBounds = { x: 2040, y: 80, width: 1320, height: 880 };
     const displays = [

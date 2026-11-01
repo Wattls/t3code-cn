@@ -1,3 +1,6 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { translateWebSource } from "~/i18n/messages";
 import { useAuth } from "@clerk/react";
 import { useAtomValue } from "@effect/atom-react";
 import { AuthRelayReadScope, AuthRelayWriteScope, type AuthSessionState } from "@t3tools/contracts";
@@ -32,6 +35,7 @@ import { Dialog } from "../ui/dialog";
 import { Switch } from "../ui/switch";
 import { toastManager } from "../ui/toast";
 import { WizardSteps, WizardPopup, WizardHeader, WizardPanel, WizardFooter } from "../ui/wizard";
+import { useI18n } from "~/i18n/WebI18nContext";
 
 export function ConnectOnboardingDialog() {
   if (!hasCloudPublicConfig()) return null;
@@ -44,6 +48,9 @@ type OnboardingStep = "publish" | "devices";
 const EMPTY_SESSION_STATE_ATOM = Atom.make(AsyncResult.initial<AuthSessionState>());
 
 function ConfiguredConnectOnboardingDialog() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: uiLocale } = useI18n();
+  const { t } = useI18n();
   // Pending Clerk sessions must not look signed out or activation would look like a new sign-in.
   const { isLoaded, isSignedIn, userId } = useAuth({ treatPendingAsSignedOut: false });
   const [optOutState, setOptOutState] = useLocalStorage(
@@ -179,10 +186,10 @@ function ConfiguredConnectOnboardingDialog() {
     if (!ok) return;
     toastManager.add({
       type: "success",
-      title: "T3 Connect enabled",
+      title: t("connectOnboarding.enabled"),
       description: exposeEnvironment
-        ? "This environment is available to your other devices through T3 Connect."
-        : "This environment publishes agent activity to your mobile clients.",
+        ? t("connectOnboarding.enabled.environment")
+        : t("connectOnboarding.enabled.activity"),
     });
     setStep("devices");
   };
@@ -205,17 +212,25 @@ function ConfiguredConnectOnboardingDialog() {
     >
       <WizardPopup>
         <WizardHeader
-          title="Set up T3 Connect"
+          title={t("connectOnboarding.title")}
           description={
             <>
-              Mesh your devices together. Publish this environment and connect the rest, all in one
-              place.
+              {translateWebSource(
+                uiLocale,
+                "Mesh your devices together: publish this environment and connect the rest, all in one place.",
+              )}
             </>
           }
         >
           {steps.length > 1 ? (
             <WizardSteps
-              steps={steps.map((id) => STEP_LABELS[id])}
+              steps={steps.map((id) =>
+                t(
+                  id === "publish"
+                    ? "connectOnboarding.step.publish"
+                    : "connectOnboarding.step.devices",
+                ),
+              )}
               currentStep={steps.indexOf(step)}
               isStepDisabled={() => isApplying}
               onStepChange={(index) => {
@@ -269,25 +284,27 @@ function ConfiguredConnectOnboardingDialog() {
                 checked={dontShowAgain}
                 onCheckedChange={(checked) => setDontShowAgain(checked === true)}
               />
-              Don&apos;t show this again
+              {translateWebSource(uiLocale, "Don't show this again")}
             </label>
           }
         >
           {step === "publish" ? (
             <>
               <Button variant="ghost" disabled={isApplying} onClick={() => setStep("devices")}>
-                Not now
+                {t("connectOnboarding.notNow")}{" "}
               </Button>
               <Button
                 disabled={isApplying || !canManageRelay || linkStateData === null}
                 onClick={() => void applyPublishSelection()}
               >
-                {isApplying ? "Enabling…" : "Continue"}
+                {isApplying
+                  ? translateStaticUiCopy(staticUiLocale, "Enabling…")
+                  : t("common.continue")}
               </Button>
             </>
           ) : (
             <Button disabled={isApplying} onClick={complete}>
-              Done
+              {t("common.done")}
             </Button>
           )}
         </WizardFooter>
@@ -297,11 +314,6 @@ function ConfiguredConnectOnboardingDialog() {
     </Dialog>
   );
 }
-
-const STEP_LABELS: Record<OnboardingStep, string> = {
-  publish: "Publish",
-  devices: "Connect devices",
-};
 
 function PublishStep({
   exposeEnvironment,
@@ -322,19 +334,20 @@ function PublishStep({
   readonly onExposeEnvironmentChange: (enabled: boolean) => void;
   readonly onPublishAgentActivityChange: (enabled: boolean) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-3">
       <div className="rounded-lg border">
         <OnboardingToggleRow
-          title="Publish this environment"
-          description="Make this environment available to your other devices through T3 Connect."
+          title={t("connectOnboarding.publishEnvironment")}
+          description={t("connectOnboarding.publishEnvironmentDescription")}
           checked={exposeEnvironment}
           disabled={disabled}
           onCheckedChange={onExposeEnvironmentChange}
         />
         <OnboardingToggleRow
-          title="Publish agent activity"
-          description="Send activity from this environment to your mobile clients for push notifications and Live Activities."
+          title={t("connectOnboarding.publishActivity")}
+          description={t("connectOnboarding.publishActivityDescription")}
           checked={publishAgentActivity}
           disabled={disabled}
           onCheckedChange={onPublishAgentActivityChange}
@@ -393,6 +406,7 @@ function OnboardingToggleRow({
 }
 
 function DevicesStep() {
+  const { t } = useI18n();
   const { environments } = useEnvironments();
   const primaryEnvironment = usePrimaryEnvironment();
   const savedEnvironments = environments.filter(
@@ -407,8 +421,7 @@ function DevicesStep() {
         showSavedEnvironments
         empty={
           <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-            No other environments are published to your account yet. Publish one from another device
-            and it will show up here.
+            {t("connectOnboarding.emptyDevices")}
           </p>
         }
       />

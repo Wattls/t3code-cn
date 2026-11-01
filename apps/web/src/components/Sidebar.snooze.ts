@@ -11,6 +11,8 @@ import { appAtomRegistry } from "../rpc/atomRegistry";
 import { serverEnvironment } from "../state/server";
 import { formatShortTimestamp } from "../timestampFormat";
 import { toastManager } from "./ui/toast";
+import { readWebI18n } from "../i18n/readWebI18n";
+import { localizeSnoozePresetLabel } from "./threadActionMenu.logic";
 
 export { snoozeWakeLabel, type SnoozePreset };
 
@@ -20,7 +22,13 @@ export function resolveSnoozePresets(
   timestampFormat: TimestampFormat,
   environmentId: EnvironmentId,
 ): ReadonlyArray<SnoozePreset> {
-  return resolveSharedSnoozePresets(now, snoozeOptions(timestampFormat, environmentId));
+  const { t } = readWebI18n();
+  return resolveSharedSnoozePresets(now, snoozeOptions(timestampFormat, environmentId)).map(
+    (preset) => ({
+      ...preset,
+      label: localizeSnoozePresetLabel(preset, t),
+    }),
+  );
 }
 
 /** A shown menu choice as picked; see the shared `pickSnoozePreset`. */

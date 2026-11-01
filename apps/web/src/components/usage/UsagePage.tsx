@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { ChatGptUsageButton } from "../settings/ChatGptUsageButton";
 import { usesChatGptSharing } from "@t3tools/shared/usageLimits";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
@@ -33,6 +35,8 @@ import {
   type MergedUsage,
 } from "@t3tools/shared/usageMerge";
 
+import { useI18n } from "../../i18n/WebI18nContext";
+import { translateWebSource } from "../../i18n/messages";
 import { cn } from "../../lib/utils";
 import { usePrimarySettings } from "../../hooks/useSettings";
 import { resolveHour12 } from "../../timestampFormat";
@@ -175,16 +179,26 @@ function UsageModelDialogHost({
 }
 
 export function UsagePage() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale, t } = useI18n();
   const [preferences, setPreferences] = useState(readUsagePagePreferences);
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
   const hour12 = usePrimarySettings((settings) => resolveHour12(settings.timestampFormat));
+  const optionLabel = (
+    option: (typeof METRIC_OPTIONS)[number] | (typeof WINDOW_OPTIONS)[number],
+  ) =>
+    "value" in option
+      ? t(`usage.metric.${option.value}`)
+      : option.days === 1
+        ? t("usage.window.past24h")
+        : t("usage.window.days", { count: option.days });
   const shortcutTitle = (
     option: (typeof METRIC_OPTIONS)[number] | (typeof WINDOW_OPTIONS)[number],
   ) => {
     const shortcut = shortcutLabelForCommand(keybindings, option.command, {
       context: { usagePageOpen: true },
     });
-    return shortcut ? `${option.label} (${shortcut})` : option.label;
+    return shortcut ? `${optionLabel(option)} (${shortcut})` : optionLabel(option);
   };
   const [windowSelection, setWindowSelection] = useState(() => ({
     days: preferences.windowDays,
@@ -358,13 +372,13 @@ export function UsagePage() {
 
   const windowLabel =
     shownHourly && shownWindow.sinceTime !== undefined && shownWindow.untilTime !== undefined
-      ? `${formatDateTimeShort(shownWindow.sinceTime, shownWindow.timeZone, hour12)} to ${formatDateTimeShort(shownWindow.untilTime, shownWindow.timeZone, hour12)}`
-      : `${formatDayShort(shownWindow.sinceDay)} to ${formatDayShort(shownWindow.untilDay)}`;
+      ? `${formatDateTimeShort(shownWindow.sinceTime, shownWindow.timeZone, hour12, locale)} ${t("usage.range.separator")} ${formatDateTimeShort(shownWindow.untilTime, shownWindow.timeZone, hour12, locale)}`
+      : `${formatDayShort(shownWindow.sinceDay, locale)} ${t("usage.range.separator")} ${formatDayShort(shownWindow.untilDay, locale)}`;
   const topbarContent = (
     <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-2 @4xl/usage-header:flex">
-      <WorkspaceBreadcrumb ariaLabel="Usage breadcrumb" className="min-w-0">
+      <WorkspaceBreadcrumb ariaLabel={t("usage.breadcrumb")} className="min-w-0">
         <WorkspaceBreadcrumbItem>
-          <h1>Usage</h1>
+          <h1>{t("usage.title")}</h1>
         </WorkspaceBreadcrumbItem>
         <WorkspaceBreadcrumbSeparator />
         <WorkspaceBreadcrumbItem className="min-w-10 shrink">
@@ -399,7 +413,7 @@ export function UsagePage() {
             tabs so dropping it never moves them. */}
         {showingLimits ? null : (
           <ToggleGroup
-            aria-label="Usage period"
+            aria-label={translateStaticUiCopy(staticUiLocale, "Usage period")}
             variant="segmented"
             value={[String(windowDays)]}
             onValueChange={(next) => {
@@ -415,7 +429,7 @@ export function UsagePage() {
           </ToggleGroup>
         )}
         <ToggleGroup
-          aria-label="Usage metric"
+          aria-label={t("usage.metric.label")}
           variant="segmented"
           value={[metric]}
           onValueChange={(next) => {
@@ -425,13 +439,13 @@ export function UsagePage() {
         >
           {METRIC_OPTIONS.map((option) => (
             <Toggle key={option.value} value={option.value} title={shortcutTitle(option)}>
-              {option.label}
+              {optionLabel(option)}
             </Toggle>
           ))}
         </ToggleGroup>
         <Button
           onClick={refreshWindow}
-          aria-label={showingLimits ? "Refresh limits" : "Refresh usage"}
+          aria-label={t(showingLimits ? "usage.limits.refresh" : "usage.refresh")}
           aria-busy={isRefreshing}
           disabled={isRefreshing || (!showingLimits && !canReadDiagnostics)}
           size="icon-sm"
@@ -444,7 +458,7 @@ export function UsagePage() {
         {showingLimits ? null : (
           <Select value={String(windowDays)} onValueChange={(value) => selectWindow(Number(value))}>
             <SelectTrigger
-              aria-label="Usage period"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Usage period")}
               size="compact"
               variant="ghost"
               className="w-auto min-w-0"
@@ -473,26 +487,24 @@ export function UsagePage() {
           }}
         >
           <SelectTrigger
-            aria-label="Usage metric"
+            aria-label={t("usage.metric.label")}
             size="compact"
             variant="ghost"
             className="w-auto min-w-0"
           >
-            <SelectValue>
-              {METRIC_OPTIONS.find((option) => option.value === metric)?.label}
-            </SelectValue>
+            <SelectValue>{t(`usage.metric.${metric}`)}</SelectValue>
           </SelectTrigger>
           <SelectPopup align="end" alignItemWithTrigger={false}>
             {METRIC_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value} title={shortcutTitle(option)}>
-                {option.label}
+                {optionLabel(option)}
               </SelectItem>
             ))}
           </SelectPopup>
         </Select>
         <Button
           onClick={refreshWindow}
-          aria-label={showingLimits ? "Refresh limits" : "Refresh usage"}
+          aria-label={t(showingLimits ? "usage.limits.refresh" : "usage.refresh")}
           aria-busy={isRefreshing}
           disabled={isRefreshing || (!showingLimits && !canReadDiagnostics)}
           size="icon-sm"
@@ -505,7 +517,7 @@ export function UsagePage() {
   );
 
   return (
-    <AppRouteModal label="Usage">
+    <AppRouteModal label={translateStaticUiCopy(staticUiLocale, "Usage")}>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="@container/usage-header flex min-h-12 shrink-0 items-center gap-1 border-b ps-5 pe-2">
           {topbarContent}
@@ -633,6 +645,8 @@ function UsageOverview({
   readonly onCursorEnabled: () => void;
   readonly onSelectModel: (key: string) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: uiLocale, t } = useI18n();
   const [breakdown, setBreakdown] = useState<"model" | "time">("model");
   const shownHourly = shownWindow.resolution === "hour";
   const loading = usageLoading(showingKept, selectedEnvironments, refreshingUsage, hiddenProviders);
@@ -706,22 +720,23 @@ function UsageOverview({
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <span>
                 <span className={figureClass(loadingPartial)}>
-                  {formatCount(merged.sessions)} sessions
+                  {formatCount(merged.sessions)} {translateWebSource(uiLocale, "sessions")}
                 </span>
-                {metric === "cost" && " · API estimate"}
+                {metric === "cost" && ` · ${translateWebSource(uiLocale, "API estimate")}`}
               </span>
               {metric === "cost" && merged.costQuality.unpricedShare > 0 && (
                 <Popover>
                   <PopoverTrigger
                     openOnHover
                     render={<InlineButton tone="muted" />}
-                    aria-label="Unpriced usage details"
+                    aria-label={translateWebSource(uiLocale, "Unpriced usage details")}
                   >
                     <InfoIcon className="size-3" aria-hidden />
                   </PopoverTrigger>
                   <PopoverPopup side="top" tooltipStyle>
-                    API estimate excludes {formatPercent(merged.costQuality.unpricedShare)} unpriced
-                    records.
+                    {t("upstream.usage.unpriced", {
+                      share: formatPercent(merged.costQuality.unpricedShare),
+                    })}
                   </PopoverPopup>
                 </Popover>
               )}
@@ -730,7 +745,7 @@ function UsageOverview({
 
           {showChatGptSharing ? (
             <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span>ChatGPT shared usage</span>
+              <span>{translateWebSource(uiLocale, "ChatGPT shared usage")}</span>
               <ChatGptUsageButton size="xs" />
             </div>
           ) : null}
@@ -751,9 +766,9 @@ function UsageOverview({
             const totals = merged.providers.find((entry) => entry.provider === provider);
             const share = metric === "cost" ? (totals?.costShare ?? 0) : (totals?.tokenShare ?? 0);
             const providerSessions = totals?.sessions ?? 0;
-            const sessionLabel = `${formatCount(providerSessions)} ${
-              providerSessions === 1 ? "session" : "sessions"
-            }`;
+            const sessionLabel = t(providerSessions === 1 ? "usage.session" : "usage.sessions", {
+              count: formatCount(providerSessions),
+            });
             const providerLoading = loadingProviders.has(provider);
             const awaitingData = providerLoading && !providersWithData.has(provider);
             return (
@@ -802,8 +817,14 @@ function UsageOverview({
                   )}
                 >
                   {metric === "cost"
-                    ? `${formatPercent(share)} of cost · ${formatTokens(totals?.totalTokens ?? 0)} tokens`
-                    : `${formatPercent(share)} of tokens · ${formatUsd(totals?.costUsd ?? 0)}`}
+                    ? t("usage.provider.costShare", {
+                        share: formatPercent(share),
+                        tokens: formatTokens(totals?.totalTokens ?? 0),
+                      })
+                    : t("usage.provider.tokenShare", {
+                        share: formatPercent(share),
+                        cost: formatUsd(totals?.costUsd ?? 0),
+                      })}
                 </span>
               </div>
             );
@@ -812,7 +833,15 @@ function UsageOverview({
 
         <div className="flex min-w-0 flex-col gap-3">
           <h2 className="text-sm font-medium text-foreground">
-            {shownHourly ? "Hourly" : "Daily"} {metric === "tokens" ? "processed tokens" : "cost"}
+            {t(
+              shownHourly
+                ? metric === "tokens"
+                  ? "usage.hourlyTokens"
+                  : "usage.hourlyCost"
+                : metric === "tokens"
+                  ? "usage.dailyTokens"
+                  : "usage.dailyCost",
+            )}
           </h2>
           <UsageProviderChart
             providers={activeProviders}
@@ -831,31 +860,31 @@ function UsageOverview({
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-foreground">Totals</h2>
+        <h2 className="text-sm font-medium text-foreground">{t("usage.totals")}</h2>
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 py-1 md:grid-cols-5">
           <Metric
             loading={loadingPartial}
-            label="Processed tokens"
+            label={t("usage.processedTokens")}
             value={formatTokens(merged.totalTokens)}
           />
           <Metric
             loading={loadingPartial}
-            label="Cached input"
+            label={t("usage.metric.cachedInput")}
             value={formatTokens(merged.cachedInputTokens)}
           />
           <Metric
             loading={loadingPartial}
-            label="Uncached input"
+            label={t("usage.metric.uncachedInput")}
             value={formatTokens(merged.uncachedInputTokens)}
           />
           <Metric
             loading={loadingPartial}
-            label="Output"
+            label={t("usage.metric.output")}
             value={formatTokens(merged.outputTokens)}
           />
           <Metric
             loading={loadingPartial}
-            label="Cache savings"
+            label={t("usage.metric.cacheSavings")}
             value={formatUsd(merged.costQuality.cacheSavingsUsd)}
           />
         </div>
@@ -867,20 +896,20 @@ function UsageOverview({
         >
           {metric === "tokens" ? (
             <UsageShareBar
-              label="Tokens by type"
+              label={translateStaticUiCopy(staticUiLocale, "Tokens by type")}
               segments={tokenTypeSegments(merged)}
               format={formatTokens}
             />
           ) : (
             <>
               <UsageShareBar
-                label="Cost by type"
+                label={translateStaticUiCopy(staticUiLocale, "Cost by type")}
                 segments={costTypeSegments(merged.categoryCost)}
                 format={formatUsd}
               />
               {merged.speedCost.fast + merged.speedCost.ultrafast > 0 ? (
                 <UsageShareBar
-                  label="Cost by speed"
+                  label={translateStaticUiCopy(staticUiLocale, "Cost by speed")}
                   segments={speedCostSegments(merged.speedCost)}
                   format={formatUsd}
                   aside={<SpeedPremium premiumUsd={merged.speedCost.premium} />}
@@ -893,9 +922,9 @@ function UsageOverview({
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-medium text-foreground">Breakdown</h2>
+          <h2 className="text-sm font-medium text-foreground">{t("usage.breakdown")}</h2>
           <ToggleGroup
-            aria-label="Usage breakdown"
+            aria-label={t("usage.breakdown.label")}
             variant="segmented"
             value={[breakdown]}
             onValueChange={(next) => {
@@ -905,8 +934,11 @@ function UsageOverview({
           >
             {(
               [
-                { value: "model", label: "Model" },
-                { value: "time", label: shownHourly ? "Hour" : "Day" },
+                { value: "model", label: t("usage.breakdown.model") },
+                {
+                  value: "time",
+                  label: t(shownHourly ? "usage.period.hour" : "usage.period.day"),
+                },
               ] as const
             ).map((option) => (
               <Toggle key={option.value} value={option.value}>
@@ -921,17 +953,19 @@ function UsageOverview({
             <thead>
               <tr className="border-b border-border text-right text-xs text-muted-foreground">
                 <th className="py-2 pr-3 text-left font-normal">#</th>
-                <th className="w-full py-2 text-left font-normal">Model</th>
-                <th className="py-2 pl-6 font-normal">Cost</th>
-                <th className="hidden py-2 pl-6 font-normal sm:table-cell">Share</th>
-                <th className="py-2 pl-6 font-normal">Tokens</th>
+                <th className="w-full py-2 text-left font-normal">{t("usage.breakdown.model")}</th>
+                <th className="py-2 pl-6 font-normal">{t("usage.breakdown.cost")}</th>
+                <th className="hidden py-2 pl-6 font-normal sm:table-cell">
+                  {t("usage.breakdown.share")}
+                </th>
+                <th className="py-2 pl-6 font-normal">{t("usage.breakdown.tokens")}</th>
               </tr>
             </thead>
             <tbody>
               {breakdownModels.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-6 text-center text-muted-foreground">
-                    No activity in this window.
+                    {t("usage.noActivity")}
                   </td>
                 </tr>
               ) : (
@@ -973,7 +1007,9 @@ function UsageOverview({
                       </td>
                       <td className={cn("py-2.5 pl-6 text-foreground", rowFigures)}>
                         {isModelCostUnknown(model) ? (
-                          <span className="text-muted-foreground">Unpriced</span>
+                          <span className="text-muted-foreground">
+                            {translateWebSource(uiLocale, "Unpriced")}
+                          </span>
                         ) : (
                           formatUsd(model.costUsd)
                         )}
@@ -994,7 +1030,7 @@ function UsageOverview({
           <div
             className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
             role="region"
-            aria-label="Usage breakdown by time"
+            aria-label={translateWebSource(uiLocale, "Usage breakdown by time")}
             tabIndex={0}
           >
             <table className="w-full text-sm whitespace-nowrap">
@@ -1003,14 +1039,20 @@ function UsageOverview({
               </colgroup>
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                  <th className="py-2 font-normal">{shownHourly ? "Hour" : "Day"}</th>
+                  <th className="py-2 font-normal">
+                    {t(shownHourly ? "usage.period.hour" : "usage.period.day")}
+                  </th>
                   {activeProviders.map((provider) => (
                     <th key={provider} className="py-2 pl-4 text-right font-normal">
                       {PROVIDER_PRESENTATION[provider].label}
                     </th>
                   ))}
-                  <th className="py-2 pl-4 text-right font-normal">Total</th>
-                  <th className="py-2 pl-4 text-right font-normal">Tokens</th>
+                  <th className="py-2 pl-4 text-right font-normal">
+                    {translateWebSource(uiLocale, "Total")}
+                  </th>
+                  <th className="py-2 pl-4 text-right font-normal">
+                    {translateWebSource(uiLocale, "Tokens")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -1020,7 +1062,7 @@ function UsageOverview({
                       colSpan={activeProviders.length + 3}
                       className="py-6 text-center text-muted-foreground"
                     >
-                      No activity in this window.
+                      {t("usage.noActivity")}
                     </td>
                   </tr>
                 ) : (
@@ -1031,8 +1073,13 @@ function UsageOverview({
                     >
                       <td className="py-2 text-foreground">
                         {"hourStart" in period
-                          ? formatHourShort(period.hourStart, shownWindow.timeZone, hour12)
-                          : formatDayShort(period.day)}
+                          ? formatHourShort(
+                              period.hourStart,
+                              shownWindow.timeZone,
+                              hour12,
+                              uiLocale,
+                            )
+                          : formatDayShort(period.day, uiLocale)}
                       </td>
                       {activeProviders.map((provider) => (
                         <td
@@ -1088,8 +1135,9 @@ function CursorEnableButton({
   readonly tooltip: boolean;
   readonly buttonText?: string;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const updateSettings = useAtomCommand(serverEnvironment.updateSettings, {
-    label: "enable Cursor account usage",
+    label: translateStaticUiCopy(staticUiLocale, "enable Cursor account usage"),
   });
   const [pending, setPending] = useState(false);
   const enable = async () => {
@@ -1252,6 +1300,7 @@ function UsageCoverageNotice({
   readonly duplicateSources: readonly string[];
   readonly contractMismatches: MergedUsage["contractMismatches"];
 }) {
+  const { t } = useI18n();
   const failed = environments.filter((environment) => environment.error !== null);
   const mismatchByEnvironment = new Map(
     contractMismatches.map((mismatch) => [mismatch.environmentId, mismatch]),
@@ -1277,10 +1326,7 @@ function UsageCoverageNotice({
         </span>
       ))}
       {duplicateSources.length > 0 ? (
-        <span>
-          Counted once across environments sharing a transcript directory:{" "}
-          {duplicateSources.join(", ")}
-        </span>
+        <span>{t("usage.coverage.duplicates", { sources: duplicateSources.join(", ") })}</span>
       ) : null}
     </div>
   );
@@ -1309,12 +1355,16 @@ function UsageEnvironmentFilter({
   readonly contractMismatches: MergedUsage["contractMismatches"];
   readonly onOpenModelPrices: () => void;
 }) {
+  const { locale } = useI18n();
+  const translate = (source: string) => translateWebSource(locale, source);
   const allSelected = selectedEnvironmentIds === null;
   const label = allSelected
-    ? "All environments"
+    ? translate("All environments")
     : selectedEnvironments.length === 1
       ? selectedEnvironments[0]!.label
-      : `${selectedEnvironments.length} environments`;
+      : locale === "zh-CN"
+        ? `${selectedEnvironments.length} 个环境`
+        : `${selectedEnvironments.length} environments`;
   const hasIssue =
     selectedEnvironments.some((environment) => environment.error !== null) ||
     contractMismatches.length > 0;
@@ -1327,7 +1377,7 @@ function UsageEnvironmentFilter({
           {showUsageStatus && hasIssue ? (
             <CircleAlertIcon
               className="size-3.5 text-warning-foreground"
-              aria-label="Some environments could not report usage"
+              aria-label={translate("Some environments could not report usage")}
             />
           ) : (
             <ChevronDownIcon
@@ -1343,7 +1393,7 @@ function UsageEnvironmentFilter({
           closeOnClick={false}
           onCheckedChange={(checked) => onSelectionChange(checked ? null : new Set())}
         >
-          All environments
+          {translate("All environments")}
         </MenuCheckboxItem>
         <MenuSeparator />
         {environments.map((environment) => {
@@ -1353,22 +1403,22 @@ function UsageEnvironmentFilter({
           const progress = usageEnvironmentProgress(environment, refreshing);
           const status =
             environment.error !== null
-              ? "Unavailable"
+              ? translate("Unavailable")
               : environment.summary !== null &&
                   !isCompatibleUsageContractVersion(
                     environment.summary.contractVersion,
                     USAGE_CONTRACT_VERSION,
                   )
-                ? "Update required"
+                ? translate("Update required")
                 : !environment.isConnected
-                  ? "Connecting…"
+                  ? translate("Connecting…")
                   : progress.phase === "loading"
-                    ? "Scanning…"
+                    ? translate("Scanning…")
                     : progress.phase === "stale"
-                      ? "Refreshing…"
+                      ? translate("Refreshing…")
                       : progress.phase === "partway"
                         ? updatingProvidersLabel(progress.providers, providerLabel)
-                        : "Ready";
+                        : translate("Ready");
           return (
             <MenuCheckboxItem
               key={environment.environmentId}
@@ -1398,11 +1448,13 @@ function UsageEnvironmentFilter({
           );
         })}
         {environments.length === 0 ? (
-          <p className="px-2 py-2 text-xs text-muted-foreground">No environments connected.</p>
+          <p className="px-2 py-2 text-xs text-muted-foreground">
+            {translate("No environments connected.")}
+          </p>
         ) : null}
         {showUsageStatus && isPartial ? (
           <p className="px-2 py-2 text-xs text-muted-foreground">
-            Totals are partial while selected environments scan.
+            {translate("Totals are partial while selected environments scan.")}
           </p>
         ) : null}
         {showUsageStatus ? (
@@ -1415,7 +1467,7 @@ function UsageEnvironmentFilter({
         <MenuSeparator />
         <MenuItem onClick={onOpenModelPrices}>
           <SlidersHorizontalIcon aria-hidden />
-          Model prices
+          {translate("Model prices")}
         </MenuItem>
       </MenuPopup>
     </Menu>
@@ -1429,15 +1481,20 @@ function UsageProviderFilter({
   readonly hiddenProviders: ReadonlySet<UsageProviderKind>;
   readonly onChange: (hiddenProviders: readonly UsageProviderKind[]) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale } = useI18n();
+  const translate = (source: string) => translateWebSource(locale, source);
   const visible = PROVIDER_ORDER.filter((provider) => !hiddenProviders.has(provider));
   const label =
     visible.length === PROVIDER_ORDER.length
-      ? "All providers"
+      ? translate("All providers")
       : visible.length === 0
-        ? "No providers"
+        ? translate("No providers")
         : visible.length === 1
           ? PROVIDER_PRESENTATION[visible[0]!].label
-          : `${visible.length} providers`;
+          : locale === "zh-CN"
+            ? `${visible.length} 个提供方`
+            : `${visible.length} providers`;
 
   return (
     <Menu>
@@ -1454,7 +1511,7 @@ function UsageProviderFilter({
           closeOnClick={false}
           onCheckedChange={(checked) => onChange(checked ? [] : PROVIDER_ORDER)}
         >
-          All providers
+          {translateStaticUiCopy(staticUiLocale, "All providers")}
         </MenuCheckboxItem>
         <MenuSeparator />
         {PROVIDER_ORDER.map((provider) => (
@@ -1482,6 +1539,15 @@ function UsageProviderFilter({
 }
 
 function UsageSkeleton() {
+  const { t } = useI18n();
+  const metricLabels = [
+    t("usage.processedTokens"),
+    t("usage.metric.cachedInput"),
+    t("usage.metric.uncachedInput"),
+    t("usage.metric.output"),
+    t("usage.metric.cacheSavings"),
+  ];
+
   return (
     <>
       <section className="grid gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
@@ -1515,10 +1581,8 @@ function UsageSkeleton() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-foreground">Totals</h2>
-        <MetricSkeletons
-          labels={["Processed tokens", "Cached input", "Uncached input", "Output", "Cache savings"]}
-        />
+        <h2 className="text-sm font-medium text-foreground">{t("usage.totals")}</h2>
+        <MetricSkeletons labels={metricLabels} />
       </section>
 
       <section className="grid gap-x-12 gap-y-8 lg:grid-cols-2">
@@ -1531,7 +1595,7 @@ function UsageSkeleton() {
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-medium text-foreground">Breakdown</h2>
+          <h2 className="text-sm font-medium text-foreground">{t("usage.breakdown")}</h2>
           <Skeleton shape="card" className="h-7 w-28" />
         </div>
         <Skeleton className="h-44" />

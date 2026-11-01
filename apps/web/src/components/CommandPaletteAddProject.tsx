@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import {
   type AddProjectRemoteSource,
   type NewProjectPublishTarget,
@@ -80,6 +84,8 @@ export function NewProjectPublishHostPicker(props: {
   readonly value: SourceControlProviderKind;
   readonly onValueChange: (kind: SourceControlProviderKind) => void;
 }) {
+  const { locale: uiLocale } = useI18n();
+
   const [open, setOpen] = useState(false);
   return (
     <span
@@ -101,7 +107,11 @@ export function NewProjectPublishHostPicker(props: {
           if (kind !== null) props.onValueChange(kind);
         }}
       >
-        <SelectTrigger size="xs" variant="ghost" aria-label="Host for the new repository">
+        <SelectTrigger
+          size="xs"
+          variant="ghost"
+          aria-label={translateWebSource(uiLocale, "Host for the new repository")}
+        >
           <SelectValue>
             {(kind: SourceControlProviderKind) => sourceControlClients.get(kind).label}
           </SelectValue>
@@ -127,6 +137,7 @@ export function NewProjectSummary(props: {
   readonly projectsRoot: string | null;
   readonly environmentLabel: string | null;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <div className="p-2 pb-0">
       <div className="flex min-h-8 items-center gap-2 rounded-sm px-2 py-1.5">
@@ -135,7 +146,9 @@ export function NewProjectSummary(props: {
         </CommandPaletteTitleIcon>
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-foreground text-sm">
-            {props.name.length > 0 ? props.name : "New project"}
+            {props.name.length > 0
+              ? props.name
+              : translateStaticUiCopy(staticUiLocale, "New project")}
           </span>
           <span className="truncate text-muted-foreground/85 text-xs">
             {props.name.length > 0
@@ -154,9 +167,13 @@ export function RemoteRepositorySummary(props: {
   readonly title: string;
   readonly description: string;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="shrink-0 p-2 pb-0">
-      <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">Repository</div>
+      <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
+        {t("commandPalette.group.repository")}
+      </div>
       <div className="flex min-h-8 items-center gap-2 rounded-sm px-2 py-1.5">
         <CommandPaletteTitleIcon>
           {remoteProjectSourceIcon(props.source, ITEM_ICON_CLASS)}

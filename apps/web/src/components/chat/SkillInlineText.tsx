@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { ScopedThreadRef, ServerProviderSkill } from "@t3tools/contracts";
 import { formatProviderSkillDisplayName } from "@t3tools/shared/inlineSkills";
 import { Children, cloneElement, isValidElement, type ReactNode } from "react";
@@ -89,6 +91,7 @@ export function SkillChipPopover(props: {
   copyMarkdown?: string | undefined;
   onViewInstructions: (() => void) | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <ContextChipPopover
       kind="skill"
@@ -102,7 +105,7 @@ export function SkillChipPopover(props: {
         <p>{props.description || "No description is available for this skill."}</p>
         {props.onViewInstructions ? (
           <Button variant="outline" size="sm" onClick={props.onViewInstructions}>
-            View instructions
+            {translateStaticUiCopy(staticUiLocale, "View instructions")}
           </Button>
         ) : null}
       </div>

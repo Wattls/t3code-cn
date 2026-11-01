@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { pipe } from "effect/Function";
 import {
   scopeProjectRef,
@@ -326,6 +328,7 @@ export function ThreadPullRequestsMiniList({
   pullRequests: ReadonlyArray<ThreadPullRequestLink>;
   onOpenPullRequest?: (event: MouseEvent<HTMLAnchorElement>, url: string) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const lines = pipe(
     visibleThreadPullRequests(pullRequests),
     resolveThreadPullRequestChains,
@@ -352,7 +355,10 @@ export function ThreadPullRequestsMiniList({
           >
             {line.stack ? (
               <span className="ml-auto shrink-0 pl-1 text-3xs">
-                {line.stack.kind === "native" ? "stack" : "chain"} · {line.stack.size}
+                {line.stack.kind === "native"
+                  ? translateStaticUiCopy(staticUiLocale, "stack")
+                  : translateStaticUiCopy(staticUiLocale, "chain")}{" "}
+                · {line.stack.size}
               </span>
             ) : null}
           </ThreadPullRequestMiniListItem>

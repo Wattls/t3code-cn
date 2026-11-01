@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import { DeviceHostUpdates } from "./DeviceHostUpdates";
 import type {
   DevicePlatform,
@@ -48,6 +52,8 @@ export function DevicePanel(props: {
   readonly visible: boolean;
   readonly onDismissSetup: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: newCopyLocale } = useI18n();
   const { environmentId, threadId } = props.threadRef;
   const { state, loaded, error: stateError, refresh: refreshState } = useDeviceState(environmentId);
   const list = useAtomCommand(deviceEnvironment.list, { reportFailure: false });
@@ -223,8 +229,9 @@ export function DevicePanel(props: {
           <DeviceHostUpdates state={state} environmentId={environmentId} />
           {bootingDevices.length > 0 ? (
             <div role="status" className="border-b px-3 py-2 text-xs text-muted-foreground">
-              Starting {bootingDevices.map((device) => device.name).join(", ")}… This can take a
-              minute.
+              {translateStaticUiCopy(staticUiLocale, "Starting") + " "}
+              {bootingDevices.map((device) => device.name).join(", ")}
+              {translateStaticUiCopy(staticUiLocale, "… This can take a minute.")}
             </div>
           ) : null}
           {operationError ? (
@@ -272,7 +279,7 @@ export function DevicePanel(props: {
             >
               {loadError !== null ? (
                 <Button size="sm" variant="outline" onClick={refreshState}>
-                  Retry
+                  {translateStaticUiCopy(staticUiLocale, "Retry")}
                 </Button>
               ) : null}
             </DeviceLoadingView>
@@ -293,7 +300,10 @@ export function DevicePanel(props: {
                     >
                       {state.hostStatus === "failed"
                         ? (state.hostStatusDetail ?? "The device hub failed to start.")
-                        : "No simulators or emulators were found on this environment."}
+                        : translateStaticUiCopy(
+                            staticUiLocale,
+                            "No simulators or emulators were found on this environment.",
+                          )}
                     </p>
                   </>
                 ) : null}
@@ -336,7 +346,9 @@ export function DevicePanel(props: {
                                 ) : (
                                   <Play />
                                 )}
-                                {device.booted ? "Open" : "Start"}
+                                {device.booted
+                                  ? translateStaticUiCopy(staticUiLocale, "Open")
+                                  : translateStaticUiCopy(staticUiLocale, "Start")}
                               </Button>
                             </div>
                           ))}
@@ -350,8 +362,10 @@ export function DevicePanel(props: {
                 !state.devices.some((device) => device.platform === "android") &&
                 !unavailablePlatforms.some((platform) => platform.platform === "android") ? (
                   <p className="max-w-sm text-xs">
-                    No Android virtual devices found. Create one in Android Studio's Device Manager,
-                    then refresh.
+                    {translateWebSource(
+                      newCopyLocale,
+                      "No Android virtual devices found. Create one in Android Studio's Device Manager, then refresh.",
+                    )}
                   </p>
                 ) : null}
                 {loaded && !hostBusy ? (
@@ -361,7 +375,7 @@ export function DevicePanel(props: {
                     size="sm"
                     onClick={() => void list({ environmentId, input: {} })}
                   >
-                    Refresh devices
+                    {translateStaticUiCopy(staticUiLocale, "Refresh devices")}
                   </Button>
                 ) : null}
               </div>
@@ -378,6 +392,7 @@ function DeviceNotice(props: {
   readonly onDismiss: () => void;
   readonly children: ReactNode;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <div
       role="alert"
@@ -398,7 +413,11 @@ function DeviceNotice(props: {
       <Button
         size="icon-xs"
         variant="ghost"
-        aria-label={props.tone === "warning" ? "Dismiss device warning" : "Dismiss device error"}
+        aria-label={
+          props.tone === "warning"
+            ? translateStaticUiCopy(staticUiLocale, "Dismiss device warning")
+            : translateStaticUiCopy(staticUiLocale, "Dismiss device error")
+        }
         onClick={props.onDismiss}
       >
         <X />
@@ -408,11 +427,15 @@ function DeviceNotice(props: {
 }
 
 function DeviceDiscoveryWarning(props: { readonly label: string; readonly detail: string }) {
+  const { locale: newCopyLocale } = useI18n();
   const [dismissed, setDismissed] = useState(false);
   if (dismissed) return null;
   return (
     <DeviceNotice tone="warning" onDismiss={() => setDismissed(true)}>
-      <p className="font-medium">Device discovery warning · {props.label}</p>
+      <p className="font-medium">
+        {translateWebSource(newCopyLocale, "Device discovery warning ·")}
+        {props.label}
+      </p>
       {props.detail}
     </DeviceNotice>
   );

@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   ANTIGRAVITY_DEFAULT_MODEL,
   type ProviderInstanceId,
@@ -205,6 +207,7 @@ function ModelPickerProviderNotices({
   onRequestClose: (() => void) | undefined;
   onOpenProviderSetup: ((instanceId: ProviderInstanceId) => void) | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const navigate = useNavigate();
   return (
     <>
@@ -222,7 +225,11 @@ function ModelPickerProviderNotices({
                   onOpenProviderSetup?.(entry.instanceId);
                 }}
               >
-                {setupEntries.length > 1 ? `Set up ${entry.displayName}` : "Open provider setup"}
+                {setupEntries.length > 1
+                  ? staticUiLocale === "zh-CN"
+                    ? `设置 ${entry.displayName}`
+                    : `Set up ${entry.displayName}`
+                  : translateStaticUiCopy(staticUiLocale, "Open provider setup")}
               </InlineButton>
             </div>
           ))}
@@ -242,7 +249,7 @@ function ModelPickerProviderNotices({
               void navigate({ to: "/settings/providers" });
             }}
           >
-            Provider settings
+            {translateStaticUiCopy(staticUiLocale, "Provider settings")}
           </InlineButton>
         </p>
       ))}
@@ -367,6 +374,7 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
   /** Right at the end of the search text moves into the popup's effort column. */
   onFocusEffort?: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const {
     searchInputRef,
     keybindings: providedKeybindings,
@@ -919,7 +927,7 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
           >
             <ComboboxSearchInput
               ref={searchInputRef}
-              placeholder="Search models..."
+              placeholder={translateStaticUiCopy(staticUiLocale, "Search models...")}
               value={searchQuery}
               onChange={(e) => {
                 if (!isSearching) setSearchHeight(pickerContentRef.current?.offsetHeight ?? 0);
@@ -1020,7 +1028,9 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
                       className="group w-full cursor-pointer"
                     >
                       <span className="text-sm leading-snug text-muted-foreground group-hover:text-foreground group-data-highlighted:text-foreground">
-                        {legacySection.isExpanded ? "Show less" : "Show more"}
+                        {legacySection.isExpanded
+                          ? translateStaticUiCopy(staticUiLocale, "Show less")
+                          : translateStaticUiCopy(staticUiLocale, "Show more")}
                       </span>
                     </ComboboxItem>
                   );
@@ -1066,8 +1076,8 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
               updateRequiredNotices={updateRequiredNotices}
               emptyLabel={
                 selectedInstanceId === "favorites" && !isSearching
-                  ? "No favorites yet"
-                  : "No models found"
+                  ? translateStaticUiCopy(staticUiLocale, "No favorites yet")
+                  : translateStaticUiCopy(staticUiLocale, "No models found")
               }
               onRequestClose={onRequestClose}
               onOpenProviderSetup={onOpenProviderSetup}

@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useState } from "react";
 import * as Option from "effect/Option";
 import type { SshDeviceHostConfig } from "@t3tools/contracts";
@@ -75,6 +77,7 @@ function DeviceHostEditorForm({
   onSave: (host: SshDeviceHostConfig) => void;
   onClose: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [draft, setDraft] = useState(host);
   const [expandedChecks, setExpandedChecks] = useState<{ key: string; open: boolean } | null>(null);
   const { checks, testConnection } = useHostConnectionChecks(targets);
@@ -103,17 +106,21 @@ function DeviceHostEditorForm({
       }}
     >
       <DialogHeader>
-        <DialogTitle>{isNew ? "Add device host" : "Edit device host"}</DialogTitle>
+        <DialogTitle>
+          {isNew
+            ? translateStaticUiCopy(staticUiLocale, "Add device host")
+            : translateStaticUiCopy(staticUiLocale, "Edit device host")}
+        </DialogTitle>
         <DialogDescription>
           {targets.length === 1
             ? `Connect from ${targets[0]?.label}.`
             : `Connect from ${targets.length} selected environments.`}{" "}
-          Hosts on the same machine are skipped.
+          {translateStaticUiCopy(staticUiLocale, "Hosts on the same machine are skipped.")}
         </DialogDescription>
       </DialogHeader>
       <DialogPanel>
         <label className="block space-y-1.5 text-sm">
-          <span>Name</span>
+          <span>{translateStaticUiCopy(staticUiLocale, "Name")}</span>
           <Input
             autoFocus
             required
@@ -127,7 +134,7 @@ function DeviceHostEditorForm({
           />
         </label>
         <label className="block space-y-1.5 text-sm">
-          <span>SSH target</span>
+          <span>{translateStaticUiCopy(staticUiLocale, "SSH target")}</span>
           <Input
             required
             value={draft.target}
@@ -136,17 +143,19 @@ function DeviceHostEditorForm({
               const target = event.target.value;
               setDraft((current) => ({ ...current, target }));
             }}
-            placeholder="user@host or SSH alias"
+            placeholder={translateStaticUiCopy(staticUiLocale, "user@host or SSH alias")}
           />
         </label>
         <details
           open={host.port !== undefined || host.identityFile !== undefined || undefined}
           className="text-sm"
         >
-          <summary className="cursor-pointer text-muted-foreground">SSH options</summary>
+          <summary className="cursor-pointer text-muted-foreground">
+            {translateStaticUiCopy(staticUiLocale, "SSH options")}
+          </summary>
           <div className="mt-3 grid grid-cols-[minmax(0,1fr)_7rem] gap-3">
             <label className="block space-y-1.5">
-              <span>Identity file</span>
+              <span>{translateStaticUiCopy(staticUiLocale, "Identity file")}</span>
               <Input
                 value={draft.identityFile ?? ""}
                 disabled={busy}
@@ -157,11 +166,11 @@ function DeviceHostEditorForm({
                     return identityFile ? { ...rest, identityFile } : rest;
                   });
                 }}
-                placeholder="SSH config default"
+                placeholder={translateStaticUiCopy(staticUiLocale, "SSH config default")}
               />
             </label>
             <label className="block space-y-1.5">
-              <span>Port</span>
+              <span>{translateStaticUiCopy(staticUiLocale, "Port")}</span>
               <Input
                 type="number"
                 min={1}
@@ -175,12 +184,15 @@ function DeviceHostEditorForm({
                     return port ? { ...rest, port: Number(port) } : rest;
                   });
                 }}
-                placeholder="Default"
+                placeholder={translateStaticUiCopy(staticUiLocale, "Default")}
               />
             </label>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Optional. Resolved separately on each environment.
+            {translateStaticUiCopy(
+              staticUiLocale,
+              "Optional. Resolved separately on each environment.",
+            )}
           </p>
         </details>
         <Collapsible
@@ -220,7 +232,8 @@ function DeviceHostEditorForm({
                 if (Option.isSome(input)) void testConnection(input.value);
               }}
             >
-              {checking ? <Spinner size="xs" /> : null} Test connection
+              {checking ? <Spinner size="xs" /> : null}
+              {" " + translateStaticUiCopy(staticUiLocale, "Test connection")}
             </Button>
           </div>
           {results ? (
@@ -239,19 +252,24 @@ function DeviceHostEditorForm({
                       >
                         {result.status === "pending" ? (
                           <>
-                            <Spinner size="xs" /> Checking…
+                            <Spinner size="xs" />
+                            {" " + translateStaticUiCopy(staticUiLocale, "Checking…")}
                           </>
                         ) : result.status === "local" ? (
                           <>
-                            <MonitorIcon className="size-3" /> Already available locally
+                            <MonitorIcon className="size-3" />
+                            {" " +
+                              translateStaticUiCopy(staticUiLocale, "Already available locally")}
                           </>
                         ) : result.status === "failed" ? (
                           <>
-                            <XIcon className="size-3" /> Failed
+                            <XIcon className="size-3" />
+                            {" " + translateStaticUiCopy(staticUiLocale, "Failed")}
                           </>
                         ) : (
                           <>
-                            <CheckIcon className="size-3" /> Connected
+                            <CheckIcon className="size-3" />
+                            {" " + translateStaticUiCopy(staticUiLocale, "Connected")}
                           </>
                         )}
                       </span>
@@ -263,7 +281,9 @@ function DeviceHostEditorForm({
                     ) : null}
                     {result.status === "failed" ? (
                       <details className="mt-1.5 text-muted-foreground">
-                        <summary className="cursor-pointer">Show error</summary>
+                        <summary className="cursor-pointer">
+                          {translateStaticUiCopy(staticUiLocale, "Show error")}
+                        </summary>
                         <p className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap break-words">
                           {result.error}
                         </p>
@@ -278,10 +298,11 @@ function DeviceHostEditorForm({
       </DialogPanel>
       <DialogFooter>
         <Button type="button" variant="ghost" disabled={busy} onClick={onClose}>
-          Cancel
+          {translateStaticUiCopy(staticUiLocale, "Cancel")}
         </Button>
         <Button type="submit" disabled={busy || checking || !valid || !draft.label.trim()}>
-          {busy ? <Spinner size="xs" /> : null} Save host
+          {busy ? <Spinner size="xs" /> : null}
+          {" " + translateStaticUiCopy(staticUiLocale, "Save host")}
         </Button>
       </DialogFooter>
     </form>

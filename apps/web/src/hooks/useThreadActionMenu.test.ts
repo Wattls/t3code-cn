@@ -18,6 +18,7 @@ function deferred<T>() {
 }
 
 const state = vi.hoisted(() => ({
+  locale: "en" as "en" | "zh-CN",
   granted: new Set<string>(),
   effects: [] as string[],
   completed: deferred<void>(),
@@ -28,6 +29,19 @@ const state = vi.hoisted(() => ({
     ) => Promise<ThreadActionMenuId | null>
   >(),
 }));
+
+vi.mock("../i18n/readWebI18n", async () => {
+  const { translateWebMessage } = await import("../i18n/messages");
+  return {
+    readWebI18n: () => ({
+      locale: state.locale,
+      t: (
+        key: Parameters<typeof translateWebMessage>[1],
+        values?: Parameters<typeof translateWebMessage>[2],
+      ) => translateWebMessage(state.locale, key, values),
+    }),
+  };
+});
 
 function recordEffect(action: string) {
   state.effects.push(action);
@@ -159,6 +173,7 @@ const createMenu = (options: { readonly onFind?: (threadRef: typeof target) => v
   });
 
 beforeEach(() => {
+  state.locale = "en";
   state.granted = new Set(["primary"]);
   state.effects = [];
   state.completed = deferred<void>();
@@ -166,6 +181,23 @@ beforeEach(() => {
 });
 
 describe("thread menu permissions", () => {
+  it("opens native menus in the current language after a locale change", () => {
+    const menu = createMenu();
+    menu.openMenu(position);
+    expect(state.show.mock.calls[0]![0].find((item) => item.id === "pin")?.label).toBe(
+      "Pin thread",
+    );
+
+    state.locale = "zh-CN";
+    menu.openMenu(position);
+    const items = state.show.mock.calls[1]![0];
+    expect(items.find((item) => item.id === "new-thread-on-branch")?.label).toBe(
+      "在 main 分支新建任务",
+    );
+    expect(items.find((item) => item.id === "pin")?.label).toBe("置顶任务");
+    expect(items.find((item) => item.id === "copy")?.children?.[0]?.label).toBe("路径");
+  });
+
   it.each(["rename", "regenerate-title", "delete", "pin", "settle", "archive"] as const)(
     "%s rechecks after the native menu closes",
     async (action) => {

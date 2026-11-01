@@ -1,3 +1,4 @@
+import { translateWebSource } from "~/i18n/messages";
 import type { PullRequestListEntry, PullRequestSummary } from "@t3tools/contracts";
 import {
   ArrowLeftIcon,
@@ -19,6 +20,7 @@ import {
 import { readLocalApi } from "~/localApi";
 import { cn } from "~/lib/utils";
 import { RelativeTime } from "~/components/RelativeTime";
+import { useI18n } from "~/i18n/WebI18nContext";
 
 import { Button, InlineButton } from "../ui/button";
 import { MiddleTruncate } from "../ui/middle-truncate";
@@ -50,8 +52,13 @@ const DEFAULT_DETAIL_TABS = [
 ] as const;
 
 export function PullRequestListGhost({ rows = 7, caption }: { rows?: number; caption?: string }) {
+  const { t } = useI18n();
   return (
-    <div role="status" aria-label={caption ?? "Loading pull requests"} className="space-y-0.5">
+    <div
+      role="status"
+      aria-label={caption ?? t("pullRequests.loading.list")}
+      className="space-y-0.5"
+    >
       {/* Outside the pulse so the explanation stays readable. */}
       {caption ? (
         <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">{caption}</p>
@@ -101,6 +108,8 @@ export function PullRequestDetailGhost({
   onClose?: (() => void) | undefined;
   onCheckoutError?: ((error: Error) => void) | undefined;
 }) {
+  const { locale: uiLocale } = useI18n();
+  const { t } = useI18n();
   const seed = summary
     ? {
         ...entry,
@@ -113,12 +122,13 @@ export function PullRequestDetailGhost({
     ? resolvePullRequestState({
         state: seed.state,
         isDraft: seed.isDraft ?? false,
+        t,
       })
     : null;
   // Passing list rollups can omit workflows awaiting approval; wait for detail.
   const checksPresentation =
     seed?.checksState === "failing" || seed?.checksState === "pending"
-      ? pullRequestChecksStatePresentation(seed.checksState)
+      ? pullRequestChecksStatePresentation(seed.checksState, t)
       : null;
   const checkout = checkoutCommand ?? null;
   const changedFiles = summary?.changedFiles ?? null;
@@ -128,7 +138,7 @@ export function PullRequestDetailGhost({
   return (
     <div
       role="status"
-      aria-label={`Loading ${terminology.singular}`}
+      aria-label={uiLocale === "zh-CN" ? "正在加载变更请求" : `Loading ${terminology.singular}`}
       className={cn(
         "flex h-full min-h-0 flex-col overflow-hidden bg-background",
         !seed && "motion-safe:animate-skeleton",
@@ -143,7 +153,7 @@ export function PullRequestDetailGhost({
                 variant="ghost-muted"
                 className="-ml-1.5"
                 onClick={onBack}
-                aria-label="Back to this thread's pull requests"
+                aria-label={translateWebSource(uiLocale, "Back to this thread's pull requests")}
               >
                 <ArrowLeftIcon aria-hidden className="size-3.5" />
               </Button>
@@ -153,7 +163,11 @@ export function PullRequestDetailGhost({
                 <span className="min-w-0 truncate font-medium">{seed.repository}</span>
                 <InlineButton
                   onClick={() => void readLocalApi()?.shell.openExternal(seed.url)}
-                  aria-label={`Open ${terminology.singular} #${seed.number} on host`}
+                  aria-label={
+                    uiLocale === "zh-CN"
+                      ? `在托管平台打开变更请求 #${seed.number}`
+                      : `Open ${terminology.singular} #${seed.number} on host`
+                  }
                 >
                   <span className={statePresentation?.toneClassName}>#{seed.number}</span>
                   <ExternalLinkIcon aria-hidden className="size-2.5" />
@@ -173,7 +187,11 @@ export function PullRequestDetailGhost({
             size="icon-xs"
             variant="ghost"
             disabled
-            aria-label={`${capitalizeTerm(terminology.singular)} actions loading`}
+            aria-label={
+              uiLocale === "zh-CN"
+                ? "正在加载变更请求操作"
+                : `${capitalizeTerm(terminology.singular)} actions loading`
+            }
           >
             <EllipsisIcon aria-hidden className="size-4" />
           </Button>
@@ -181,7 +199,9 @@ export function PullRequestDetailGhost({
             <Button
               size="icon-xs"
               variant="ghost"
-              aria-label={`Collapse ${terminology.singular} panel`}
+              aria-label={
+                uiLocale === "zh-CN" ? "收起变更请求面板" : `Collapse ${terminology.singular} panel`
+              }
               onClick={onClose}
             >
               <PanelRightIcon aria-hidden className="size-3.5" />
@@ -214,7 +234,8 @@ export function PullRequestDetailGhost({
               updated={
                 seed ? (
                   <span>
-                    updated <RelativeTime timestamp={seed.updatedAt} />
+                    {translateWebSource(uiLocale, "updated")}{" "}
+                    <RelativeTime timestamp={seed.updatedAt} />
                   </span>
                 ) : (
                   <GhostBar className="h-3 w-16" />
@@ -226,8 +247,8 @@ export function PullRequestDetailGhost({
                     key={checkout}
                     value={checkout}
                     target={`${terminology.singular} checkout command`}
-                    copyLabel="Copy checkout command"
-                    copiedLabel="Checkout command copied"
+                    copyLabel={translateWebSource(uiLocale, "Copy checkout command")}
+                    copiedLabel={translateWebSource(uiLocale, "Checkout command copied")}
                     className="ml-auto font-mono"
                     tooltipSide="bottom"
                     {...(onCheckoutError ? { onError: onCheckoutError } : {})}
@@ -251,8 +272,12 @@ export function PullRequestDetailGhost({
                     key={seed.headBranch}
                     value={seed.headBranch}
                     target="branch name"
-                    copyLabel={`Copy ${terminology.singular} branch`}
-                    copiedLabel="Branch name copied"
+                    copyLabel={
+                      uiLocale === "zh-CN"
+                        ? "复制变更请求分支"
+                        : `Copy ${terminology.singular} branch`
+                    }
+                    copiedLabel={t("pullRequests.detail.branchCopied")}
                     className="min-w-0 font-mono"
                   />
                 ) : (
@@ -263,7 +288,7 @@ export function PullRequestDetailGhost({
                 changedFiles === null ? (
                   <GhostBar className="h-3 w-10" />
                 ) : (
-                  `${changedFiles.toLocaleString()} ${changedFiles === 1 ? "file" : "files"}`
+                  `${changedFiles.toLocaleString()} ${t("pullRequests.detail.files", { count: changedFiles })}`
                 )
               }
               diffStat={
@@ -303,11 +328,16 @@ export function PullRequestDetailGhost({
             <div className="grid min-h-7 min-w-0 grid-cols-[6rem_minmax(0,1fr)] items-center gap-2 text-xs sm:min-h-6">
               <span className="flex items-center gap-1.5 text-muted-foreground">
                 <UsersIcon aria-hidden className="size-3.5" />
-                Reviewers
+                {translateWebSource(uiLocale, "Reviewers")}
               </span>
               <span className="flex min-w-0 items-center gap-1.5 text-foreground">
                 <GhostBar className="h-3 w-10" />
-                <Button size="icon-xs" variant="ghost" disabled aria-label="Reviewers loading">
+                <Button
+                  size="icon-xs"
+                  variant="ghost"
+                  disabled
+                  aria-label={translateWebSource(uiLocale, "Reviewers loading")}
+                >
                   <UserPlusIcon aria-hidden className="size-3.5" />
                 </Button>
               </span>
@@ -315,7 +345,7 @@ export function PullRequestDetailGhost({
             <div className="grid min-h-7 min-w-0 grid-cols-[6rem_minmax(0,1fr)] items-center gap-2 text-xs sm:min-h-6">
               <span className="flex items-center gap-1.5 text-muted-foreground">
                 <TagIcon aria-hidden className="size-3.5" />
-                Labels
+                {translateWebSource(uiLocale, "Labels")}
               </span>
               <span className="flex min-w-0 flex-wrap items-center gap-1 text-foreground">
                 {entry?.labels ? (
@@ -324,12 +354,14 @@ export function PullRequestDetailGhost({
                       <PullRequestLabelChip
                         key={label.name}
                         label={label}
-                        size="default"
+                        size={"default"}
                         className="max-w-48"
                       />
                     ))
                   ) : (
-                    <span className="text-muted-foreground">None</span>
+                    <span className="text-muted-foreground">
+                      {translateWebSource(uiLocale, "None")}
+                    </span>
                   )
                 ) : (
                   <>
@@ -337,7 +369,12 @@ export function PullRequestDetailGhost({
                     <GhostBar className="h-4.5 w-20" />
                   </>
                 )}
-                <Button size="icon-xs" variant="ghost" disabled aria-label="Labels loading">
+                <Button
+                  size="icon-xs"
+                  variant="ghost"
+                  disabled
+                  aria-label={translateWebSource(uiLocale, "Labels loading")}
+                >
                   <TagIcon aria-hidden className="size-3.5" />
                 </Button>
               </span>
@@ -348,7 +385,7 @@ export function PullRequestDetailGhost({
         <section>
           <div className="sticky top-0 z-10 flex w-full items-center bg-background pr-4">
             <div className="flex min-w-0 flex-1 items-center gap-1.5 px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-              <span>Description</span>
+              <span>{translateWebSource(uiLocale, "Description")}</span>
               <ChevronRightIcon
                 aria-hidden
                 className="size-3.5 rotate-90 text-muted-foreground/60"
@@ -371,10 +408,11 @@ export function PullRequestDetailGhost({
 }
 
 export function PullRequestPeopleGhost({ rows = 4 }: { rows?: number }) {
+  const { t } = useI18n();
   return (
     <div
       role="status"
-      aria-label="Loading people"
+      aria-label={t("pullRequests.loading.people")}
       className="motion-safe:animate-skeleton space-y-1 p-1"
     >
       {Array.from({ length: rows }, (_, index) => (
@@ -388,10 +426,11 @@ export function PullRequestPeopleGhost({ rows = 4 }: { rows?: number }) {
 }
 
 export function PullRequestTimelineGhost({ rows = 6 }: { rows?: number }) {
+  const { t } = useI18n();
   return (
     <div
       role="status"
-      aria-label="Loading timeline"
+      aria-label={t("pullRequests.loading.timeline")}
       className="motion-safe:animate-skeleton px-4 py-5"
     >
       <div className="relative ml-2 border-l border-border/70 pl-5">
@@ -414,10 +453,15 @@ export function PullRequestConversationGhost({
   rows?: number;
   terminology: ChangeRequestTerminology;
 }) {
+  const { locale: uiLocale } = useI18n();
   return (
     <div
       role="status"
-      aria-label={`Loading ${terminology.singular} conversation`}
+      aria-label={
+        uiLocale === "zh-CN"
+          ? "正在加载变更请求讨论"
+          : `Loading ${terminology.singular} conversation`
+      }
       className="motion-safe:animate-skeleton space-y-4 py-2"
     >
       {Array.from({ length: rows }, (_, index) => (

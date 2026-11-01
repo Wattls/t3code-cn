@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 /* oxlint-disable react/no-unstable-nested-components -- These callbacks return overlays, and are invoked as render functions. */
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
@@ -21,6 +23,7 @@ export default function Presentation(props: {
   onDetails: (text: string) => void;
   onError: (cause: unknown) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { onError, bytes: source, onDetails } = props;
   const [opened, setOpened] = useState<Opened>();
   const [page, setPage] = useState(0);
@@ -100,17 +103,20 @@ export default function Presentation(props: {
     <div className="flex min-h-0 flex-1 flex-col">
       <div className={FILE_SURFACE_SUBHEADER_CLASS}>
         <FileSurfaceAction
-          label="Previous slide"
+          label={translateStaticUiCopy(staticUiLocale, "Previous slide")}
           disabled={page === 0}
           onPress={() => select(page - 1)}
         >
           <ChevronLeftIcon className="size-3.5" />
         </FileSurfaceAction>
         <span className="flex-1 text-center text-xs tabular-nums" aria-live="polite">
-          Slide {page + 1} of {opened.slides.length}
+          {translateStaticUiCopy(staticUiLocale, "Slide") + " "}
+          {page + 1}
+          {" " + translateStaticUiCopy(staticUiLocale, "of") + " "}
+          {opened.slides.length}
         </span>
         <FileSurfaceAction
-          label="Next slide"
+          label={translateStaticUiCopy(staticUiLocale, "Next slide")}
           disabled={page + 1 === opened.slides.length}
           onPress={() => select(page + 1)}
         >
@@ -120,7 +126,7 @@ export default function Presentation(props: {
       <OfficePages
         pages={opened.slides}
         paint={opened.paint}
-        label="Slide"
+        label={translateStaticUiCopy(staticUiLocale, "Slide")}
         scrollRef={scroll}
         onPageChange={setPage}
         onError={onError}
@@ -134,7 +140,7 @@ export default function Presentation(props: {
                 role="status"
                 className="absolute inset-0 flex items-center justify-center bg-background/80 p-4 text-xs text-foreground"
               >
-                This slide could not be drawn.
+                {translateStaticUiCopy(staticUiLocale, "This slide could not be drawn.")}
               </p>
             ) : null}
           </>
@@ -143,11 +149,11 @@ export default function Presentation(props: {
           const slide = opened.slides[index];
           return slide?.notes || slide?.hidden ? (
             <div className="space-y-1 text-xs text-muted-foreground">
-              {slide.hidden ? <p>Hidden slide</p> : null}
+              {slide.hidden ? <p>{translateStaticUiCopy(staticUiLocale, "Hidden slide")}</p> : null}
               {slide.notes ? (
                 <p
                   role="note"
-                  aria-label="Speaker notes"
+                  aria-label={translateStaticUiCopy(staticUiLocale, "Speaker notes")}
                   className="select-text whitespace-pre-wrap break-words"
                 >
                   {slide.notes}

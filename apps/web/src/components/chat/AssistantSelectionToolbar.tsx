@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   ASSISTANT_CITATION_MAX_TEXT_LENGTH,
   MessageId,
@@ -29,6 +31,7 @@ export function AssistantSelectionToolbar({
   threadRef: ScopedThreadRef;
   onCite: (citation: AssistantCitation, sourceAnchor: AssistantCitationSourceAnchor) => boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [selection, setSelection] = useState<{
     citation: AssistantCitation;
     position: SelectionActionPoint;
@@ -195,7 +198,11 @@ export function AssistantSelectionToolbar({
       size="xs"
       variant="glass"
       disabled={tooLong}
-      aria-label={tooLong ? "Selection is too long to cite" : "Cite selection in composer"}
+      aria-label={
+        tooLong
+          ? translateStaticUiCopy(staticUiLocale, "Selection is too long to cite")
+          : translateStaticUiCopy(staticUiLocale, "Cite selection in composer")
+      }
       className="fixed z-50 max-w-[calc(100vw-1rem)]"
       style={{ left: selection.position.x, top: selection.position.y }}
       onPointerDown={(event) => event.preventDefault()}
@@ -209,7 +216,9 @@ export function AssistantSelectionToolbar({
       }}
     >
       <QuoteIcon aria-hidden="true" className="size-3.5" />
-      {tooLong ? "Shorten selection" : "Cite"}
+      {tooLong
+        ? translateStaticUiCopy(staticUiLocale, "Shorten selection")
+        : translateStaticUiCopy(staticUiLocale, "Cite")}
     </Button>,
     document.body,
   );

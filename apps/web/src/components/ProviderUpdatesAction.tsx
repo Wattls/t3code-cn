@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { useEnvironmentProviders, useEnvironments } from "~/state/environments";
 import { serverEnvironment } from "~/state/server";
 import { useAtomCommand } from "~/state/use-atom-command";
+import { useI18n } from "~/i18n/WebI18nContext";
 import {
   canOneClickUpdateProviderCandidate,
   collectProviderUpdateCandidates,
@@ -16,6 +17,7 @@ import { stackedThreadToast, toastManager } from "./ui/toast";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
 
 export function useProviderUpdates() {
+  const { t } = useI18n();
   const { environments } = useEnvironments();
   const providersByEnvironment = useEnvironmentProviders();
   const updateProvider = useAtomCommand(serverEnvironment.updateProvider, {
@@ -49,7 +51,7 @@ export function useProviderUpdates() {
         })),
       ),
     );
-    const view = quiet ? null : getProviderUpdateRunToastView(runs);
+    const view = quiet ? null : getProviderUpdateRunToastView(runs, t);
     if (view) {
       toastManager.add(
         stackedThreadToast({
@@ -65,6 +67,7 @@ export function useProviderUpdates() {
 }
 
 export function ProviderUpdatesAction() {
+  const { t } = useI18n();
   const { machines, updateAll } = useProviderUpdates();
   const pending = useRef(false);
   const [isPending, setIsPending] = useState(false);
@@ -91,7 +94,7 @@ export function ProviderUpdatesAction() {
             disabled={isPending}
             onClick={() => void handleUpdate()}
           >
-            {isPending ? "Updating…" : "Update all"}
+            {isPending ? t("providerUpdate.action.updating") : t("providerUpdate.action.updateAll")}
           </Button>
         }
       />

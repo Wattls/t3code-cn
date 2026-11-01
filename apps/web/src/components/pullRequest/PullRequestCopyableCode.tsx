@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useCopyToClipboard } from "~/hooks/useCopyToClipboard";
 import { cn } from "~/lib/utils";
 
@@ -20,6 +22,7 @@ export function PullRequestCopyableCode({
   readonly tooltipSide?: "top" | "bottom";
   readonly onError?: (error: Error) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { copyToClipboard, isCopied } = useCopyToClipboard({
     target,
     timeout: 1600,
@@ -55,7 +58,7 @@ export function PullRequestCopyableCode({
             isCopied ? "opacity-100" : "opacity-0",
           )}
         >
-          Copied
+          {translateStaticUiCopy(staticUiLocale, "Copied")}
         </span>
       </TooltipTrigger>
       <TooltipPopup variant="code" side={tooltipSide}>

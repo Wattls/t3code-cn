@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { InlineAudioPreview } from "../files/InlineAudioPreview";
 import { filePreviewKind } from "@t3tools/shared/filePreview";
 import { findRevealRef } from "./markdownFindContext";
@@ -103,6 +105,7 @@ function UserFileCard({
   readonly file: ChatFileAttachment;
   readonly copyMarkdown: string | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const ctx = use(TimelineRowCtx);
   const pastedText = file.source?._tag === "pasted-text";
   const label = userMessageFileLabel(file);
@@ -118,7 +121,7 @@ function UserFileCard({
         </span>
         <span className="block text-xs text-muted-foreground tabular-nums">
           {file.downloadable === false ? (
-            "Sending…"
+            translateStaticUiCopy(staticUiLocale, "Sending…")
           ) : (
             <>
               {!pastedText && `${extension} · `}
@@ -137,7 +140,12 @@ function UserFileCard({
       {file.downloadable === false ? (
         <>
           <div className="flex min-w-0 flex-1 items-center gap-3">{identity}</div>
-          <Button size="icon-xs" variant="ghost-muted" disabled aria-label="Sending attachment">
+          <Button
+            size="icon-xs"
+            variant="ghost-muted"
+            disabled
+            aria-label={translateStaticUiCopy(staticUiLocale, "Sending attachment")}
+          >
             <DownloadIcon />
           </Button>
         </>
@@ -164,7 +172,10 @@ function UserFileCard({
             >
               <DownloadIcon />
             </TooltipTrigger>
-            <TooltipPopup side="top">Download {label}</TooltipPopup>
+            <TooltipPopup side="top">
+              {translateStaticUiCopy(staticUiLocale, "Download") + " "}
+              {label}
+            </TooltipPopup>
           </Tooltip>
         </>
       )}
@@ -261,6 +272,7 @@ export function UserMessageRow({ row }: { row: Extract<TimelineRow, { kind: "mes
 
 /** Automation prompts are long, repeated runbooks; a folded bubble keeps them out of the way. */
 function AutomationMessageRow({ row }: { row: Extract<TimelineRow, { kind: "message" }> }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const ctx = use(TimelineRowCtx);
   const [expanded, setExpanded] = useState(false);
   const revealRef = findRevealRef(() => setExpanded(true));
@@ -288,10 +300,12 @@ function AutomationMessageRow({ row }: { row: Extract<TimelineRow, { kind: "mess
           expanded && "w-full",
         )}
       >
-        <MessageAuthorHeading>Automation</MessageAuthorHeading>
+        <MessageAuthorHeading>
+          {translateStaticUiCopy(staticUiLocale, "Automation")}
+        </MessageAuthorHeading>
         <FoldedMessageHeader
           icon={CalendarClockIcon}
-          label="Automation"
+          label={translateStaticUiCopy(staticUiLocale, "Automation")}
           summary={summary}
           expanded={expanded}
           onToggle={() => setExpanded((value) => !value)}
@@ -318,7 +332,7 @@ function AutomationMessageRow({ row }: { row: Extract<TimelineRow, { kind: "mess
                 search={{ environmentId: ctx.activeThreadEnvironmentId, taskId: scheduledTaskId }}
                 className="rounded-sm text-xs text-muted-foreground hover:underline focus-visible:outline-2 focus-visible:outline-ring"
               >
-                Open automation
+                {translateStaticUiCopy(staticUiLocale, "Open automation")}
               </Link>
             ) : null}
             <TimelineRowTimestamp
@@ -334,7 +348,7 @@ function AutomationMessageRow({ row }: { row: Extract<TimelineRow, { kind: "mess
               {promptLink !== null && (
                 <MessageCopyButton
                   text={promptLink}
-                  label="Copy prompt link"
+                  label={translateStaticUiCopy(staticUiLocale, "Copy prompt link")}
                   icon={LinkIconNode}
                   variant="ghost"
                 />
@@ -405,6 +419,7 @@ function UserMessageProjectedStatus({ row }: { row: Extract<TimelineRow, { kind:
 }
 
 function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" }> }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const ctx = use(TimelineRowCtx);
   const { onImageExpand, onFileOpen } = ctx;
   const coarsePointer = useMediaQuery({ pointer: "coarse" });
@@ -767,7 +782,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
     >
       {folded && senderThreadId ? (
         <InlineButton onClick={() => ctx.onOpenThread(senderThreadId)} tone="muted">
-          Open thread
+          {translateStaticUiCopy(staticUiLocale, "Open thread")}
         </InlineButton>
       ) : null}
       <Tooltip>
@@ -798,7 +813,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
         {promptLink !== null && (
           <MessageCopyButton
             text={promptLink}
-            label="Copy prompt link"
+            label={translateStaticUiCopy(staticUiLocale, "Copy prompt link")}
             icon={LinkIconNode}
             variant="ghost"
           />
@@ -816,7 +831,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
           className="me-1 text-2xs text-muted-foreground/70"
           data-user-message-attribution="t3code"
         >
-          Sent by T3 Code
+          {translateStaticUiCopy(staticUiLocale, "Sent by T3 Code")}
         </p>
       ) : null}
       {/* The row's heading already names the guest for screen readers. */}
@@ -833,7 +848,9 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
       {mediaAboveText ? (
         <div className="flex max-w-[80%] justify-end">
           {/* The heading leads the media so screen readers reach it before the images. */}
-          <MessageAuthorHeading>You</MessageAuthorHeading>
+          <MessageAuthorHeading>
+            {translateStaticUiCopy(staticUiLocale, "You")}
+          </MessageAuthorHeading>
           {mediaBlock}
         </div>
       ) : null}
@@ -856,7 +873,7 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
             {folded
               ? senderLabel
               : userMessage.guestName === undefined
-                ? "You"
+                ? translateStaticUiCopy(staticUiLocale, "You")
                 : `${userMessage.guestName} (guest)`}
           </MessageAuthorHeading>
         )}
@@ -930,7 +947,9 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
                         <span className="block truncate">{label}</span>
                         {file.downloadable === false || pastedText ? (
                           <span className="block text-xs text-muted-foreground tabular-nums">
-                            {file.downloadable === false ? "Sending…" : formatBytes(file.sizeBytes)}
+                            {file.downloadable === false
+                              ? translateStaticUiCopy(staticUiLocale, "Sending…")
+                              : formatBytes(file.sizeBytes)}
                           </span>
                         ) : null}
                       </span>
@@ -961,7 +980,10 @@ function UserTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "message" 
                           >
                             <DownloadIcon />
                           </TooltipTrigger>
-                          <TooltipPopup side="top">Download {label}</TooltipPopup>
+                          <TooltipPopup side="top">
+                            {translateStaticUiCopy(staticUiLocale, "Download") + " "}
+                            {label}
+                          </TooltipPopup>
                         </Tooltip>
                       </div>
                     );
@@ -1033,6 +1055,7 @@ function UserMessageIntentMarker({
 }: {
   readonly intent: "steer" | "promoted_queued_to_steer";
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <Tooltip>
       <TooltipTrigger
@@ -1044,12 +1067,15 @@ function UserMessageIntentMarker({
         }
       >
         <Redo2Icon aria-hidden="true" className="size-3" />
-        Steer
+        {translateStaticUiCopy(staticUiLocale, "Steer")}
       </TooltipTrigger>
       <TooltipPopup side="top">
         {intent === "promoted_queued_to_steer"
-          ? "Originally queued, then promoted to steer the active turn"
-          : "Steered the active turn"}
+          ? translateStaticUiCopy(
+              staticUiLocale,
+              "Originally queued, then promoted to steer the active turn",
+            )
+          : translateStaticUiCopy(staticUiLocale, "Steered the active turn")}
       </TooltipPopup>
     </Tooltip>
   );
@@ -1062,6 +1088,7 @@ function RevertUserMessageButton({
   turnCount: number;
   messageId: MessageId;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const ctx = use(TimelineRowCtx);
   const activity = use(TimelineRowActivityCtx);
 
@@ -1075,13 +1102,15 @@ function RevertUserMessageButton({
             variant="ghost"
             disabled={activity.isRevertingCheckpoint || activity.isWorking}
             onClick={() => ctx.onRevertToTurnCount(turnCount, messageId)}
-            aria-label="Edit from here"
+            aria-label={translateStaticUiCopy(staticUiLocale, "Edit from here")}
           />
         }
       >
         <PencilIcon className="size-3" />
       </TooltipTrigger>
-      <TooltipPopup side="top">Edit from here</TooltipPopup>
+      <TooltipPopup side="top">
+        {translateStaticUiCopy(staticUiLocale, "Edit from here")}
+      </TooltipPopup>
     </Tooltip>
   );
 }
@@ -1097,6 +1126,7 @@ const CollapsibleUserMessageBody = memo(function CollapsibleUserMessageBody(prop
   markdownCwd: string | undefined;
   collapsible?: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [expanded, setExpanded] = useState(false);
   const revealForFind = () => setExpanded(true);
   const revealRef = findRevealRef(revealForFind);
@@ -1147,7 +1177,9 @@ const CollapsibleUserMessageBody = memo(function CollapsibleUserMessageBody(prop
               onClick={() => setExpanded((value) => !value)}
               className="-ml-1"
             >
-              {expanded ? "Show less" : "Show full message"}
+              {expanded
+                ? translateStaticUiCopy(staticUiLocale, "Show less")
+                : translateStaticUiCopy(staticUiLocale, "Show full message")}
             </Button>
           ) : null}
         </div>

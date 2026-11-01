@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   type OrchestrationV2LimitRecovery,
   type OrchestrationV2LimitRecoveryUpdate,
@@ -39,6 +41,7 @@ export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBann
 }
 
 function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: RecoveryProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [pending, setPending] = useState(false);
 
   const scheduled =
@@ -59,8 +62,11 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
     if (action === "snooze" && !snoozed && Date.parse(resetAt) <= Date.now()) {
       toastManager.add({
         type: "error",
-        title: "Could not snooze thread",
-        description: "The reset time has passed. Retry the thread manually.",
+        title: translateStaticUiCopy(staticUiLocale, "Could not snooze thread"),
+        description: translateStaticUiCopy(
+          staticUiLocale,
+          "The reset time has passed. Retry the thread manually.",
+        ),
       });
       // The deadline timer can lag after a throttled tab or sleep; disable now.
       deadlineStore(Date.parse(resetAt)).refresh();
@@ -86,7 +92,11 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
   return (
     <>
       <Button size="xs" variant="ghost" disabled={pending} onClick={() => void toggle("resume")}>
-        {pending ? "Saving..." : scheduled ? "Cancel auto-resume" : "Resume at reset"}
+        {pending
+          ? translateStaticUiCopy(staticUiLocale, "Saving...")
+          : scheduled
+            ? translateStaticUiCopy(staticUiLocale, "Cancel auto-resume")
+            : translateStaticUiCopy(staticUiLocale, "Resume at reset")}
       </Button>
       <Button
         size="xs"
@@ -94,7 +104,11 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
         disabled={pending || (!snoozed && resetPassed)}
         onClick={() => void toggle("snooze")}
       >
-        {pending ? "Saving..." : snoozed ? "Wake now" : "Snooze until reset"}
+        {pending
+          ? translateStaticUiCopy(staticUiLocale, "Saving...")
+          : snoozed
+            ? translateStaticUiCopy(staticUiLocale, "Wake now")
+            : translateStaticUiCopy(staticUiLocale, "Snooze until reset")}
       </Button>
     </>
   );

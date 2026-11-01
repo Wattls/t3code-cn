@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { lazy, memo, Suspense, useLayoutEffect, useRef, useState } from "react";
 
 import { observeResize } from "../../lib/observeResize";
@@ -16,6 +18,7 @@ export const MarkdownMath = memo(function MarkdownMath(props: {
   display: boolean;
   focusable?: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const viewportRef = useRef<HTMLSpanElement>(null);
   const contentRef = useRef<HTMLSpanElement>(null);
   const [overflows, setOverflows] = useState(false);
@@ -47,8 +50,8 @@ export const MarkdownMath = memo(function MarkdownMath(props: {
         props.focusable === false
           ? undefined
           : props.display
-            ? "Display equation"
-            : "Inline equation"
+            ? translateStaticUiCopy(staticUiLocale, "Display equation")
+            : translateStaticUiCopy(staticUiLocale, "Inline equation")
       }
     >
       <span
@@ -59,8 +62,8 @@ export const MarkdownMath = memo(function MarkdownMath(props: {
           !scrollable
             ? undefined
             : props.display
-              ? "Scroll display equation"
-              : "Scroll inline equation"
+              ? translateStaticUiCopy(staticUiLocale, "Scroll display equation")
+              : translateStaticUiCopy(staticUiLocale, "Scroll inline equation")
         }
       >
         <span

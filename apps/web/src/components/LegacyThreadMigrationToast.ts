@@ -1,3 +1,4 @@
+import { readWebI18n } from "~/i18n/readWebI18n";
 import { appAtomRegistry } from "../rpc/atomRegistry";
 import { primaryServerLegacyThreadMigrationAtom } from "../state/server";
 import { toastManager } from "./ui/toast";
@@ -13,12 +14,13 @@ export function startLegacyThreadMigrationToast(): () => void {
     (migration) => {
       if (migration?.status === "running") {
         if (toastId !== null) return;
+        const { t } = readWebI18n();
         toastId = toastManager.add({
           type: "loading",
-          title: "Restoring your threads…",
-          description: `Migrating ${migration.totalThreadCount.toLocaleString()} ${
-            migration.totalThreadCount === 1 ? "thread" : "threads"
-          } from the previous version. You can keep working while this finishes.`,
+          title: t("migration.restoringThreads"),
+          description: t("migration.restoringDescription", {
+            count: migration.totalThreadCount.toLocaleString(),
+          }),
           timeout: 0,
         });
         return;

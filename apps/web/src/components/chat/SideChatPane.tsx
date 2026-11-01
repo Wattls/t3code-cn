@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { threadRuntimeIsActive } from "@t3tools/client-runtime/state/shell";
 import { resolveLatestMergeBackRun } from "@t3tools/client-runtime/state/thread-workflows";
@@ -37,6 +39,7 @@ export default function SideChatPane(props: {
   readonly parentPanel: SideChatParentPanel;
   readonly onClose: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { parentRef, threadId } = props;
   const threadRef = scopeThreadRef(parentRef.environmentId, threadId);
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- registers the parent panel as host in the panel store
@@ -75,14 +78,17 @@ export default function SideChatPane(props: {
     if (result._tag === "Success") {
       toastManager.add({
         type: "success",
-        title: "Brought back",
-        description: "The main thread gets this side chat with your next message there.",
+        title: translateStaticUiCopy(staticUiLocale, "Brought back"),
+        description: translateStaticUiCopy(
+          staticUiLocale,
+          "The main thread gets this side chat with your next message there.",
+        ),
       });
     } else if (!isAtomCommandInterrupted(result)) {
       const error = squashAtomCommandFailure(result);
       toastManager.add({
         type: "error",
-        title: "Could not bring back the side chat",
+        title: translateStaticUiCopy(staticUiLocale, "Could not bring back the side chat"),
         ...(error instanceof Error ? { description: error.message } : {}),
       });
     }
@@ -116,7 +122,7 @@ export default function SideChatPane(props: {
       const error = squashAtomCommandFailure(result);
       toastManager.add({
         type: "error",
-        title: "Could not delete the side chat",
+        title: translateStaticUiCopy(staticUiLocale, "Could not delete the side chat"),
         ...(error instanceof Error ? { description: error.message } : {}),
       });
     }
@@ -137,7 +143,7 @@ export default function SideChatPane(props: {
                 aria-disabled={bringBackBlockedReason !== null || bringingBack || undefined}
                 onClick={() => void bringBack()}
               >
-                Bring back
+                {translateStaticUiCopy(staticUiLocale, "Bring back")}
               </Button>
             }
           />
@@ -148,19 +154,26 @@ export default function SideChatPane(props: {
         <Button
           variant="ghost"
           size="icon-xs"
-          aria-label="Delete side chat"
+          aria-label={translateStaticUiCopy(staticUiLocale, "Delete side chat")}
           disabled={!canOperate || shell === null || deleting}
           onClick={() => void deleteSideChat()}
         >
           <Trash2Icon />
         </Button>
-        <Button variant="ghost" size="icon-xs" aria-label="Close side chat" onClick={props.onClose}>
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          aria-label={translateStaticUiCopy(staticUiLocale, "Close side chat")}
+          onClick={props.onClose}
+        >
           <XIcon />
         </Button>
       </div>
       {shell === null ? (
         snapshotLoaded ? (
-          <p className="p-3 text-xs text-muted-foreground">This side chat was deleted.</p>
+          <p className="p-3 text-xs text-muted-foreground">
+            {translateStaticUiCopy(staticUiLocale, "This side chat was deleted.")}
+          </p>
         ) : null
       ) : (
         <BackgroundThreadContext value>

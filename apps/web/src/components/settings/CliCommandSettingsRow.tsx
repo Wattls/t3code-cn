@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useState } from "react";
 
 import {
@@ -12,6 +14,7 @@ import { SettingsRow } from "./settingsLayout";
 import { searchableSetting } from "./settingsSearch";
 
 export function CliCommandSettingsRow() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const bridge = getDesktopCliCommandBridge();
   const query = useEnvironmentQuery(bridge ? desktopCliCommandStateAtom : null);
   const state = query.data;
@@ -55,7 +58,9 @@ export function CliCommandSettingsRow() {
           disabled={pending || query.isPending}
           onClick={() => change(installed ? "uninstall" : "install")}
         >
-          {installed ? "Remove" : "Install"}
+          {installed
+            ? translateStaticUiCopy(staticUiLocale, "Remove")
+            : translateStaticUiCopy(staticUiLocale, "Install")}
         </Button>
       }
     />

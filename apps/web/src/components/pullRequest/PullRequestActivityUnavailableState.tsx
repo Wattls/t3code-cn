@@ -1,6 +1,8 @@
+import { translateWebSource } from "~/i18n/messages";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 
 import { cn } from "~/lib/utils";
+import { useI18n } from "../../i18n/WebI18nContext";
 
 import { Button } from "../ui/button";
 
@@ -16,6 +18,7 @@ export function PullRequestActivityUnavailableState({
   onRetry: () => void;
   compact?: boolean;
 }) {
+  const { locale: uiLocale } = useI18n();
   return (
     <div
       className={cn(
@@ -23,11 +26,13 @@ export function PullRequestActivityUnavailableState({
         compact ? "py-3" : "min-h-48 px-4 py-10",
       )}
     >
-      <p className="text-sm font-medium text-foreground">Could not load {term} activity</p>
+      <p className="text-sm font-medium text-foreground">
+        {uiLocale === "zh-CN" ? "无法加载变更请求动态" : `Could not load ${term} activity`}
+      </p>
       <p className="max-w-md text-xs text-muted-foreground">{error}</p>
       <Button size="sm" variant="outline" onClick={onRetry}>
         <RefreshIcon aria-hidden size="sm" />
-        Retry
+        {translateWebSource(uiLocale, "Retry")}
       </Button>
     </div>
   );

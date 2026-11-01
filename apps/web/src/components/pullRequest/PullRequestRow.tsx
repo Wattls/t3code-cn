@@ -1,3 +1,4 @@
+import { translateWebSource } from "~/i18n/messages";
 import type { PullRequestAction } from "@t3tools/contracts";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import { SearchIcon } from "lucide-react";
@@ -11,6 +12,7 @@ import { memo, type RefCallback } from "react";
 
 import { cn } from "~/lib/utils";
 import { getSourceControlPresentationForKind } from "~/sourceControlPresentation";
+import { useI18n } from "../../i18n/WebI18nContext";
 
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { PullRequestChecksPopover } from "./PullRequestChecksPopover";
@@ -100,6 +102,7 @@ function PullRequestRowImpl({
   sweeping?: boolean;
   onCloseSweepStart?: (entry: EnvironmentPullRequestEntry, event: PointerEvent) => void;
 }) {
+  const { locale: uiLocale, t } = useI18n();
   const { Icon, providerName, terminology } = getSourceControlPresentationForKind(entry.provider);
   return (
     <div
@@ -205,13 +208,15 @@ function PullRequestRowImpl({
                       <span className="flex min-w-6 items-center gap-1 overflow-hidden rounded-full border border-border/60 px-1 text-3xs" />
                     }
                   >
-                    <span className="sr-only">matched in the description</span>
+                    <span className="sr-only">
+                      {translateWebSource(uiLocale, "matched in the description")}
+                    </span>
                     <SearchIcon aria-hidden className="size-3 shrink-0" />
                     <span aria-hidden className="hidden truncate @xs/pr-row-meta:block">
-                      matched in the description
+                      {translateWebSource(uiLocale, "matched in the description")}
                     </span>
                   </TooltipTrigger>
-                  <TooltipPopup side="top">Matched in the description</TooltipPopup>
+                  <TooltipPopup side="top">{t("pullRequests.row.matchedDescription")}</TooltipPopup>
                 </Tooltip>
               ) : null}
               {showProvider ? (

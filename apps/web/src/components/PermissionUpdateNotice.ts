@@ -1,3 +1,5 @@
+import { readWebI18n } from "~/i18n/readWebI18n";
+import { translateWebSource } from "~/i18n/messages";
 import { sessionHasLegacyPermissions, type EnvironmentId } from "@t3tools/contracts";
 import type { AnyRouter } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
@@ -31,6 +33,7 @@ function showPermissionNotice(
   router: AnyRouter,
   { environmentId, label }: LegacyPermissionEnvironment,
 ) {
+  const { t, locale } = readWebI18n();
   const key = dismissalKey(environmentId);
   const persistDismissal = () => {
     try {
@@ -42,13 +45,15 @@ function showPermissionNotice(
     toastManager.close(id);
   };
   const id = toastManager.add({
-    title: `Permissions have changed for ${label}`,
-    description:
+    title: t("permissions.changedFor", { label }),
+    description: translateWebSource(
+      locale,
       "This connection still uses the old permissions, so some actions may no longer be available. Pair again using a new link with the permissions you need.",
+    ),
     timeout: 0,
     onClose: persistDismissal,
     actionProps: {
-      children: "Open Sharing & access",
+      children: translateWebSource(locale, "Open Sharing & access"),
       onClick: () => {
         dismiss();
         void router.navigate({ to: "/settings/access" });
@@ -56,7 +61,7 @@ function showPermissionNotice(
     },
     data: {
       actionLayout: "stacked-end",
-      secondaryActionProps: { children: "Dismiss", onClick: dismiss },
+      secondaryActionProps: { children: translateWebSource(locale, "Dismiss"), onClick: dismiss },
       secondaryActionVariant: "ghost",
     },
   });

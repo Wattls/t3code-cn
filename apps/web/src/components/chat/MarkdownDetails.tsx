@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+
 import { ChevronRightIcon } from "lucide-react";
 import {
   Children,
@@ -15,6 +17,8 @@ export function MarkdownDetails({
   children,
   open = false,
 }: Pick<ComponentProps<"details">, "children" | "open">) {
+  const { t: translateRelease } = useI18n();
+
   const [isOpen, setIsOpen] = useState(open);
   const searching = use(MarkdownFindContext);
   const expanded = isOpen;
@@ -30,7 +34,7 @@ export function MarkdownDetails({
   const summary =
     isValidElement<{ children?: ReactNode }>(summaryNode) && summaryNode.props.children
       ? summaryNode.props.children
-      : "Details";
+      : translateRelease("pullRequests.checks.details");
   const content = childNodes.filter((_, index) => index !== summaryIndex);
 
   return (

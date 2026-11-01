@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import {
   useEffect,
   useEffectEvent,
@@ -129,9 +133,11 @@ export default function PdfViewer(props: {
   initialView?: PdfViewState;
   onViewChange?: (view: PdfViewState) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [initialView] = useState<PdfViewState>(
     () => props.initialView ?? { page: 0, offset: 0, zoom: null, left: 0 },
   );
+  const { locale: previewLocale } = useI18n();
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
@@ -329,38 +335,40 @@ export default function PdfViewer(props: {
           {pdf ? `${current + 1} / ${pdf.numPages} pages` : "PDF"}
         </span>
         <FileSurfaceAction
-          label="Previous page"
+          label={translateWebSource(previewLocale, "Previous page")}
           disabled={!pdf || current === 0}
           onPress={() => showPage(current - 1)}
         >
           <ChevronUpIcon className="size-3.5" />
         </FileSurfaceAction>
         <FileSurfaceAction
-          label="Next page"
+          label={translateWebSource(previewLocale, "Next page")}
           disabled={!pdf || current + 1 >= pdf.numPages}
           onPress={() => showPage(current + 1)}
         >
           <ChevronDownIcon className="size-3.5" />
         </FileSurfaceAction>
         <FileSurfaceAction
-          label="Zoom out"
+          label={translateWebSource(previewLocale, "Zoom out")}
           disabled={scale <= PDF_MIN_ZOOM}
           onPress={() => changeZoom(stepPdfZoom(scale, -1))}
         >
           <MinusIcon className="size-3.5" />
         </FileSurfaceAction>
         <span className="min-w-14 text-center tabular-nums">
-          {zoom === null ? "Fit width" : `${Math.round(scale * 100)}%`}
+          {zoom === null
+            ? translateStaticUiCopy(staticUiLocale, "Fit width")
+            : `${Math.round(scale * 100)}%`}
         </span>
         <FileSurfaceAction
-          label="Zoom in"
+          label={translateWebSource(previewLocale, "Zoom in")}
           disabled={scale >= PDF_MAX_ZOOM}
           onPress={() => changeZoom(stepPdfZoom(scale, 1))}
         >
           <PlusIcon className="size-3.5" />
         </FileSurfaceAction>
         <FileSurfaceAction
-          label="Fit width"
+          label={translateStaticUiCopy(staticUiLocale, "Fit width")}
           onPress={() => {
             changeZoom(null);
             scroll.current?.scrollTo({ left: 0 });
@@ -373,8 +381,8 @@ export default function PdfViewer(props: {
             ref={find}
             size="compact"
             type="search"
-            aria-label="Find in PDF"
-            placeholder="Find in PDF"
+            aria-label={translateWebSource(previewLocale, "Find in PDF")}
+            placeholder={translateWebSource(previewLocale, "Find in PDF")}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -387,11 +395,11 @@ export default function PdfViewer(props: {
           <>
             <span role="status">
               {finding
-                ? "Searching…"
+                ? translateStaticUiCopy(staticUiLocale, "Searching…")
                 : (findError ?? `${matches.length ? match + 1 : 0}/${matches.length}`)}
             </span>
             <FileSurfaceAction
-              label="Next matching page"
+              label={translateWebSource(previewLocale, "Next matching page")}
               disabled={!matches.length}
               onPress={() => {
                 const next = (match + 1) % matches.length;

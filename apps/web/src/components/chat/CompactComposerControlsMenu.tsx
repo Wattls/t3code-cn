@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { ProviderInteractionMode, RuntimeMode } from "@t3tools/contracts";
 import { memo, useRef } from "react";
 import { EllipsisIcon } from "lucide-react";
@@ -26,6 +28,7 @@ export const CompactComposerControlsMenu = memo(function CompactComposerControls
   onToggleInteractionMode: () => void;
   onRuntimeModeChange: (mode: RuntimeMode) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const composerFloatingLayerProps = useComposerMenuProps();
   const size = props.size ?? "sm";
   const [open, setOpen] = useComposerMenuState(props.hidden);
@@ -43,7 +46,7 @@ export const CompactComposerControlsMenu = memo(function CompactComposerControls
             ref={triggerRef}
             size={size}
             className="shrink-0"
-            aria-label="More composer controls"
+            aria-label={translateStaticUiCopy(staticUiLocale, "More composer controls")}
             data-composer-shortcut={props.showPermissions !== false ? "composer.mode" : undefined}
           />
         }
@@ -53,7 +56,9 @@ export const CompactComposerControlsMenu = memo(function CompactComposerControls
       <MenuPopup align="start" {...composerFloatingLayerProps}>
         {props.showInteractionModeToggle ? (
           <>
-            <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">Mode</div>
+            <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
+              {translateStaticUiCopy(staticUiLocale, "Mode")}
+            </div>
             <MenuRadioGroup
               value={props.interactionMode}
               onValueChange={(value) => {
@@ -61,8 +66,12 @@ export const CompactComposerControlsMenu = memo(function CompactComposerControls
                 props.onToggleInteractionMode();
               }}
             >
-              <MenuRadioItem value="default">Chat</MenuRadioItem>
-              <MenuRadioItem value="plan">Plan</MenuRadioItem>
+              <MenuRadioItem value="default">
+                {translateStaticUiCopy(staticUiLocale, "Chat")}
+              </MenuRadioItem>
+              <MenuRadioItem value="plan">
+                {translateStaticUiCopy(staticUiLocale, "Plan")}
+              </MenuRadioItem>
             </MenuRadioGroup>
             {props.showPermissions !== false ? <MenuDivider /> : null}
           </>

@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import { resolvePullRequestDetailChecks } from "@t3tools/client-runtime/pull-request-checks";
 import {
   capitalizeTerm,
@@ -106,6 +110,8 @@ export function ThreadDetailsPrRow({
   onActed?: () => void;
   onStopWatching?: (() => void) | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: newCopyLocale } = useI18n();
   const serverConfigs = useServerConfigs();
   const supportsPullRequests = serverConfigs.get(environmentId) !== undefined;
   const repository = sourceControlClients.repositorySelector(project?.repositoryIdentity);
@@ -293,7 +299,8 @@ export function ThreadDetailsPrRow({
               <div className="flex min-w-0 items-start gap-2 text-destructive">
                 <TriangleAlertIcon aria-hidden className="mt-0.5 size-3 shrink-0 stroke-current" />
                 <div className="min-w-0 flex-1 wrap-break-word">
-                  Merge conflicts with {detail.baseBranch}
+                  {translateStaticUiCopy(staticUiLocale, "Merge conflicts with") + " "}
+                  {detail.baseBranch}
                 </div>
               </div>
             ) : null}
@@ -301,7 +308,9 @@ export function ThreadDetailsPrRow({
               <FileDiffIcon className="size-3 shrink-0 stroke-muted-foreground" />
               <div className="min-w-0 flex items-baseline gap-1 truncate text-foreground/75">
                 {detail.changedFiles.toLocaleString()}{" "}
-                {detail.changedFiles === 1 ? "file" : "files"}
+                {detail.changedFiles === 1
+                  ? translateStaticUiCopy(staticUiLocale, "file")
+                  : translateStaticUiCopy(staticUiLocale, "files")}
                 <PullRequestDiffStat additions={detail.additions} deletions={detail.deletions} />
               </div>
             </div>
@@ -320,7 +329,7 @@ export function ThreadDetailsPrRow({
   const trailingAction =
     rowAction === "resolve"
       ? {
-          label: "Resolve",
+          label: translateStaticUiCopy(staticUiLocale, "Resolve"),
           pendingLabel: "Preparing...",
           pending: handoff === "conflicts",
           destructive: true,
@@ -330,7 +339,7 @@ export function ThreadDetailsPrRow({
         }
       : rowAction === "ready"
         ? {
-            label: "Ready",
+            label: translateStaticUiCopy(staticUiLocale, "Ready"),
             pendingLabel: "Marking...",
             pending: actionPending,
             destructive: false,
@@ -340,7 +349,7 @@ export function ThreadDetailsPrRow({
           }
         : rowAction === "fix"
           ? {
-              label: "Fix",
+              label: translateStaticUiCopy(staticUiLocale, "Fix"),
               pendingLabel: "Preparing...",
               pending: handoff === "findings",
               destructive: true,
@@ -350,7 +359,7 @@ export function ThreadDetailsPrRow({
             }
           : rowAction === "merge"
             ? {
-                label: "Merge",
+                label: translateStaticUiCopy(staticUiLocale, "Merge"),
                 pendingLabel: "Merging...",
                 pending: actionPending,
                 destructive: false,
@@ -391,8 +400,10 @@ export function ThreadDetailsPrRow({
           />
         </TooltipTrigger>
         <TooltipPopup side="top">
-          Watching: the agent wakes when checks finish, someone comments, or the branch conflicts.
-          Click to stop.
+          {translateWebSource(
+            newCopyLocale,
+            "Watching: the agent wakes when checks finish, someone comments, or the branch conflicts. Click to stop.",
+          )}
         </TooltipPopup>
       </Tooltip>
     ) : null;
@@ -486,14 +497,20 @@ export function ThreadDetailsPrRow({
         <AlertDialog open={confirmingMerge} onOpenChange={(open) => setConfirmingMerge(open)}>
           <AlertDialogPopup>
             <AlertDialogHeader>
-              <AlertDialogTitle>Merge {terminology.singular}?</AlertDialogTitle>
+              <AlertDialogTitle>
+                {translateStaticUiCopy(staticUiLocale, "Merge") + " "}
+                {terminology.singular}?
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                This merges #{number} using {selectedMergeMethod}.
+                {translateStaticUiCopy(staticUiLocale, "This merges #")}
+                {number}
+                {" " + translateStaticUiCopy(staticUiLocale, "using") + " "}
+                {selectedMergeMethod}.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogClose render={<Button variant="outline" size="sm" />}>
-                Cancel
+                {translateStaticUiCopy(staticUiLocale, "Cancel")}
               </AlertDialogClose>
               <Button
                 size="sm"
@@ -503,7 +520,7 @@ export function ThreadDetailsPrRow({
                   void perform("merge", selectedMergeMethod);
                 }}
               >
-                Merge
+                {translateStaticUiCopy(staticUiLocale, "Merge")}
               </Button>
             </AlertDialogFooter>
           </AlertDialogPopup>

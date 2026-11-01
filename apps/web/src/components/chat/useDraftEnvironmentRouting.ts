@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import { useLoadBalancedEnvironment } from "../../hooks/useLoadBalancedEnvironment";
 import { useLogicalProjectEnvironments } from "../../hooks/useLogicalProjectEnvironments";
 import { useScratchProject } from "../../hooks/useScratchProject";
@@ -48,6 +50,8 @@ interface DraftEnvironmentRoutingInput {
  * project on the target machine.
  */
 export function useDraftEnvironmentRouting(input: DraftEnvironmentRoutingInput) {
+  const { locale: uiLocale } = useI18n();
+
   const {
     draftId,
     draftThread,
@@ -138,9 +142,11 @@ export function useDraftEnvironmentRouting(input: DraftEnvironmentRoutingInput) 
       toastManager.add({
         type: "warning",
         id: "load-balancing-attachments",
-        title: "Keep attachments on this machine",
-        description:
+        title: translateWebSource(uiLocale, "Keep attachments on this machine"),
+        description: translateWebSource(
+          uiLocale,
           "Remove attachments before choosing automatic routing, then attach them on the selected machine.",
+        ),
       });
       return;
     }
@@ -157,12 +163,12 @@ export function useDraftEnvironmentRouting(input: DraftEnvironmentRoutingInput) 
   const onAutoEnvironmentStable = useStableCallback(onAutoEnvironment);
   const autoEnvironmentLabel = automaticEnvironment
     ? draftThread?.loadBalancedEnvironmentId
-      ? "Auto balance"
+      ? translateWebSource(uiLocale, "Auto balance")
       : loadBalancing.pending
-        ? "Checking machines…"
+        ? translateWebSource(uiLocale, "Checking machines…")
         : loadBalancing.failed
-          ? "Auto balance unavailable"
-          : "Auto balance"
+          ? translateWebSource(uiLocale, "Auto balance unavailable")
+          : translateWebSource(uiLocale, "Auto balance")
     : undefined;
 
   // A change in flight belongs to the draft and project it started on.

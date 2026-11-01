@@ -11,6 +11,8 @@ import { RedactedSensitiveText } from "../settings/RedactedSensitiveText";
 import { LimitWindows, ResetCredits } from "../usage/UsageLimits";
 import { ComposerBanner } from "./ComposerBanner";
 import type { ComposerBannerStackItem } from "./ComposerBannerStack";
+import { useI18n, type WebTranslate } from "../../i18n/WebI18nContext";
+import { translateWebSource } from "../../i18n/messages";
 
 function accountLabel(account: UsageLimitsReport["accounts"][number]): string {
   if (!account.instanceId) return account.label;
@@ -49,21 +51,22 @@ export function usageLimitsBannerItem(
   report: UsageLimitsReport,
   environmentId: EnvironmentId,
   onDismiss: () => void,
+  t: WebTranslate,
 ): ComposerBannerStackItem {
   const [first] = report.accounts;
   const single = report.accounts.length === 1 && first ? first : null;
   const summary = single ? (
     <AccountSummary account={single} />
   ) : (
-    `${report.accounts.length} accounts`
+    t("usage.limits.accounts", { count: report.accounts.length })
   );
   return {
     id,
     variant: "info",
     icon: <GaugeIcon />,
-    title: "Usage limits",
+    title: t("usage.limits.title"),
     description: summary,
-    dismissLabel: "Dismiss usage limits",
+    dismissLabel: t("usage.limits.dismiss"),
     onDismiss,
     children: <UsageLimitsBannerBody report={report} environmentId={environmentId} />,
   };
@@ -109,6 +112,8 @@ function UsageLimitsBannerBody({
   readonly report: UsageLimitsReport;
   readonly environmentId: EnvironmentId;
 }) {
+  const { locale: uiLocale } = useI18n();
+  const { locale } = useI18n();
   const now = Date.parse(report.createdAt);
   return (
     <ComposerBanner.Scroll>
@@ -127,7 +132,9 @@ function UsageLimitsBannerBody({
                 </span>
               ) : null}
               {notice ? (
-                <span className="text-xs text-muted-foreground">{notice}</span>
+                <span className="text-xs text-muted-foreground">
+                  {translateWebSource(locale, notice)}
+                </span>
               ) : (
                 <LimitWindows
                   compact
@@ -144,7 +151,7 @@ function UsageLimitsBannerBody({
                   className="self-start"
                   onClick={() => void ensureLocalApi().shell.openExternal(externalUsage.url)}
                 >
-                  Manage usage
+                  {translateWebSource(uiLocale, "Manage usage")}
                 </Button>
               ) : null}
               {resetCreditInput && account.limits.resetCredits ? (
@@ -160,7 +167,7 @@ function UsageLimitsBannerBody({
         })}
         {report.notices.map((notice) => (
           <span key={notice} className="text-xs text-muted-foreground">
-            {notice}
+            {translateWebSource(locale, notice)}
           </span>
         ))}
       </ComposerBanner.Body>

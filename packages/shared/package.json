@@ -507,6 +507,10 @@
       "types": "./src/PtyAdapter.ts",
       "import": "./src/PtyAdapter.ts"
     },
+    "./appLocale": {
+      "types": "./src/appLocale.ts",
+      "import": "./src/appLocale.ts"
+    },
     "./markdownMath": {
       "types": "./src/markdownMath.ts",
       "import": "./src/markdownMath.ts"

@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { DesktopPreviewColorScheme } from "@t3tools/contracts";
 import { Minus, MoreVertical, Plus as PlusIcon, RotateCcw } from "lucide-react";
 
@@ -77,6 +79,7 @@ export function PreviewMoreMenu({
   profileName,
   move,
 }: Props) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const zoomLabel = `${Math.round(zoomFactor * 100)}%`;
   const disabled = !enabled;
   return (
@@ -84,26 +87,30 @@ export function PreviewMoreMenu({
       <MenuTriggerButton />
       <MenuPopup align="end" sideOffset={6}>
         <MenuItem onClick={actions.hardReload} disabled={disabled}>
-          Hard reload
+          {translateStaticUiCopy(staticUiLocale, "Hard reload")}
         </MenuItem>
         {actions.openDevTools ? (
           <MenuItem onClick={actions.openDevTools} disabled={disabled}>
-            Open DevTools
+            {translateStaticUiCopy(staticUiLocale, "Open DevTools")}
           </MenuItem>
         ) : null}
         {actions.toggleNativePictureInPicture ? (
           <MenuItem onClick={actions.toggleNativePictureInPicture} disabled={disabled}>
             {nativePictureInPicture
-              ? "Close separate preview window"
-              : "Open separate preview window"}
+              ? translateStaticUiCopy(staticUiLocale, "Close separate preview window")
+              : translateStaticUiCopy(staticUiLocale, "Open separate preview window")}
           </MenuItem>
         ) : null}
         {move ? <MenuItem onClick={move.onMove}>{move.label}</MenuItem> : null}
         <MenuItem onClick={onToggleDeviceToolbar} disabled={disabled}>
-          {deviceToolbarVisible ? "Hide device toolbar" : "Show device toolbar"}
+          {deviceToolbarVisible
+            ? translateStaticUiCopy(staticUiLocale, "Hide device toolbar")
+            : translateStaticUiCopy(staticUiLocale, "Show device toolbar")}
         </MenuItem>
         <MenuSub>
-          <MenuSubTrigger disabled={disabled}>Appearance</MenuSubTrigger>
+          <MenuSubTrigger disabled={disabled}>
+            {translateStaticUiCopy(staticUiLocale, "Appearance")}
+          </MenuSubTrigger>
           <MenuSubPopup>
             <MenuRadioGroup
               value={colorScheme}
@@ -124,14 +131,14 @@ export function PreviewMoreMenu({
           className="justify-between"
           disabled={disabled}
         >
-          <span>Zoom</span>
+          <span>{translateStaticUiCopy(staticUiLocale, "Zoom")}</span>
           <span className="flex items-center gap-1">
             <Button
               variant="outline"
               size="icon-xs"
               type="button"
               onClick={actions.zoomOut}
-              aria-label="Zoom out"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Zoom out")}
               disabled={disabled}
             >
               <Minus />
@@ -144,7 +151,7 @@ export function PreviewMoreMenu({
               size="icon-xs"
               type="button"
               onClick={actions.zoomIn}
-              aria-label="Zoom in"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Zoom in")}
               disabled={disabled}
             >
               <PlusIcon />
@@ -154,7 +161,7 @@ export function PreviewMoreMenu({
               size="icon-xs"
               type="button"
               onClick={actions.resetZoom}
-              aria-label="Reset zoom"
+              aria-label={translateStaticUiCopy(staticUiLocale, "Reset zoom")}
               disabled={disabled}
             >
               <RotateCcw />
@@ -165,11 +172,18 @@ export function PreviewMoreMenu({
         <MenuGroup>
           {profileName ? (
             <MenuGroupLabel className="max-w-64">
-              <span className="block truncate">Profile: {profileName}</span>
+              <span className="block truncate">
+                {translateStaticUiCopy(staticUiLocale, "Profile:") + " "}
+                {profileName}
+              </span>
             </MenuGroupLabel>
           ) : null}
-          <MenuItem onClick={actions.clearCookies}>Clear cookies</MenuItem>
-          <MenuItem onClick={actions.clearCache}>Clear cache</MenuItem>
+          <MenuItem onClick={actions.clearCookies}>
+            {translateStaticUiCopy(staticUiLocale, "Clear cookies")}
+          </MenuItem>
+          <MenuItem onClick={actions.clearCache}>
+            {translateStaticUiCopy(staticUiLocale, "Clear cache")}
+          </MenuItem>
         </MenuGroup>
       </MenuPopup>
     </Menu>

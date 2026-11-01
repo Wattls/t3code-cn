@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   AuthOrchestrationOperateScope,
   type EditorId,
@@ -21,6 +23,7 @@ export function KeybindingsConfigWarning({
   configPath: string | null;
   availableEditors: readonly EditorId[];
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const canOpenEditor = useEnvironmentScope(environmentId, AuthOrchestrationOperateScope);
   const openInEditor = useOpenInPreferredEditor(environmentId, availableEditors);
 
@@ -40,13 +43,13 @@ export function KeybindingsConfigWarning({
             toastManager.add(
               stackedThreadToast({
                 type: "error",
-                title: "Unable to open keybindings file",
+                title: translateStaticUiCopy(staticUiLocale, "Unable to open keybindings file"),
                 description: error instanceof Error ? error.message : "Unknown error opening file.",
               }),
             );
           }}
         >
-          Open keybindings.json
+          {translateStaticUiCopy(staticUiLocale, "Open keybindings.json")}
         </Button>
       </span>
     </>

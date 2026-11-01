@@ -1,6 +1,13 @@
 import type { ContextMenuItem } from "@t3tools/contracts";
 import type { SnoozePreset } from "@t3tools/client-runtime/state/thread-settled";
 
+import type { WebTranslate } from "../i18n/WebI18nContext";
+
+/**
+ * Ids for the per-thread action menu. Snooze presets are dispatched as
+ * `snooze:<presetId>` so the union stays closed while the preset list
+ * remains data-driven.
+ */
 export type ThreadActionMenuId =
   | "find"
   | "new-thread-on-branch"
@@ -36,30 +43,53 @@ export type DraftActionMenuId =
   | "project-settings"
   | "discard";
 
-export function buildDraftActionMenuItems(options: {
-  readonly hasPath: boolean;
-  readonly hasBranch: boolean;
-  readonly hasProject: boolean;
-}): ReadonlyArray<ContextMenuItem<DraftActionMenuId>> {
+export function buildDraftActionMenuItems(
+  options: {
+    readonly hasPath: boolean;
+    readonly hasBranch: boolean;
+    readonly hasProject: boolean;
+  },
+  translate?: WebTranslate,
+): ReadonlyArray<ContextMenuItem<DraftActionMenuId>> {
   return [
     {
       id: "copy",
-      label: "Copy",
+      label: translate?.("sidebar.action.copy") ?? "Copy",
       icon: "copy",
       disabled: !options.hasPath && !options.hasBranch,
       children: [
-        ...(options.hasPath ? [{ id: "copy-path" as const, label: "Path", icon: "folder" }] : []),
+        ...(options.hasPath
+          ? [
+              {
+                id: "copy-path" as const,
+                label: translate?.("sidebar.action.path") ?? "Path",
+                icon: "folder",
+              },
+            ]
+          : []),
         ...(options.hasBranch
-          ? [{ id: "copy-branch" as const, label: "Branch", icon: "git-branch" }]
+          ? [
+              {
+                id: "copy-branch" as const,
+                label: translate?.("sidebar.action.branch") ?? "Branch",
+                icon: "git-branch",
+              },
+            ]
           : []),
       ],
     },
     ...(options.hasProject
-      ? [{ id: "project-settings" as const, label: "Project settings", icon: "settings" }]
+      ? [
+          {
+            id: "project-settings" as const,
+            label: translate?.("contextMenu.projectSettings") ?? "Project settings",
+            icon: "settings",
+          },
+        ]
       : []),
     {
       id: "discard",
-      label: "Discard draft",
+      label: translate?.("sidebar.discardDraft") ?? "Discard draft",
       icon: "trash",
       destructive: true,
       separatorBefore: true,
@@ -97,6 +127,55 @@ export interface ThreadActionMenuState {
   readonly canTurnIntoProject?: boolean;
 }
 
+export function localizeSnoozePresetLabel(preset: SnoozePreset, t: WebTranslate): string {
+  switch (preset.id) {
+    case "hour":
+      return t("sidebar.snooze.hour");
+    case "three-hours":
+      return t("sidebar.snooze.threeHours");
+    case "evening":
+      return t("sidebar.snooze.evening");
+    case "tomorrow":
+      return t("sidebar.snooze.tomorrow");
+    case "next-week":
+      return t("sidebar.snooze.nextWeek");
+  }
+  const duration = /^In (\d+) (minute|hour|day)s?$/.exec(preset.label);
+  if (duration) {
+    const count = Number(duration[1]);
+    const keys =
+      duration[2] === "minute"
+        ? (["contextMenu.snooze.minuteOne", "contextMenu.snooze.minutes"] as const)
+        : duration[2] === "hour"
+          ? (["contextMenu.snooze.hourOne", "contextMenu.snooze.hours"] as const)
+          : (["contextMenu.snooze.dayOne", "contextMenu.snooze.days"] as const);
+    return t(keys[count === 1 ? 0 : 1], { count });
+  }
+  const fixedLabels = {
+    "This morning": "contextMenu.snooze.morning",
+    "This afternoon": "contextMenu.snooze.afternoon",
+    "This evening": "sidebar.snooze.evening",
+    Tomorrow: "sidebar.snooze.tomorrow",
+    "Next week": "sidebar.snooze.nextWeek",
+  } as const;
+  const fixed = fixedLabels[preset.label as keyof typeof fixedLabels];
+  if (fixed) return t(fixed);
+  const weekdays = {
+    Monday: "contextMenu.snooze.monday",
+    Tuesday: "contextMenu.snooze.tuesday",
+    Wednesday: "contextMenu.snooze.wednesday",
+    Thursday: "contextMenu.snooze.thursday",
+    Friday: "contextMenu.snooze.friday",
+    Saturday: "contextMenu.snooze.saturday",
+    Sunday: "contextMenu.snooze.sunday",
+  } as const;
+  const isNext = preset.label.startsWith("Next ");
+  const day = isNext ? preset.label.slice(5) : preset.label;
+  const weekday = weekdays[day as keyof typeof weekdays];
+  if (!weekday) return preset.label;
+  return isNext ? t("contextMenu.snooze.nextDay", { day: t(weekday) }) : t(weekday);
+}
+
 /** Local navigation, read markers, and copying remain available to read-only clients. */
 export function threadActionRequiresOperate(action: ThreadActionMenuId): boolean {
   return ![
@@ -115,16 +194,31 @@ export function threadActionRequiresOperate(action: ThreadActionMenuId): boolean
 
 export function buildThreadActionMenuItems(
   state: ThreadActionMenuState,
+  translate?: WebTranslate,
 ): ReadonlyArray<ContextMenuItem<ThreadActionMenuId>> {
+  const label = (
+    key: Parameters<WebTranslate>[0],
+    fallback: string,
+    values?: Parameters<WebTranslate>[1],
+  ) => translate?.(key, values) ?? fallback;
+
   const items: ReadonlyArray<ContextMenuItem<ThreadActionMenuId>> = [
     ...(state.canFind
-      ? [{ id: "find" as const, label: "Find in thread", icon: "text-search" }]
+      ? [
+          {
+            id: "find" as const,
+            label: label("contextMenu.findInThread", "Find in thread"),
+            icon: "text-search",
+          },
+        ]
       : []),
     ...(state.branch
       ? [
           {
             id: "new-thread-on-branch" as const,
-            label: `New thread on ${state.branch}`,
+            label: label("sidebar.action.newThreadOnBranch", `New thread on ${state.branch}`, {
+              branch: state.branch,
+            }),
             icon: "message-square-plus",
           },
         ]
@@ -132,62 +226,101 @@ export function buildThreadActionMenuItems(
     ...(state.supports.pinning
       ? [
           state.isPinned
-            ? { id: "unpin" as const, label: "Unpin thread", icon: "pin-off" }
-            : { id: "pin" as const, label: "Pin thread", icon: "pin" },
+            ? {
+                id: "unpin" as const,
+                label: label("sidebar.action.unpin", "Unpin thread"),
+                icon: "pin-off",
+              }
+            : {
+                id: "pin" as const,
+                label: label("sidebar.action.pin", "Pin thread"),
+                icon: "pin",
+              },
         ]
       : []),
     ...(state.supports.settlement
       ? [
           state.isSettled
-            ? { id: "unsettle" as const, label: "Un-settle thread", icon: "circle-check" }
-            : { id: "settle" as const, label: "Settle thread", icon: "circle-check" },
+            ? {
+                id: "unsettle" as const,
+                label: label("sidebar.action.unsettle", "Un-settle thread"),
+                icon: "circle-check",
+              }
+            : {
+                id: "settle" as const,
+                label: label("sidebar.action.settle", "Settle thread"),
+                icon: "circle-check",
+              },
         ]
       : []),
     ...(state.supports.snooze
       ? [
           state.isSnoozed
-            ? { id: "unsnooze" as const, label: "Wake thread", icon: "clock" }
+            ? {
+                id: "unsnooze" as const,
+                label: label("sidebar.action.wake", "Wake thread"),
+                icon: "clock",
+              }
             : {
                 id: "snooze" as const,
-                label: "Snooze",
+                label: label("sidebar.action.snooze", "Snooze"),
                 icon: "clock",
                 disabled: !state.canSnoozeNow,
                 children: [
                   ...state.snoozePresets.map((preset) => ({
                     id: `snooze:${preset.id}` as const,
-                    label: `${preset.label} (${preset.whenLabel})`,
+                    label: `${translate ? localizeSnoozePresetLabel(preset, translate) : preset.label} (${preset.whenLabel})`,
                   })),
                   {
                     id: "snooze:custom" as const,
-                    label: "Custom…",
+                    label: label("contextMenu.customSnooze", "Custom…"),
                     separatorBefore: state.snoozePresets.length > 0,
                   },
                 ],
               },
         ]
       : []),
-    { id: "rename", label: "Rename thread", icon: "pencil", separatorBefore: true },
+    {
+      id: "rename",
+      label: label("sidebar.action.rename", "Rename thread"),
+      icon: "pencil",
+      separatorBefore: true,
+    },
     ...(state.supports.titleRegeneration
       ? [
           {
             id: "regenerate-title" as const,
-            label: state.isRegeneratingTitle ? "Regenerating…" : "Regenerate title",
+            label: state.isRegeneratingTitle
+              ? label("sidebar.action.regenerating", "Regenerating…")
+              : label("sidebar.action.regenerateTitle", "Regenerate title"),
             icon: "refresh-cw",
             disabled: state.isRegeneratingTitle,
           },
         ]
       : []),
-    { id: "mark-unread", label: "Mark unread", icon: "mail-open" },
+    {
+      id: "mark-unread",
+      label: label("sidebar.action.markUnread", "Mark unread"),
+      icon: "mail-open",
+    },
     ...(state.canShareWithGuest
-      ? [{ id: "share-guest" as const, label: "Share with guest", icon: "user-plus" }]
+      ? [
+          {
+            id: "share-guest" as const,
+            label: label("sidebar.action.shareGuest", "Share with guest"),
+            icon: "user-plus",
+          },
+        ]
       : []),
     ...(state.projectFilter
       ? [
           {
             id: "filter-by-project" as const,
             label: state.projectFilter.isActive
-              ? "Show all projects"
-              : `Filter by ${state.projectFilter.label}`,
+              ? label("upstream.sidebar.allProjects", "Show all projects")
+              : label("upstream.sidebar.projectFilter", `Filter by ${state.projectFilter.label}`, {
+                  project: state.projectFilter.label,
+                }),
             icon: "folder-tree",
           },
         ]
@@ -196,7 +329,7 @@ export function buildThreadActionMenuItems(
       ? [
           {
             id: "turn-into-project" as const,
-            label: "Turn into project",
+            label: label("contextMenu.turnIntoProject", "Turn into project"),
             icon: "folder-plus",
             disabled: state.isRunning,
           },
@@ -206,17 +339,17 @@ export function buildThreadActionMenuItems(
       ? [
           {
             id: "auto-settle" as const,
-            label: "Auto-settle behavior",
+            label: label("upstream.sidebar.autoSettle", "Auto-settle behavior"),
             icon: "timer",
             children: [
               {
                 id: "auto-settle:enabled" as const,
-                label: "Enabled",
+                label: label("upstream.sidebar.enabled", "Enabled"),
                 checked: state.autoSettleEnabled,
               },
               {
                 id: "auto-settle:disabled" as const,
-                label: "Disabled",
+                label: label("upstream.sidebar.disabled", "Disabled"),
                 checked: !state.autoSettleEnabled,
               },
             ],
@@ -225,29 +358,43 @@ export function buildThreadActionMenuItems(
       : []),
     {
       id: "copy",
-      label: "Copy",
+      label: label("sidebar.action.copy", "Copy"),
       icon: "copy",
       separatorBefore: true,
       children: [
-        { id: "copy-path", label: "Path", icon: "folder" },
+        { id: "copy-path", label: label("sidebar.action.path", "Path"), icon: "folder" },
         ...(state.branch
-          ? [{ id: "copy-branch" as const, label: "Branch", icon: "git-branch" }]
+          ? [
+              {
+                id: "copy-branch" as const,
+                label: label("sidebar.action.branch", "Branch"),
+                icon: "git-branch",
+              },
+            ]
           : []),
-        { id: "copy-thread", label: "Thread", icon: "message-square" },
-        { id: "copy-thread-id", label: "Thread ID", icon: "hash" },
+        { id: "copy-thread", label: label("v016.copy.thread", "Thread"), icon: "message-square" },
+        {
+          id: "copy-thread-id",
+          label: label("sidebar.action.threadId", "Thread ID"),
+          icon: "hash",
+        },
       ],
     },
-    { id: "project-settings", label: "Project settings", icon: "settings" },
+    {
+      id: "project-settings",
+      label: label("contextMenu.projectSettings", "Project settings"),
+      icon: "settings",
+    },
     {
       id: "archive",
-      label: "Archive thread",
+      label: label("sidebar.action.archive", "Archive thread"),
       icon: "archive",
       disabled: state.isRunning,
       separatorBefore: true,
     },
     {
       id: "delete",
-      label: "Delete",
+      label: label("common.delete", "Delete"),
       destructive: true,
       icon: "trash",
     },

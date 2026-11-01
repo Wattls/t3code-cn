@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { scopeProjectRef, scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { getCloneDestinationPath } from "@t3tools/client-runtime/operations/projects";
 import {
@@ -98,6 +100,7 @@ const pullRequestThreadLookupAtom = Atom.family((key: string) => {
 const NO_PULL_REQUEST_THREAD_LOOKUP = Atom.make(null);
 
 export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const locationKey = useLocation({ select: (location) => location.state.__TSR_key ?? "" });
   const navigate = useNavigate();
   const ready = useAtomValue(allReachableShellsLiveAtom);
@@ -225,7 +228,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Clone failed",
+            title: translateStaticUiCopy(staticUiLocale, "Clone failed"),
             description: error instanceof Error ? error.message : "An error occurred.",
           }),
         );
@@ -334,10 +337,10 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
 
   switch (state.status) {
     case "opening":
-      return <LinkPage title="Opening the link..." />;
+      return <LinkPage title={translateStaticUiCopy(staticUiLocale, "Opening the link...")} />;
     case "opened":
       return (
-        <LinkPage title="This link is open">
+        <LinkPage title={translateStaticUiCopy(staticUiLocale, "This link is open")}>
           <Button
             size="sm"
             variant="outline"
@@ -347,7 +350,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
               setState({ status: "opening" });
             }}
           >
-            Open it again
+            {translateStaticUiCopy(staticUiLocale, "Open it again")}
           </Button>
         </LinkPage>
       );
@@ -360,13 +363,17 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
       return (
         <LinkPage
           title={`You don't have ${name}`}
-          description="Clone it to work on it here, or start without a project."
+          description={translateStaticUiCopy(
+            staticUiLocale,
+            "Clone it to work on it here, or start without a project.",
+          )}
         >
           <Button size="sm" onClick={() => void cloneRepository(state.repository)}>
-            Clone {name}
+            {translateStaticUiCopy(staticUiLocale, "Clone") + " "}
+            {name}
           </Button>
           <Button size="sm" variant="outline" onClick={openWithoutProject}>
-            Use without project
+            {translateStaticUiCopy(staticUiLocale, "Use without project")}
           </Button>
         </LinkPage>
       );
@@ -386,6 +393,7 @@ function PullRequestLinkCheckout({
   readonly link: Extract<NewThreadLink, { kind: "pull-request" }>;
   readonly project: EnvironmentProject;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { handoff, startHandoff } = usePullRequestHandoffs({
     environmentId: project.environmentId,
     detail: {
@@ -405,7 +413,10 @@ function PullRequestLinkCheckout({
   return (
     <LinkPage
       title={`Check out ${owner}/${name}#${number}?`}
-      description="This puts the pull request's code in a new worktree and runs your project's setup script on it."
+      description={translateStaticUiCopy(
+        staticUiLocale,
+        "This puts the pull request's code in a new worktree and runs your project's setup script on it.",
+      )}
     >
       <Button
         size="sm"
@@ -417,7 +428,9 @@ function PullRequestLinkCheckout({
           )
         }
       >
-        {handoff !== null ? "Checking out..." : "Check out"}
+        {handoff !== null
+          ? translateStaticUiCopy(staticUiLocale, "Checking out...")
+          : translateStaticUiCopy(staticUiLocale, "Check out")}
       </Button>
     </LinkPage>
   );

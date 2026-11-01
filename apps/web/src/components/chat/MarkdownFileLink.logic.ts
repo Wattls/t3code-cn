@@ -1,3 +1,4 @@
+import { translateWebMessage } from "~/i18n/messages";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { splitFilePathPosition } from "@t3tools/shared/fileLinks";
 
@@ -29,18 +30,28 @@ export function hasMarkdownFilePrimaryAction(input: {
   );
 }
 
-export function markdownFileCopyMenuItems({
-  targetPath,
-  workspaceRelativePath,
-}: Pick<MarkdownFileLinkMeta, "targetPath" | "workspaceRelativePath">) {
+export function markdownFileCopyMenuItems(
+  {
+    targetPath,
+    workspaceRelativePath,
+  }: Pick<MarkdownFileLinkMeta, "targetPath" | "workspaceRelativePath">,
+  translateRelease: (
+    key: "markdownFile.copyFullPath" | "markdownFile.copyRelativePath",
+  ) => string = (key) => translateWebMessage("en", key),
+) {
   const items = [
-    { id: "copy-full", label: "Copy full path", value: targetPath, title: "Full path" },
+    {
+      id: "copy-full",
+      label: translateRelease("markdownFile.copyFullPath"),
+      value: targetPath,
+      title: "Full path",
+    },
   ];
   if (workspaceRelativePath !== null) {
     const position = targetPath.slice(splitFilePathPosition(targetPath).path.length);
     items.unshift({
       id: "copy-relative",
-      label: "Copy relative path",
+      label: translateRelease("markdownFile.copyRelativePath"),
       value: `${workspaceRelativePath}${position}`,
       title: "Relative path",
     });

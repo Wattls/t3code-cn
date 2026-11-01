@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useComposerMenuState } from "../chat/useComposerMenuState";
 import { useOrchestrationCommand } from "../../state/use-orchestration-command";
 import { AuthOrchestrationOperateScope } from "@t3tools/contracts";
@@ -51,6 +53,8 @@ import {
   projectGroupTitleNeedsUpdate,
   SCRATCH_PROJECT_TITLE,
 } from "./ProjectSettingsPanel.logic";
+import { translateWebSource } from "../../i18n/messages";
+import { useI18n } from "../../i18n/WebI18nContext";
 import { useSettingsProjectGroups } from "./useSettingsProjectGroups";
 import { readUnloadedThreadCount } from "../../state/olderSettledShelf";
 import { settingsScopeEnvironmentLabels } from "./settingsScopeAxis";
@@ -92,6 +96,7 @@ export function ProjectSettingsPanel({
   checkoutKey?: string | null;
   unavailable?: ReactNode;
 }) {
+  const { locale, t } = useI18n();
   const groups = useSettingsProjectGroups();
   const pathname = useLocation({ select: (location) => location.pathname });
 
@@ -146,16 +151,17 @@ export function ProjectSettingsPanel({
   if (!selected) {
     return (
       <div className="flex flex-1 items-center justify-center p-8 text-sm text-muted-foreground">
-        {groups.length === 0
-          ? "Add a project from the sidebar to configure it here."
-          : "This project is no longer available."}
+        {groups.length === 0 ? t("projectSettings.empty") : t("projectSettings.removed")}
       </div>
     );
   }
   if (members.length === 0)
     return (
       <p className="p-8 text-sm text-muted-foreground">
-        This checkout is no longer available in the selected project and environment.
+        {translateWebSource(
+          locale,
+          "This checkout is no longer available in the selected project and environment.",
+        )}
       </p>
     );
   const scopedGroup = {
@@ -184,6 +190,8 @@ function ProjectDetail({
   allMembers: ReadonlyArray<SidebarProjectGroupMember>;
   hasOtherMembers: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: uiLocale, t } = useI18n();
   const navigate = useNavigate({ from: "/settings" });
   const primaryEnvironmentId = usePrimaryEnvironmentId();
   const { environments } = useEnvironments();
@@ -234,7 +242,7 @@ function ProjectDetail({
   const renameGroup = async (nextTitle: string, wasEdited: boolean) => {
     const title = nextTitle.trim();
     if (!title) {
-      toastManager.add({ type: "warning", title: "Project title cannot be empty" });
+      toastManager.add({ type: "warning", title: t("projectSettings.titleEmpty") });
       return;
     }
     if (
@@ -246,7 +254,7 @@ function ProjectDetail({
     ) {
       return;
     }
-    await updateAllMembers({ title }, "Failed to rename project");
+    await updateAllMembers({ title }, t("projectSettings.renameFailed"));
   };
 
   const [faviconPickerOpen, setFaviconPickerOpen] = useComposerMenuState(!canEditGroup);
@@ -257,7 +265,7 @@ function ProjectDetail({
     if (savingFaviconRef.current) return;
     savingFaviconRef.current = true;
     setIsSavingFavicon(true);
-    await updateAllMembers(input, "Failed to update project icon");
+    await updateAllMembers(input, t("projectSettings.iconUpdateFailed"));
     savingFaviconRef.current = false;
     setIsSavingFavicon(false);
   };
@@ -303,7 +311,7 @@ function ProjectDetail({
         () => undefined,
       );
       if (result._tag === "Failure") {
-        reportProjectFailure(`Failed to remove "${member.title}"`, result);
+        reportProjectFailure(t("projectSettings.removeFailed", { name: member.title }), result);
         return;
       }
       const projectRef = scopeProjectRef(member.environmentId, member.id);
@@ -342,11 +350,11 @@ function ProjectDetail({
       onClick={() => void removeMembers([member])}
       aria-label={`Remove checkout ${member.workspaceRoot}`}
     >
-      Remove
+      {translateStaticUiCopy(staticUiLocale, "Remove")}
     </Button>
   );
   const checkoutChoices = (
-    <SettingsSection title="Checkouts">
+    <SettingsSection title={translateStaticUiCopy(staticUiLocale, "Checkouts")}>
       {Array.from(checkoutsByEnvironment, ([environmentId, members]) => {
         if (checkoutsByEnvironment.size === 1) {
           return members.map((member) => (
@@ -419,29 +427,42 @@ function ProjectDetail({
         <Alert variant="info">
           <InfoIcon aria-hidden />
           <AlertDescription>
-            Can't find a setting? Keep this project picked above and hop to any other settings page.
+            {translateStaticUiCopy(
+              staticUiLocale,
+              "Can't find a setting? Keep this project picked above and hop to any other settings page.",
+            )}
           </AlertDescription>
         </Alert>
-        <SettingsSection id="project-overview" title="Project" hideTitle>
+        <SettingsSection
+          id="project-overview"
+          title={translateStaticUiCopy(staticUiLocale, "Project")}
+          hideTitle
+        >
           {!canEditGroup ? (
             <p className="px-3 py-2 text-sm text-muted-foreground sm:px-4">
               {group.memberProjects.length > 1
-                ? "Shared settings require permission to change every checkout in this group."
-                : "This connection cannot change this project."}
+                ? translateStaticUiCopy(
+                    staticUiLocale,
+                    "Shared settings require permission to change every checkout in this group.",
+                  )
+                : translateStaticUiCopy(
+                    staticUiLocale,
+                    "This connection cannot change this project.",
+                  )}
             </p>
           ) : null}
           <SettingsRow
-            title="Name"
-            description="The shared name for this project group in the sidebar and thread lists."
+            title={t("projectSettings.name")}
+            description={t("projectSettings.nameDescription")}
             resetAction={
               canResetScratchTitle ? (
                 <SettingResetButton
-                  label="project name"
+                  label={translateWebSource(uiLocale, "project name")}
                   disabled={!canEditGroup}
                   onClick={() =>
                     void updateAllMembers(
                       { title: SCRATCH_PROJECT_TITLE },
-                      "Failed to rename project",
+                      t("projectSettings.renameFailed"),
                     )
                   }
                 />
@@ -452,7 +473,7 @@ function ProjectDetail({
                 key={`${group.projectKey}:${group.displayName}`}
                 size="sm"
                 className="w-full sm:w-64"
-                aria-label="Project name"
+                aria-label={t("projectSettings.projectName")}
                 disabled={!canEditGroup}
                 defaultValue={group.displayName}
                 onChange={() => {
@@ -470,7 +491,7 @@ function ProjectDetail({
             }
           />
           <SettingsRow
-            title="Project icon"
+            title={t("projectSettings.icon")}
             description={
               projectIcon?.kind === "lucide"
                 ? `${projectIcon.name} · ${projectIcon.color}`
@@ -478,12 +499,12 @@ function ProjectDetail({
                   ? `${projectIcon.text} · ${projectIcon.color}`
                   : projectIcon?.kind === "emoji"
                     ? projectIcon.emoji
-                    : (faviconPath ?? "Automatic")
+                    : (faviconPath ?? t("projectSettings.automatic"))
             }
             resetAction={
               group.memberProjects.some((member) => !hasDefaultProjectIcon(member)) ? (
                 <SettingResetButton
-                  label="project icon"
+                  label={translateStaticUiCopy(staticUiLocale, "project icon")}
                   disabled={isSavingFavicon || !canEditGroup}
                   onClick={() => void setProjectIcon(defaultProjectIcon)}
                 />
@@ -496,21 +517,21 @@ function ProjectDetail({
                   size="sm"
                   variant="outline"
                   type="button"
-                  aria-label="Choose a project icon"
+                  aria-label={t("projectSettings.chooseBuiltInIcon")}
                   disabled={isSavingFavicon || !canEditGroup}
                   onClick={() => setIconPickerOpen(true)}
                 >
-                  Choose icon
+                  {t("projectSettings.chooseBuiltInIcon")}
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   type="button"
-                  aria-label="Choose a project icon file"
+                  aria-label={t("projectSettings.chooseIcon")}
                   disabled={isSavingFavicon || !canEditGroup}
                   onClick={() => setFaviconPickerOpen(true)}
                 >
-                  Choose file
+                  {t("projectSettings.chooseFile")}
                 </Button>
               </div>
             }
@@ -518,8 +539,11 @@ function ProjectDetail({
           {canOrganize ? (
             <>
               <SettingsRow
-                title="Pin"
-                description="Pinned projects come first in project pickers."
+                title={translateStaticUiCopy(staticUiLocale, "Pin")}
+                description={translateStaticUiCopy(
+                  staticUiLocale,
+                  "Pinned projects come first in project pickers.",
+                )}
                 control={
                   <Switch
                     checked={group.pinned}
@@ -530,16 +554,22 @@ function ProjectDetail({
                         checked ? "Failed to pin project" : "Failed to unpin project",
                       )
                     }
-                    aria-label="Pin project"
+                    aria-label={translateStaticUiCopy(staticUiLocale, "Pin project")}
                   />
                 }
               />
               <SettingsRow
-                title="Archive"
+                title={translateStaticUiCopy(staticUiLocale, "Archive")}
                 description={
                   group.archived
-                    ? "Hidden from project pickers. Threads and files are kept."
-                    : "Hides the project from project pickers. Threads and files are kept."
+                    ? translateStaticUiCopy(
+                        staticUiLocale,
+                        "Hidden from project pickers. Threads and files are kept.",
+                      )
+                    : translateStaticUiCopy(
+                        staticUiLocale,
+                        "Hides the project from project pickers. Threads and files are kept.",
+                      )
                 }
                 control={
                   <Button
@@ -555,7 +585,9 @@ function ProjectDetail({
                       )
                     }
                   >
-                    {group.archived ? "Unarchive" : "Archive"}
+                    {group.archived
+                      ? translateStaticUiCopy(staticUiLocale, "Unarchive")
+                      : translateStaticUiCopy(staticUiLocale, "Archive")}
                   </Button>
                 }
               />
@@ -565,21 +597,27 @@ function ProjectDetail({
         <ProjectDefaultsSettings category="project" />
         <ProjectActionsSettings />
         {hasMultipleCheckouts ? checkoutChoices : null}
-        <SettingsSection title="Danger">
+        <SettingsSection title={t("projectSettings.section.danger")}>
           <SettingsRow
             title={
               hasOtherMembers
-                ? "Remove checkout"
+                ? translateStaticUiCopy(staticUiLocale, "Remove checkout")
                 : group.memberProjects.length > 1
-                  ? "Remove this project everywhere"
-                  : "Remove project"
+                  ? translateStaticUiCopy(staticUiLocale, "Remove this project everywhere")
+                  : translateStaticUiCopy(staticUiLocale, "Remove project")
             }
             description={
               hasOtherMembers
-                ? "Deletes the selected machine's checkout entries and their threads. Other machines and files on disk are not touched."
+                ? translateStaticUiCopy(
+                    staticUiLocale,
+                    "Deletes the selected machine's checkout entries and their threads. Other machines and files on disk are not touched.",
+                  )
                 : group.memberProjects.length > 1
                   ? `Deletes all ${group.memberProjects.length} checkout entries and their threads on every machine. Files on disk are not touched.`
-                  : "Deletes the project entry and its threads. Files on disk are not touched."
+                  : translateStaticUiCopy(
+                      staticUiLocale,
+                      "Deletes the project entry and its threads. Files on disk are not touched.",
+                    )
             }
             control={
               <Button
@@ -590,10 +628,10 @@ function ProjectDetail({
               >
                 <Trash2Icon />
                 {hasOtherMembers
-                  ? "Remove checkout"
+                  ? translateStaticUiCopy(staticUiLocale, "Remove checkout")
                   : group.memberProjects.length > 1
-                    ? "Remove all entries"
-                    : "Remove project"}
+                    ? translateStaticUiCopy(staticUiLocale, "Remove all entries")
+                    : translateStaticUiCopy(staticUiLocale, "Remove project")}
               </Button>
             }
           />

@@ -1,3 +1,7 @@
+import type { ResolvedAppLocale } from "@t3tools/shared/appLocale";
+import { useI18n, splitWebTranslation } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
+
 import {
   type AuthMcpApprovalDecision,
   type AuthMcpApprovalDetails,
@@ -57,6 +61,7 @@ function runApproval<A>(
   call: (
     client: Context.Service.Shape<typeof PrimaryEnvironmentHttpClient>,
   ) => Effect.Effect<A | { readonly redirectTo: string }, unknown>,
+  locale: ResolvedAppLocale,
 ): Promise<Answer<A>> {
   return runPrimaryHttp(
     PrimaryEnvironmentHttpClient.pipe(
@@ -69,11 +74,11 @@ function runApproval<A>(
       Effect.catch((error) =>
         Effect.succeed<Answer<A>>({
           kind: "error",
-          message: isApprovalError(error) ? error.message : UNREACHABLE,
+          message: isApprovalError(error) ? error.message : translateWebSource(locale, UNREACHABLE),
         }),
       ),
     ),
-  ).catch((): Answer<A> => ({ kind: "error", message: UNREACHABLE }));
+  ).catch((): Answer<A> => ({ kind: "error", message: translateWebSource(locale, UNREACHABLE) }));
 }
 
 const decodeAuthorizationRequest = Schema.decodeSync(AuthMcpAuthorizationRequest);
@@ -88,6 +93,9 @@ function oneClickApproves(details: AuthMcpApprovalDetails, access: AuthMcpClient
 }
 
 export function ConnectAgentSurface() {
+  const { t, locale } = useI18n();
+  const tx = (source: string) => translateWebSource(locale, source);
+
   const [authorization] = useState(readAuthorizationRequest);
   const [loaded, setLoaded] = useState<Loaded>({ status: "loading" });
   const [access, setAccess] = useState<AuthMcpClientAccess>("read-only");
@@ -98,7 +106,7 @@ export function ConnectAgentSurface() {
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- fetches the MCP OAuth approval and redirects the window or stores details, ignoring stale answers
   useEffect(() => {
     let cancelled = false;
-    void runApproval((client) => client.mcpOAuth.approval({ payload: authorization })).then(
+    void runApproval((client) => client.mcpOAuth.approval({ payload: authorization }), locale).then(
       (answer) => {
         if (cancelled) return;
         if (answer.kind === "redirect") {
@@ -115,7 +123,7 @@ export function ConnectAgentSurface() {
     return () => {
       cancelled = true;
     };
-  }, [authorization]);
+  }, [authorization, locale]);
 
   const decide = async (choice: "approve" | "deny") => {
     if (loaded.status !== "ready") return;
@@ -128,23 +136,26 @@ export function ConnectAgentSurface() {
         : csrfToken !== undefined && oneClickApproves(loaded.details, access)
           ? { _tag: "browser-session", access, csrfToken }
           : { _tag: "pairing-code", access, code: pairingCode.trim() };
-    const answer = await runApproval((client) =>
-      client.mcpOAuth.decision({ payload: { authorization, decision } }),
+    const answer = await runApproval(
+      (client) => client.mcpOAuth.decision({ payload: { authorization, decision } }),
+      locale,
     );
     if (answer.kind === "redirect") {
       window.location.replace(answer.url);
       return;
     }
     setPending(null);
-    setErrorMessage(answer.kind === "error" ? answer.message : "The sign-in could not continue.");
+    setErrorMessage(
+      answer.kind === "error" ? answer.message : tx("The sign-in could not continue."),
+    );
   };
 
   if (loaded.status === "loading") {
     return (
       <StandalonePage>
         <ConnectAgentHeading
-          title="Checking the sign-in request"
-          description="One moment while this environment verifies the agent's request."
+          title={tx("Checking the sign-in request")}
+          description={tx("One moment while this environment verifies the agent's request.")}
         />
         <Spinner className="mt-6" size="lg" tone="muted" />
       </StandalonePage>
@@ -154,40 +165,52 @@ export function ConnectAgentSurface() {
   if (loaded.status === "invalid") {
     return (
       <StandalonePage>
-        <ConnectAgentHeading title="This sign-in cannot continue" description={loaded.message} />
+        <ConnectAgentHeading
+          title={tx("This sign-in cannot continue")}
+          description={loaded.message}
+        />
         <p className="mt-4 text-sm text-muted-foreground">
-          Close this page and start the sign-in again from your agent.
+          {tx("Close this page and start the sign-in again from your agent.")}
         </p>
       </StandalonePage>
     );
   }
 
   const { details } = loaded;
+  const [beforeHost, afterHost] = splitWebTranslation(t, "connectAgent.requestDescription", "host");
+  const [beforeRedirect, afterRedirect] = splitWebTranslation(
+    t,
+    "connectAgent.remoteWarning",
+    "host",
+  );
+  const [beforeCommand, afterCommand] = splitWebTranslation(
+    t,
+    "connectAgent.pairingHelp",
+    "command",
+  );
   const oneClick = oneClickApproves(details, access);
   const canApprove = pending === null && (oneClick || pairingCode.trim().length > 0);
 
   return (
     <StandalonePage>
       <ConnectAgentHeading
-        title={`Connect ${details.clientName}`}
+        title={t("connectAgent.title", { client: details.clientName })}
         description={
           <>
-            This agent wants to use the threads in every project on{" "}
-            <span className="font-medium text-foreground">{details.environmentHost}</span>.
+            {beforeHost}
+            <span className="font-medium text-foreground">{details.environmentHost}</span>
+            {afterHost}
           </>
         }
       />
       <p className="mt-2 text-xs text-muted-foreground">
         {redirectsToThisComputer(details.redirectHost) ? (
-          <>
-            The name is chosen by the agent. Approval returns to {details.redirectHost} on the
-            computer that opened this page. Only approve a sign-in you just started.
-          </>
+          <>{t("connectAgent.localWarning", { host: details.redirectHost })}</>
         ) : (
           <>
-            The name is chosen by the agent. Approval gives access to whoever runs{" "}
-            <span className="font-medium text-foreground">{details.redirectHost}</span>. Only
-            approve a sign-in you just started there.
+            {beforeRedirect}
+            <span className="font-medium text-foreground">{details.redirectHost}</span>
+            {afterRedirect}
           </>
         )}
       </p>
@@ -201,7 +224,7 @@ export function ConnectAgentSurface() {
       >
         <div className="space-y-2">
           <span id="connect-agent-access-label" className="text-sm font-medium">
-            What it may do
+            {tx("What it may do")}
           </span>
           <RadioGroup
             aria-labelledby="connect-agent-access-label"
@@ -213,15 +236,16 @@ export function ConnectAgentSurface() {
             ))}
           </RadioGroup>
           <p className="text-xs text-muted-foreground">
-            Beyond read only, it can start, message and stop threads, and none of them can run with
-            more than the mode you pick.
+            {tx(
+              "Beyond read only, it can start, message and stop threads, and none of them can run with more than the mode you pick.",
+            )}
           </p>
         </div>
 
         {oneClick ? null : (
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="connect-agent-pairing-code">
-              Pairing code
+              {tx("Pairing code")}
             </label>
             <Input
               id="connect-agent-pairing-code"
@@ -231,13 +255,14 @@ export function ConnectAgentSurface() {
               disabled={pending !== null}
               nativeInput
               onChange={(event) => setPairingCode(event.currentTarget.value)}
-              placeholder="Paste a one-time pairing code"
+              placeholder={tx("Paste a one-time pairing code")}
               spellCheck={false}
               value={pairingCode}
             />
             <p className="text-xs text-muted-foreground">
-              Create one in Settings → Sharing & access, or run <code>t3 auth pairing create</code>{" "}
-              on this machine.
+              {beforeCommand}
+              <code>t3 auth pairing create</code>
+              {afterCommand}
             </p>
           </div>
         )}
@@ -250,7 +275,7 @@ export function ConnectAgentSurface() {
 
         <div className="flex flex-wrap gap-2">
           <Button disabled={!canApprove} type="submit">
-            {pending === "approve" ? "Approving…" : "Approve"}
+            {pending === "approve" ? tx("Approving…") : tx("Approve")}
           </Button>
           <Button
             disabled={pending !== null}
@@ -258,7 +283,7 @@ export function ConnectAgentSurface() {
             type="button"
             variant="outline"
           >
-            {pending === "deny" ? "Denying…" : "Deny"}
+            {pending === "deny" ? tx("Denying…") : tx("Deny")}
           </Button>
         </div>
       </form>
@@ -273,7 +298,11 @@ function ConnectAgentHeading({
   readonly title: string;
   readonly description: ReactNode;
 }) {
-  return <StandalonePageHeader context="Agent sign-in" title={title} description={description} />;
+  const { locale } = useI18n();
+  const tx = (source: string) => translateWebSource(locale, source);
+  return (
+    <StandalonePageHeader context={tx("Agent sign-in")} title={title} description={description} />
+  );
 }
 
 function AccessOption({
@@ -283,6 +312,8 @@ function AccessOption({
   readonly access: AuthMcpClientAccess;
   readonly selected: boolean;
 }) {
+  const { locale } = useI18n();
+  const tx = (source: string) => translateWebSource(locale, source);
   const { label, description, icon: Icon } = accessConfig[access];
   return (
     <RadioPrimitive.Root
@@ -303,8 +334,8 @@ function AccessOption({
         )}
       />
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-foreground">{label}</span>
-        <span className="block text-xs text-muted-foreground">{description}</span>
+        <span className="block text-sm font-medium text-foreground">{tx(label)}</span>
+        <span className="block text-xs text-muted-foreground">{tx(description)}</span>
       </span>
     </RadioPrimitive.Root>
   );

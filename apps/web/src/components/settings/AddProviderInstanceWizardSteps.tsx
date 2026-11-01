@@ -1,4 +1,6 @@
+import { translateWebSource } from "../../i18n/messages";
 import { WizardSteps } from "../ui/wizard";
+import { useI18n } from "../../i18n/WebI18nContext";
 import {
   ADD_PROVIDER_WIZARD_STEPS,
   resolveWizardNavigation,
@@ -29,9 +31,10 @@ export function AddProviderInstanceWizardSteps({
   onNavigation,
   disabled = false,
 }: AddProviderInstanceWizardStepsProps) {
+  const { locale } = useI18n();
   return (
     <WizardSteps
-      steps={steps}
+      steps={steps.map((step) => translateWebSource(locale, step))}
       currentStep={currentStep}
       summaries={summaries}
       isStepDisabled={() => disabled}

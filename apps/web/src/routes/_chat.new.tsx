@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { parseNewThreadLink } from "@t3tools/shared/promptLinks";
 import { createFileRoute, useLocation } from "@tanstack/react-router";
 import { NewThreadLinkView } from "../components/promptLinks/NewThreadLinkView";
@@ -6,6 +8,7 @@ import { SidebarInset } from "../components/ui/sidebar";
 
 // The query is read raw: the router's own search parsing turns `prompt=123` into a number.
 function NewThreadLinkRoute() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const search = useLocation({ select: (location) => location.searchStr });
   const parsed = parseNewThreadLink(search);
   if (!parsed.ok) {
@@ -13,7 +16,9 @@ function NewThreadLinkRoute() {
       <SidebarInset className="h-dvh min-h-0 overflow-hidden overscroll-y-none">
         <Empty className="flex-1">
           <EmptyHeader className="max-w-md">
-            <EmptyTitle>Could not open the link</EmptyTitle>
+            <EmptyTitle>
+              {translateStaticUiCopy(staticUiLocale, "Could not open the link")}
+            </EmptyTitle>
             <EmptyDescription>{parsed.error}</EmptyDescription>
           </EmptyHeader>
         </Empty>

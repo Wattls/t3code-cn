@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import type { ChatComposerProps } from "./ChatComposer";
 import {
   type ChatFileAttachment,
@@ -83,6 +85,8 @@ export function useComposerAttachmentIntake(input: {
     selection?: { start: number; end: number },
   ) => boolean;
 }) {
+  const { locale: releaseLocale } = useI18n();
+
   const {
     activeThreadId,
     activePendingProgress,
@@ -129,7 +133,7 @@ export function useComposerAttachmentIntake(input: {
     ) {
       toastManager.add({
         type: "error",
-        title: "This question cannot accept attachments.",
+        title: translateWebSource(releaseLocale, "This question cannot accept attachments."),
       });
       return false;
     }
@@ -397,8 +401,11 @@ export function useComposerAttachmentIntake(input: {
       }
       toastManager.add({
         type: "error",
-        title: "Pasted text is too large for this message",
-        description: "Remove some text or an attachment, then paste again.",
+        title: translateWebSource(releaseLocale, "Pasted text is too large for this message"),
+        description: translateWebSource(
+          releaseLocale,
+          "Remove some text or an attachment, then paste again.",
+        ),
         data: { hideCopyButton: true },
       });
       return true;
@@ -419,8 +426,11 @@ export function useComposerAttachmentIntake(input: {
       if (!wouldExceedInputLimit) return false;
       toastManager.add({
         type: "error",
-        title: "Pasted text is too large to attach",
-        description: "Reduce the clipboard contents or save a smaller excerpt as a file.",
+        title: translateWebSource(releaseLocale, "Pasted text is too large to attach"),
+        description: translateWebSource(
+          releaseLocale,
+          "Reduce the clipboard contents or save a smaller excerpt as a file.",
+        ),
         data: { hideCopyButton: true },
       });
       return true;

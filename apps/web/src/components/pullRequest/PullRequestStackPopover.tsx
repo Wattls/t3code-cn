@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { Tooltip, TooltipTrigger, TooltipPopup } from "../ui/tooltip";
 import type { EnvironmentId, PullRequestRef, PullRequestStackMembership } from "@t3tools/contracts";
 import { useState } from "react";
@@ -19,6 +21,7 @@ function StackBody({
   onSelect: (reference: PullRequestRef) => void;
   stackNumber: number;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const query = usePullRequestStack(environmentId, reference);
   if (query.data !== null) {
     return (
@@ -28,7 +31,11 @@ function StackBody({
           notice={query.notice}
           stale={!!query.error}
         />
-        {query.error ? <MenuItem onClick={query.refresh}>Retry stack refresh</MenuItem> : null}
+        {query.error ? (
+          <MenuItem onClick={query.refresh}>
+            {translateStaticUiCopy(staticUiLocale, "Retry stack refresh")}
+          </MenuItem>
+        ) : null}
         <PullRequestStackLayers stack={query.data} reference={reference} onSelect={onSelect} />
       </>
     );
@@ -55,6 +62,7 @@ export function PullRequestStackPopover({
   membership: PullRequestStackMembership;
   onSelect: (reference: PullRequestRef) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [open, setOpen] = useState(false);
   return (
     <Menu open={open} onOpenChange={setOpen}>
@@ -80,7 +88,12 @@ export function PullRequestStackPopover({
           }
         />
         <TooltipPopup>
-          View stack #{membership.number}, layer {membership.position} of {membership.size}
+          {translateStaticUiCopy(staticUiLocale, "View stack #")}
+          {membership.number}
+          {translateStaticUiCopy(staticUiLocale, ", layer") + " "}
+          {membership.position}
+          {" " + translateStaticUiCopy(staticUiLocale, "of") + " "}
+          {membership.size}
         </TooltipPopup>
       </Tooltip>
       <MenuPopup

@@ -37,6 +37,18 @@ const state = vi.hoisted(() => ({
   sessionLookupFails: false,
 }));
 
+vi.mock("../i18n/WebI18nContext", async () => {
+  const { translateWebMessage } = await import("../i18n/messages");
+  return {
+    useI18n: () => ({
+      t: (
+        key: Parameters<typeof translateWebMessage>[1],
+        values?: Parameters<typeof translateWebMessage>[2],
+      ) => translateWebMessage("en", key, values),
+    }),
+  };
+});
+
 vi.mock("react", () => ({
   useCallback: (callback: unknown) => callback,
   useMemo: (factory: () => unknown) => factory(),

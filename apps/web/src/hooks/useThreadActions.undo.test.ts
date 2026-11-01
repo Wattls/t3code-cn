@@ -35,6 +35,17 @@ vi.mock("react", async (original) => ({
 }));
 vi.mock("@tanstack/react-router", () => ({ useRouter: () => router }));
 vi.mock("./useSettings", () => ({ useClientSettings: () => false }));
+vi.mock("../i18n/WebI18nContext", async () => {
+  const { translateWebMessage } = await import("../i18n/messages");
+  return {
+    useI18n: () => ({
+      t: (
+        key: import("../i18n/messages").WebMessageKey,
+        values?: import("../i18n/messages").WebMessageValues,
+      ) => translateWebMessage("en", key, values),
+    }),
+  };
+});
 vi.mock("./useHandleNewThread", () => ({
   useNewThreadHandler: () => async () => {
     router.state.location.href = "/draft/project";

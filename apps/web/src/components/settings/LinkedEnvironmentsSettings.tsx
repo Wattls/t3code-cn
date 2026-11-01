@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useAtomValue } from "@effect/atom-react";
 import { linkRequestFailureMessage } from "@t3tools/client-runtime/link-request";
 import {
@@ -58,6 +60,7 @@ export function LinkedEnvironmentsSettings({
   readonly environmentLabel: string | null;
   readonly isSearchTarget: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const links = useEnvironmentQuery(peerLinkEnvironment.list({ environmentId, input: {} }));
   const canLink = useAtomValue(peerLinkEnvironment.link.permissionAtom(environmentId));
   const search = searchableSetting("linked-environments");
@@ -68,13 +71,22 @@ export function LinkedEnvironmentsSettings({
       headerAction={canLink ? <LinkEnvironmentAction environmentId={environmentId} /> : null}
     >
       {links.error ? (
-        <SettingsRow title="Could not load linked environments" description={links.error} />
+        <SettingsRow
+          title={translateStaticUiCopy(staticUiLocale, "Could not load linked environments")}
+          description={links.error}
+        />
       ) : !links.data ? (
-        <SettingsRow title="Loading linked environments…" role="status" />
+        <SettingsRow
+          title={translateStaticUiCopy(staticUiLocale, "Loading linked environments…")}
+          role="status"
+        />
       ) : links.data.links.length === 0 ? (
         <SettingsRow
-          title="No linked environments"
-          description="Link another machine running T3 Code, such as a VPS, so agents here can launch and drive threads there."
+          title={translateStaticUiCopy(staticUiLocale, "No linked environments")}
+          description={translateStaticUiCopy(
+            staticUiLocale,
+            "Link another machine running T3 Code, such as a VPS, so agents here can launch and drive threads there.",
+          )}
         />
       ) : (
         links.data.links.map((link) => (
@@ -96,9 +108,12 @@ function LinkedEnvironmentRow({
   readonly environmentId: EnvironmentId;
   readonly link: PeerLinkSummary;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const nowMinute = useNowMinute();
   const health = peerLinkHealth(link, DateTime.makeUnsafe(nowMinute));
-  const unlink = useAtomCommand(peerLinkEnvironment.unlink, { label: "unlink environment" });
+  const unlink = useAtomCommand(peerLinkEnvironment.unlink, {
+    label: translateStaticUiCopy(staticUiLocale, "unlink environment"),
+  });
   const canUnlink = useAtomValue(peerLinkEnvironment.unlink.permissionAtom(environmentId));
   const [busy, setBusy] = useState(false);
   const forget = async () => {
@@ -157,7 +172,9 @@ function LinkedEnvironmentRow({
               disabled={busy}
               onClick={() => void forget()}
             >
-              {busy ? "Forgetting…" : "Forget"}
+              {busy
+                ? translateStaticUiCopy(staticUiLocale, "Forgetting…")
+                : translateStaticUiCopy(staticUiLocale, "Forget")}
             </Button>
           </div>
         ) : null}
@@ -167,6 +184,7 @@ function LinkedEnvironmentRow({
 }
 
 function LinkEnvironmentAction({ environmentId }: { readonly environmentId: EnvironmentId }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const [open, setOpen] = useState(false);
   const machines = useLinkableMachines(environmentId, open);
   // Null until the user picks; with no other machines known, only an address is left.
@@ -180,7 +198,9 @@ function LinkEnvironmentAction({ environmentId }: { readonly environmentId: Envi
   // Enter then a click can both run before a re-render; this guard is synchronous.
   const inFlight = useRef(false);
   const formId = useId();
-  const link = useAtomCommand(peerLinkEnvironment.link, { label: "link environment" });
+  const link = useAtomCommand(peerLinkEnvironment.link, {
+    label: translateStaticUiCopy(staticUiLocale, "link environment"),
+  });
   const selected = choice ?? (machines.length === 0 ? ANOTHER_ADDRESS : null);
   const machine = machines.find((candidate) => candidate.environmentId === selected) ?? null;
   // This client can mint a code there when it is connected to that
@@ -258,16 +278,18 @@ function LinkEnvironmentAction({ environmentId }: { readonly environmentId: Envi
         render={
           <Button size="xs" variant="default">
             <PlusIcon className="size-3" />
-            Link
+            {translateStaticUiCopy(staticUiLocale, "Link")}
           </Button>
         }
       />
       <DialogPopup className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Link an environment</DialogTitle>
+          <DialogTitle>{translateStaticUiCopy(staticUiLocale, "Link an environment")}</DialogTitle>
           <DialogDescription>
-            Agents here can then launch, message and wait on threads there. It appears in that
-            environment's Connections, where it can be revoked.
+            {translateStaticUiCopy(
+              staticUiLocale,
+              "Agents here can then launch, message and wait on threads there. It appears in that environment's Connections, where it can be revoked.",
+            )}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>
@@ -290,12 +312,17 @@ function LinkEnvironmentAction({ environmentId }: { readonly environmentId: Envi
             ) : null}
             {machine?.linked ? (
               <p className="text-xs text-muted-foreground">
-                Already linked. Linking again renews it with the access you pick.
+                {translateStaticUiCopy(
+                  staticUiLocale,
+                  "Already linked. Linking again renews it with the access you pick.",
+                )}
               </p>
             ) : null}
             {needsAddress ? (
               <label className="block space-y-1.5">
-                <span className="block text-xs font-medium text-foreground">Address</span>
+                <span className="block text-xs font-medium text-foreground">
+                  {translateStaticUiCopy(staticUiLocale, "Address")}
+                </span>
                 <Input
                   value={address}
                   onChange={(event) => {
@@ -311,22 +338,32 @@ function LinkEnvironmentAction({ environmentId }: { readonly environmentId: Envi
                 />
                 {machine !== null ? (
                   <span className="block text-xs text-muted-foreground">
-                    This app has no address for {machine.label} that another machine can reach.
-                    Enter its https or Tailscale address.
+                    {translateStaticUiCopy(staticUiLocale, "This app has no address for") + " "}
+                    {machine.label}
+                    {" " +
+                      translateStaticUiCopy(
+                        staticUiLocale,
+                        "that another machine can reach. Enter its https or Tailscale address.",
+                      )}
                   </span>
                 ) : null}
               </label>
             ) : null}
             {selected === null || canMint ? null : (
               <label className="block space-y-1.5">
-                <span className="block text-xs font-medium text-foreground">Pairing code</span>
+                <span className="block text-xs font-medium text-foreground">
+                  {translateStaticUiCopy(staticUiLocale, "Pairing code")}
+                </span>
                 <Input
                   value={pairingCode}
                   onChange={(event) => setPairingCode(event.target.value)}
                   placeholder={
                     machine === null
-                      ? "From that environment's Connections, or t3 pair there"
-                      : "Paste the code"
+                      ? translateStaticUiCopy(
+                          staticUiLocale,
+                          "From that environment's Connections, or t3 pair there",
+                        )
+                      : translateStaticUiCopy(staticUiLocale, "Paste the code")
                   }
                   disabled={busy}
                   autoComplete="one-time-code"
@@ -335,8 +372,12 @@ function LinkEnvironmentAction({ environmentId }: { readonly environmentId: Envi
                 />
                 {machine !== null ? (
                   <span className="block text-xs text-muted-foreground">
-                    Create a link on {machine.label}: Settings → Connections → Create link, then
-                    paste its code here.
+                    {translateStaticUiCopy(staticUiLocale, "Create a link on") + " "}
+                    {machine.label}
+                    {translateStaticUiCopy(
+                      staticUiLocale,
+                      ": Settings → Connections → Create link, then paste its code here.",
+                    )}
                   </span>
                 ) : null}
               </label>
@@ -346,10 +387,12 @@ function LinkEnvironmentAction({ environmentId }: { readonly environmentId: Envi
         </DialogPanel>
         <DialogFooter variant="bare">
           <DialogClose disabled={busy} render={<Button variant="outline" type="button" />}>
-            Cancel
+            {translateStaticUiCopy(staticUiLocale, "Cancel")}
           </DialogClose>
           <Button form={formId} type="submit" disabled={busy || !ready}>
-            {busy ? "Linking…" : "Link"}
+            {busy
+              ? translateStaticUiCopy(staticUiLocale, "Linking…")
+              : translateStaticUiCopy(staticUiLocale, "Link")}
           </Button>
         </DialogFooter>
       </DialogPopup>

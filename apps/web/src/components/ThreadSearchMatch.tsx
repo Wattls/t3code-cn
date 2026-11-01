@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   findSearchTokenRanges,
   splitSearchText,
@@ -36,11 +38,14 @@ export function ThreadSearchMatchExcerpt(props: {
     readonly query: string;
   };
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const isUser = props.match.source === "user";
   return (
     <span className="truncate text-xs text-muted-foreground/85">
       <span className={isUser ? "text-info-foreground" : "text-success-foreground"}>
-        {isUser ? "You:" : "Agent:"}
+        {isUser
+          ? translateStaticUiCopy(staticUiLocale, "You:")
+          : translateStaticUiCopy(staticUiLocale, "Agent:")}
       </span>{" "}
       <HighlightedSearchText
         text={props.match.snippet}

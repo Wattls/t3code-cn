@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { AuthMcpClientAccess } from "@t3tools/contracts";
 import { useId } from "react";
 
@@ -14,12 +16,13 @@ export function LinkAccessPicker({
   readonly onChange: (access: AuthMcpClientAccess) => void;
   readonly disabled?: boolean;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const labelId = useId();
   const selected = accessConfig[value];
   return (
     <div className="space-y-1.5">
       <span id={labelId} className="block text-xs font-medium">
-        What agents here may do there
+        {translateStaticUiCopy(staticUiLocale, "What agents here may do there")}
       </span>
       <Select
         value={value}
@@ -54,9 +57,12 @@ export function LinkAccessPicker({
         </SelectPopup>
       </Select>
       <p className="text-xs text-muted-foreground">
-        {selected.description} An agent never gets more access there than its own mode here. Below
-        full access, it can change only threads this link started, not that machine's own threads,
-        projects or settings.
+        {selected.description}
+        {" " +
+          translateStaticUiCopy(
+            staticUiLocale,
+            "An agent never gets more access there than its own mode here. Below full access, it can change only threads this link started, not that machine's own threads, projects or settings.",
+          )}
       </p>
     </div>
   );

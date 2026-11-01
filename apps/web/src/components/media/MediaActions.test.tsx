@@ -35,6 +35,7 @@ vi.mock("react", async (importOriginal) => ({
   useState: <A,>(initial: A) => [initial, () => {}],
 }));
 vi.mock("../../hooks/useCopyToClipboard", () => ({ writeTextToClipboard: state.copyText }));
+vi.mock("../../i18n/WebI18nContext", () => ({ useI18n: () => ({ locale: "en" }) }));
 vi.mock("../../localApi", () => ({
   readLocalApi: () => ({ contextMenu: { show: state.showMenu } }),
 }));

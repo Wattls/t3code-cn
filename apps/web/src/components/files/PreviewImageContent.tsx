@@ -1,3 +1,7 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import { useLayoutEffect, useRef, useState } from "react";
 import { MaximizeIcon, MinusIcon, PlusIcon, ScanIcon } from "lucide-react";
 import { ExpandedImageDialog } from "~/components/chat/ExpandedImageDialog";
@@ -11,6 +15,8 @@ export default function PreviewImageContent(props: {
   readonly mimeType?: string;
   readonly onError?: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: previewLocale } = useI18n();
   const [failed, setFailed] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [natural, setNatural] = useState({ width: 0, height: 0 });
@@ -41,11 +47,11 @@ export default function PreviewImageContent(props: {
         <span className="tabular-nums">
           {natural.width
             ? `${natural.width.toLocaleString()} × ${natural.height.toLocaleString()}`
-            : "Loading image…"}
+            : translateStaticUiCopy(staticUiLocale, "Loading image…")}
         </span>
         <div className="flex items-center gap-1">
           <FileSurfaceAction
-            label="Zoom out"
+            label={translateWebSource(previewLocale, "Zoom out")}
             disabled={!natural.width || scale <= 0.05}
             onPress={() => changeZoom(1 / 1.25)}
           >
@@ -53,21 +59,21 @@ export default function PreviewImageContent(props: {
           </FileSurfaceAction>
           <span className="min-w-10 text-center tabular-nums">{Math.round(scale * 100)}%</span>
           <FileSurfaceAction
-            label="Zoom in"
+            label={translateWebSource(previewLocale, "Zoom in")}
             disabled={!natural.width || scale >= 8}
             onPress={() => changeZoom(1.25)}
           >
             <PlusIcon className="size-3.5" />
           </FileSurfaceAction>
           <FileSurfaceAction
-            label="Fit image"
+            label={translateWebSource(previewLocale, "Fit image")}
             pressed={zoom === null}
             onPress={() => setZoom(null)}
           >
             <ScanIcon className="size-3.5" />
           </FileSurfaceAction>
           <FileSurfaceAction
-            label="Actual image size"
+            label={translateWebSource(previewLocale, "Actual image size")}
             pressed={zoom === 1}
             onPress={() => setZoom(1)}
           >

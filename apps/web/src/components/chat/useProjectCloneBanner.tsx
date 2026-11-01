@@ -1,3 +1,5 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { translateWebSource } from "~/i18n/messages";
 import { useStableCallback } from "../../hooks/useStableCallback";
 import {
   isAtomCommandInterrupted,
@@ -23,6 +25,8 @@ import { Button } from "../ui/button";
  * retry, and remove actions, and the reason sending waits until it is done.
  */
 export function useProjectCloneBanner(activeProjectRef: ScopedProjectRef | null) {
+  const { locale: uiLocale } = useI18n();
+
   const activeProjectClone = useProjectClone(activeProjectRef);
   const cancelProjectClone = useAtomCommand(sourceControlEnvironment.cancelProjectClone, {
     reportFailure: false,
@@ -51,9 +55,9 @@ export function useProjectCloneBanner(activeProjectRef: ScopedProjectRef | null)
   const activeProjectFileCopy = useProjectFileCopy(activeProjectRef);
   const projectCloneSendBlockReason =
     activeProjectClone?.phase === "running"
-      ? "Cloning repository"
+      ? translateWebSource(uiLocale, "Cloning repository")
       : activeProjectClone !== null && activeProjectClone.phase !== "done"
-        ? "Repository not cloned"
+        ? translateWebSource(uiLocale, "Repository not cloned")
         : activeProjectFileCopy?.phase === "copying"
           ? "Copying files"
           : null;
@@ -90,7 +94,7 @@ export function useProjectCloneBanner(activeProjectRef: ScopedProjectRef | null)
               )
             }
           >
-            Cancel
+            {translateWebSource(uiLocale, "Cancel")}
           </Button>
         ),
       };
@@ -101,7 +105,9 @@ export function useProjectCloneBanner(activeProjectRef: ScopedProjectRef | null)
       variant: cancelled ? "warning" : "error",
       icon: <DownloadIcon />,
       title: cancelled ? `Cancelled cloning ${name}` : `Failed to clone ${name}`,
-      description: cancelled ? "Retry to bring in the repository." : activeProjectClone.error,
+      description: cancelled
+        ? translateWebSource(uiLocale, "Retry to bring in the repository.")
+        : activeProjectClone.error,
       actions: (
         <>
           <Button
@@ -109,7 +115,7 @@ export function useProjectCloneBanner(activeProjectRef: ScopedProjectRef | null)
             variant="ghost"
             onClick={() => void removeClonedProject({ environmentId, projectId })}
           >
-            Remove project
+            {translateWebSource(uiLocale, "Remove project")}
           </Button>
           <Button
             size="xs"
@@ -120,7 +126,7 @@ export function useProjectCloneBanner(activeProjectRef: ScopedProjectRef | null)
               )
             }
           >
-            Retry
+            {translateWebSource(uiLocale, "Retry")}
           </Button>
         </>
       ),

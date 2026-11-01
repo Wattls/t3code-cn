@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
   SecretReference,
   type EnvironmentId,
@@ -79,6 +81,7 @@ export function SecretSourceInput({
   children,
   ...rest
 }: SecretSourceInputProps) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   // A provider picked here applies once a reference for it is committed.
   const [pendingProvider, setPendingProvider] = useState<SecretProviderId | null>(null);
   const [rejectedReference, setRejectedReference] = useState<string | null>(null);
@@ -113,7 +116,11 @@ export function SecretSourceInput({
           size="sm"
           className="w-auto min-w-0 shrink-0"
           aria-label={`${label} source`}
-          title={provider === null ? "Value" : providerLabel(provider)}
+          title={
+            provider === null
+              ? translateStaticUiCopy(staticUiLocale, "Value")
+              : providerLabel(provider)
+          }
         >
           <SelectValue>
             <SourceIcon icon={provider === null ? TypeIcon : providerIcon(provider)} />
@@ -121,7 +128,7 @@ export function SecretSourceInput({
         </SelectTrigger>
         <SelectPopup align="start" alignItemWithTrigger={false}>
           <SelectItem value={STORED_VALUE}>
-            <SourceLabel icon={TypeIcon} label="Value" />
+            <SourceLabel icon={TypeIcon} label={translateStaticUiCopy(staticUiLocale, "Value")} />
           </SelectItem>
           {sources.map((source) => (
             <SelectItem key={source.id} value={source.id}>

@@ -15,15 +15,17 @@ import { projectEnvironment } from "~/state/projects";
 import { sourceControlEnvironment } from "~/state/sourceControl";
 import { useAtomCommand } from "~/state/use-atom-command";
 import { useNewThreadHandler } from "./useHandleNewThread";
+import { useI18n, type WebTranslate } from "~/i18n/WebI18nContext";
 import { suggestAppAccessForRemote } from "../components/sourceControlAppAccessToast";
 
-function errorMessage(error: unknown): string {
+function errorMessage(error: unknown, t: WebTranslate): string {
   return error instanceof Error && error.message.trim().length > 0
     ? error.message
-    : "An error occurred.";
+    : t("common.error");
 }
 
 export function useNewProject() {
+  const { t } = useI18n();
   const createNew = useAtomCommand(projectEnvironment.createNew, { reportFailure: false });
   const publishRepository = useAtomCommand(sourceControlEnvironment.publishRepository, {
     reportFailure: false,
@@ -50,8 +52,10 @@ export function useNewProject() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: `Could not create the ${label} repository`,
-            description: `${errorMessage(squashAtomCommandFailure(result))} Use Publish Repository in the Git menu to try again.`,
+            title: t("newProject.repositoryError", { provider: label }),
+            description: t("newProject.gitHubErrorDescription", {
+              error: errorMessage(squashAtomCommandFailure(result), t),
+            }),
           }),
         );
       }
@@ -60,7 +64,7 @@ export function useNewProject() {
     toastManager.add(
       stackedThreadToast({
         type: "success",
-        title: `Published to ${label}`,
+        title: t("newProject.publishedRepository", { provider: label }),
         description: result.value.repository.nameWithOwner,
       }),
     );
@@ -81,8 +85,8 @@ export function useNewProject() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not create the project",
-            description: errorMessage(squashAtomCommandFailure(result)),
+            title: t("newProject.createError"),
+            description: errorMessage(squashAtomCommandFailure(result), t),
           }),
         );
       }
@@ -93,11 +97,18 @@ export function useNewProject() {
     toastManager.add(
       stackedThreadToast(
         commitError === undefined
-          ? { type: "success", title: `Created ${input.name}`, description: workspaceRoot }
+          ? {
+              type: "success",
+              title: t("newProject.created", { name: input.name }),
+              description: workspaceRoot,
+            }
           : {
               type: "warning",
-              title: `Created ${input.name} without a first commit`,
-              description: `${commitError} The project is in ${workspaceRoot}.`,
+              title: t("newProject.createdWithoutCommit", { name: input.name }),
+              description: t("newProject.commitErrorDescription", {
+                error: commitError,
+                path: workspaceRoot,
+              }),
             },
       ),
     );
@@ -115,8 +126,8 @@ export function useNewProject() {
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Failed to open project",
-          description: `${errorMessage(error)} It will appear in the sidebar once this client catches up.`,
+          title: t("newProject.openError"),
+          description: t("newProject.openErrorDescription", { error: errorMessage(error, t) }),
         }),
       );
       return null;
@@ -126,8 +137,8 @@ export function useNewProject() {
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Failed to open project",
-          description: errorMessage(error),
+          title: t("newProject.openError"),
+          description: errorMessage(error, t),
         }),
       );
     });
