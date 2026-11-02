@@ -31,7 +31,7 @@ export function DeviceLoadingView(props: {
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {!props.error ? <Spinner size="xs" /> : null}
-          <span>{props.message}</span>
+          <span>{translateStaticUiCopy(staticUiLocale, props.message)}</span>
         </div>
         {props.children}
         {!props.error ? (

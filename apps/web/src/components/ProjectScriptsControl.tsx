@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "~/i18n/messages";
 import { ThreadDetailsControl } from "./chat/ThreadDetailsControl";
 import {
@@ -90,6 +92,7 @@ export default function ProjectScriptsControl({
   onUpdateScript,
   onDeleteScript,
 }: ProjectScriptsControlProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: uiLocale } = useI18n();
   const { t } = useI18n();
   const isPanel = displayMode === "panel";
@@ -215,7 +218,7 @@ export default function ProjectScriptsControl({
                   variant="ghost"
                   size="icon-xs"
                   className="size-6"
-                  aria-label={`Edit ${script.name}`}
+                  aria-label={translateFullUiCopy(fullUiLocale, `Edit ${script.name}`)}
                   onPointerDown={(event) => {
                     event.preventDefault();
                     event.stopPropagation();

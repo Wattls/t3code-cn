@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "~/i18n/messages";
 import { findErrorTraceId } from "@t3tools/client-runtime/errors";
 import {
@@ -91,6 +93,7 @@ export function CloudEnvironmentConnectRows({
     readonly onChange: (environmentId: EnvironmentId, selected: boolean) => void;
   };
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: uiLocale } = useI18n();
   const { t } = useI18n();
   const environmentsState = useRelayEnvironmentDiscovery();
@@ -161,7 +164,10 @@ export function CloudEnvironmentConnectRows({
           ? translateWebSource(uiLocale, "T3 Connect route added")
           : t("connectEnvironment.added"),
         description: savedWithoutRelay.has(environment.environmentId)
-          ? `${environment.label} falls back to T3 Connect when its other routes are unreachable.`
+          ? translateFullUiCopy(
+              fullUiLocale,
+              `${environment.label} falls back to T3 Connect when its other routes are unreachable.`,
+            )
           : `Connecting to ${environment.label} through T3 Connect.`,
       });
       return true;

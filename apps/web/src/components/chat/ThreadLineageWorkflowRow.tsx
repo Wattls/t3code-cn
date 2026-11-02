@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type {
@@ -66,6 +68,7 @@ function WorkflowMemberRow({
   onOpen: (threadId: string) => void;
   isThreadAvailable: (threadId: string) => boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const threadId = member.childThreadId;
   const canOpen = threadId !== null && isThreadAvailable(threadId);
   return (
@@ -76,7 +79,7 @@ function WorkflowMemberRow({
           render={
             <ThreadDetailsControl
               part="row"
-              aria-label={`Open ${member.title} chat`}
+              aria-label={translateFullUiCopy(fullUiLocale, `Open ${member.title} chat`)}
               disabled={!canOpen}
               onClick={() => canOpen && onOpen(threadId)}
             />
@@ -136,6 +139,7 @@ export function ThreadLineageWorkflowRow({
   readonly stopping: boolean;
   readonly stopDisabled: boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const [expanded, setExpanded] = useState(false);
   const [phaseOpen, setPhaseOpen] = useState<ReadonlyMap<number, boolean>>(() => new Map());
@@ -155,7 +159,7 @@ export function ThreadLineageWorkflowRow({
                     variant="ghost"
                     part="icon"
                     tone="destructive"
-                    aria-label={`Stop workflow ${label}`}
+                    aria-label={translateFullUiCopy(fullUiLocale, `Stop workflow ${label}`)}
                     disabled={stopDisabled}
                     onClick={onStop}
                   />
@@ -202,7 +206,10 @@ export function ThreadLineageWorkflowRow({
                   variant="panel"
                   tone={phase.state === "running" ? "emphasized" : "muted"}
                   expanded={open}
-                  aria-label={`${open ? "Collapse" : "Expand"} ${phase.title} phase, ${status}`}
+                  aria-label={translateFullUiCopy(
+                    fullUiLocale,
+                    `${open ? "Collapse" : "Expand"} ${phase.title} phase, ${status}`,
+                  )}
                   onClick={() => setPhaseOpen((phases) => new Map(phases).set(phase.index, !open))}
                   accessory={
                     <>

@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { SettingsGroup } from "./SettingsGroup";
@@ -262,13 +264,14 @@ export function SettingsUnavailableGroup({
   children: ReactNode;
   message?: ReactNode;
 }) {
+  const { locale } = useI18n();
   if (message === undefined) return children;
 
   return (
     <div className="border-border/60 bg-muted/20 py-1.5">
       <div className="flex items-start gap-2 px-3 py-2 text-xs leading-relaxed text-muted-foreground sm:px-4">
         <InfoIcon className="mt-0.5 size-3.5 shrink-0 text-warning" />
-        <p>{message}</p>
+        <p>{typeof message === "string" ? translateWebSource(locale, message) : message}</p>
       </div>
       <div className="[&_h3]:opacity-64 [&_p]:opacity-64">{children}</div>
     </div>
@@ -326,6 +329,7 @@ export function SettingsRow({
   mixed?: boolean;
   children?: ReactNode;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale } = useI18n();
   const targetRef = useSettingsSearchTarget<HTMLDivElement>(rowProps.id);
@@ -376,7 +380,7 @@ export function SettingsRow({
         label={
           typeof title === "string" ? title : translateStaticUiCopy(staticUiLocale, "override")
         }
-        tooltip="Reset to inherited value"
+        tooltip={translateFullUiCopy(fullUiLocale, "Reset to inherited value")}
         onClick={() => (onResetOverride ? onResetOverride() : clearOverrides(scopedKeys))}
       />
     ) : null
@@ -407,14 +411,17 @@ export function SettingsRow({
     unavailable && control
       ? inertControl(
           !canWriteSettings
-            ? `This connection lacks permission to change settings on ${
-                context
-                  ? context.connectedEnvironments
-                      .filter((target) => !writableIds.has(target.environmentId))
-                      .map((target) => target.label)
-                      .join(", ") || "the selected environment"
-                  : (primaryEnvironment?.label ?? "the primary environment")
-              }.`
+            ? translateFullUiCopy(
+                fullUiLocale,
+                `This connection lacks permission to change settings on ${
+                  context
+                    ? context.connectedEnvironments
+                        .filter((target) => !writableIds.has(target.environmentId))
+                        .map((target) => target.label)
+                        .join(", ") || "the selected environment"
+                    : (primaryEnvironment?.label ?? "the primary environment")
+                }.`,
+              )
             : context
               ? "Reconnect the selected environment to change this setting."
               : PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE,

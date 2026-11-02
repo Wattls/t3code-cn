@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { PermissionChecklist, PermissionContinueButton } from "../permissions/PermissionChecklist";
@@ -253,6 +255,7 @@ function FullDiskAccessStep({
   readonly onGranted: () => void;
   readonly stillRequired: boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const [opening, setOpening] = useState(false);
   const [openingError, setOpeningError] = useState<string | null>(null);
@@ -298,7 +301,10 @@ function FullDiskAccessStep({
                 />
               ),
               title: translateStaticUiCopy(staticUiLocale, "Full Disk Access"),
-              description: `Read ${source.name}'s cookies for this import.`,
+              description: translateFullUiCopy(
+                fullUiLocale,
+                `Read ${source.name}'s cookies for this import.`,
+              ),
               granted: permission.status.fullDiskAccess,
               onAllow: () => void allow(),
             },

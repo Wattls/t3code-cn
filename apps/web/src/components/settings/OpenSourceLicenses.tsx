@@ -1,3 +1,6 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { ChevronRightIcon, ExternalLinkIcon, SearchIcon } from "lucide-react";
@@ -37,7 +40,9 @@ const licenseManifestAtom = Atom.make(
     );
     if (response.status < 200 || response.status >= 300) {
       return yield* new LicenseManifestLoadError({
-        message: `The license manifest request failed with status ${String(response.status)}.`,
+        message: localizeBuiltInUi(
+          `The license manifest request failed with status ${String(response.status)}.`,
+        ),
       });
     }
     const body = yield* response.json;
@@ -73,6 +78,7 @@ function LicenseNoticeRow({
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
@@ -95,7 +101,10 @@ function LicenseNoticeRow({
           </CollapsibleTrigger>
           {entry.sourceUrl ? (
             <Button
-              aria-label={`View project source for ${entry.name}`}
+              aria-label={translateFullUiCopy(
+                fullUiLocale,
+                `View project source for ${entry.name}`,
+              )}
               className="me-3 shrink-0 sm:me-4"
               render={<a href={entry.sourceUrl} rel="noreferrer noopener" target="_blank" />}
               size="icon-micro"

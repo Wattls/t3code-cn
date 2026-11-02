@@ -1,6 +1,7 @@
 // @effect-diagnostics globalTimers:off -- Poll TCC only while the native permission helper is open.
 import * as Electron from "electron";
 import { MAC_PERMISSION_HELPER_CHANNEL } from "../ipc/channels.ts";
+import { localizeDesktopUiHtml, localizeDesktopUiText } from "../window/DesktopUiLocale.ts";
 
 import {
   settingsHelperBounds,
@@ -109,7 +110,7 @@ export class MacPermissionHelper {
       fullscreenable: false,
       alwaysOnTop: true,
       skipTaskbar: true,
-      title: `Set up ${MAC_PERMISSION_TITLES[permission]}`,
+      title: localizeDesktopUiText(`Set up ${MAC_PERMISSION_TITLES[permission]}`),
       webPreferences: { preload, sandbox: true, contextIsolation: true, nodeIntegration: false },
     });
     this.window = window;
@@ -192,7 +193,7 @@ export class MacPermissionHelper {
     window.webContents.on("will-navigate", (event) => event.preventDefault());
     try {
       await window.loadURL(
-        `data:text/html;charset=utf-8,${encodeURIComponent(helperHtml(permission, icon.toDataURL()))}`,
+        `data:text/html;charset=utf-8,${encodeURIComponent(localizeDesktopUiHtml(helperHtml(permission, icon.toDataURL())))}`,
       );
       if (!window.isDestroyed()) {
         stopTracking = watchMacSettingsWindow(

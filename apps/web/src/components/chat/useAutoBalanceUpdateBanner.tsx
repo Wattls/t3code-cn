@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useAtomValue } from "@effect/atom-react";
 import type { ServerUpdateState } from "@t3tools/client-runtime/state/server";
 import { useState } from "react";
@@ -28,6 +30,7 @@ import { ComposerServerUpdateIcon } from "./ComposerServerUpdateStatus";
 export function useAutoBalanceUpdateBanner(
   environments: readonly EnvironmentPresentation[],
 ): ComposerBannerStackItem | null {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const updateStates = useAtomValue(
     environmentUpdateStatesAtom(
       environmentIdsKey(environments.map(({ environmentId }) => environmentId)),
@@ -92,7 +95,7 @@ export function useAutoBalanceUpdateBanner(
         <PopoverTrigger
           render={<InlineButton />}
           className="max-w-full"
-          aria-label={`${title}. View machines`}
+          aria-label={translateFullUiCopy(fullUiLocale, `${title}. View machines`)}
         >
           <span className="min-w-0 truncate">{title}</span>
         </PopoverTrigger>
@@ -105,14 +108,16 @@ export function useAutoBalanceUpdateBanner(
                   <ServerUpdateProgress state={machine.state} />
                 ) : !machine.remoteUpdate ? (
                   <>
-                    <div className="text-muted-foreground">Manual update required</div>
+                    <div className="text-muted-foreground">
+                      {translateFullUiCopy(fullUiLocale, "Manual update required")}
+                    </div>
                     <ServerUpdateAction {...machine} />
                   </>
                 ) : (
                   <div className="text-muted-foreground">
                     {machine.connected
                       ? `Ready to update to ${machine.targetVersion}`
-                      : "Reconnect this machine to update"}
+                      : translateFullUiCopy(fullUiLocale, "Reconnect this machine to update")}
                   </div>
                 )}
               </div>
@@ -130,9 +135,9 @@ export function useAutoBalanceUpdateBanner(
           variant="ghost"
           label={
             failed > 0
-              ? "Retry"
+              ? translateFullUiCopy(fullUiLocale, "Retry")
               : targets.length === machines.length
-                ? "Update all"
+                ? translateFullUiCopy(fullUiLocale, "Update all")
                 : `Update ${targets.length} ${targets.length === 1 ? "machine" : "machines"}`
           }
         />

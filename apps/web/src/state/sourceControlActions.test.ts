@@ -15,6 +15,9 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock("react", () => ({ useCallback: (callback: unknown) => callback }));
+vi.mock("../i18n/WebI18nContext", () => ({
+  useI18n: () => ({ locale: "en" }),
+}));
 vi.mock("@effect/atom-react", () => ({
   useAtomValue: () => ({ operation: null, error: null, isRunning: false }),
 }));

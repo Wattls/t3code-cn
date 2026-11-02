@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { LegendList, type LegendListRef } from "@legendapp/list/react";
@@ -96,6 +98,7 @@ export function FontFamilyPicker({
   initialOpen?: boolean;
   onSelect: (family: string) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -138,7 +141,7 @@ export function FontFamilyPicker({
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: `"${value}" isn't monospace`,
+          title: translateFullUiCopy(fullUiLocale, `"${value}" isn't monospace`),
           description: translateStaticUiCopy(
             staticUiLocale,
             "Code and terminal need a fixed-width font, so the current font was kept.",

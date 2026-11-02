@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { threadEnvironment } from "../../state/threads";
@@ -1396,6 +1398,7 @@ const ConversationTimeline = memo(function ConversationTimeline({
 });
 
 function TimelineHistoryControl(props: MessagesTimelineHistoryControls) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   if (!props.hasMoreHistory && props.error === null) {
     return null;
@@ -1422,7 +1425,7 @@ function TimelineHistoryControl(props: MessagesTimelineHistoryControls) {
         ) : null}
         {props.error !== null ? (
           <p role="status" className="text-center text-muted-foreground text-xs">
-            {props.error}
+            {translateFullUiCopy(fullUiLocale, props.error)}
           </p>
         ) : null}
       </div>
@@ -1557,6 +1560,7 @@ function ContextCompactionTimelineRow({
 }: {
   row: Extract<TimelineRow, { kind: "context-compaction" }>;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const label =
     row.title && row.label.startsWith("Context compacted")
       ? row.title + row.label.slice("Context compacted".length)
@@ -1575,7 +1579,7 @@ function ContextCompactionTimelineRow({
           {row.tokenCounts.after} tokens
         </>
       ) : (
-        label
+        translateFullUiCopy(fullUiLocale, label)
       )}
       {row.failure ? (
         <span className="min-w-0 truncate opacity-80">&middot; {row.failure}</span>
@@ -1585,7 +1589,11 @@ function ContextCompactionTimelineRow({
   return (
     <div
       role="separator"
-      aria-label={row.failure ? `${label}: ${row.failure}` : label}
+      aria-label={
+        row.failure
+          ? `${translateFullUiCopy(fullUiLocale, label)}: ${row.failure}`
+          : translateFullUiCopy(fullUiLocale, label)
+      }
       className={cn(
         "mx-auto flex w-full max-w-(--chat-content-max-width) items-center gap-3 py-1 text-xs",
         row.failed ? "text-destructive" : "text-muted-foreground",
@@ -1665,6 +1673,7 @@ function WorkHistorySkeleton() {
 }
 
 function TurnFoldTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "turn-fold" }> }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const ctx = use(TimelineRowCtx);
   const { loading, error, toggle } = useDeferredWorkLoading(row, () =>
     ctx.onToggleTurnFold(row.runId),
@@ -1682,8 +1691,8 @@ function TurnFoldTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "turn-
           className="flex cursor-pointer select-none items-center gap-1 rounded-md px-1 text-sm leading-relaxed text-muted-foreground tabular-nums transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
         >
           <span>
-            {row.label}
-            {error ? ` · ${error}` : ""}
+            {translateFullUiCopy(fullUiLocale, row.label)}
+            {error ? ` · ${translateFullUiCopy(fullUiLocale, error)}` : ""}
           </span>
           <MorphIcon className="size-3.5" icon={row.expanded ? ChevronDown : ChevronRight} />
         </button>
@@ -1699,6 +1708,7 @@ function TurnFoldTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "turn-
 }
 
 function AttemptFoldTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "attempt-fold" }> }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const ctx = use(TimelineRowCtx);
   const { loading, error, toggle } = useDeferredWorkLoading(row, () =>
@@ -1721,8 +1731,8 @@ function AttemptFoldTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "at
           icon={row.expanded ? ChevronDown : ChevronRight}
         />
         <span className="text-xs font-medium text-foreground/80">
-          {row.label}
-          {error ? ` · ${error}` : ""}
+          {translateFullUiCopy(fullUiLocale, row.label)}
+          {error ? ` · ${translateFullUiCopy(fullUiLocale, error)}` : ""}
         </span>
         <span className="text-2xs text-muted-foreground">
           {translateStaticUiCopy(staticUiLocale, "Cut off by a steer")}

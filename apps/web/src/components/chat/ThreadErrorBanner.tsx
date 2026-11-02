@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { OrchestrationV2ProviderFailureClass } from "@t3tools/contracts";
@@ -21,10 +22,11 @@ function copyAdminRequest() {
     () =>
       toastManager.add({
         type: "success",
-        title: "Request copied",
-        description: "Send it to your workspace admin.",
+        title: localizeBuiltInUi("Request copied"),
+        description: localizeBuiltInUi("Send it to your workspace admin."),
       }),
-    () => toastManager.add({ type: "error", title: "Could not copy the request" }),
+    () =>
+      toastManager.add({ type: "error", title: localizeBuiltInUi("Could not copy the request") }),
   );
 }
 

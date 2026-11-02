@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { AuthPreviewOperateScope, type EnvironmentId } from "@t3tools/contracts";
 import type { AnyRouter } from "@tanstack/react-router";
 
@@ -152,8 +153,10 @@ export function installChatRouteCommands(router: AnyRouter): () => void {
           toastManager.add(
             stackedThreadToast({
               type: "info",
-              title: "Preview is desktop-only",
-              description: "Open T3 Code in the desktop app to use the in-app preview.",
+              title: localizeBuiltInUi("Preview is desktop-only"),
+              description: localizeBuiltInUi(
+                "Open T3 Code in the desktop app to use the in-app preview.",
+              ),
             }),
           );
           return;

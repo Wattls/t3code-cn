@@ -33,6 +33,15 @@ describe("translateWebMessage", () => {
   });
 
   it("localizes the user-facing settings details selected for review", () => {
+    expect(
+      translateWebSource(
+        "zh-CN",
+        "Sidebar threads with no activity for this long settle automatically.",
+      ),
+    ).toBe(translateWebMessage("zh-CN", "settings.general.description.autoSettleInactive"));
+    expect(translateWebSource("zh-CN", "feature/API-v2 is my project")).toBe(
+      "feature/API-v2 is my project",
+    );
     expect(translateWebMessage("zh-CN", "settings.general.autoSettleDays.title")).toBe(
       "自动收起前的无活动天数",
     );

@@ -665,6 +665,7 @@ export const DesktopPreviewWebviewConfigSchema: Schema.Codec<DesktopPreviewWebvi
   });
 
 export interface DesktopPreviewAnnotationTheme {
+  locale?: "en" | "zh-CN";
   colorScheme: "light" | "dark";
   radius: string;
   background: string;
@@ -686,6 +687,7 @@ export interface DesktopPreviewAnnotationTheme {
 
 export const DesktopPreviewAnnotationThemeSchema: Schema.Codec<DesktopPreviewAnnotationTheme> =
   Schema.Struct({
+    locale: Schema.optionalKey(Schema.Literals(["en", "zh-CN"])),
     colorScheme: Schema.Literals(["light", "dark"]),
     radius: Schema.String,
     background: Schema.String,

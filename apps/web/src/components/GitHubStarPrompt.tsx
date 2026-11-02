@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { type EnvironmentId, SourceControlProviderKind } from "@t3tools/contracts";
 import { runAtomCommand } from "@t3tools/client-runtime/state/runtime";
 import * as Schema from "effect/Schema";
@@ -27,8 +28,8 @@ function dismiss() {
 function showStarPrompt() {
   const close = () => toastManager.close(id);
   const id = toastManager.add({
-    title: "Enjoying T3 Code?",
-    description: "Give us a star on GitHub to let us know!",
+    title: localizeBuiltInUi("Enjoying T3 Code?"),
+    description: localizeBuiltInUi("Give us a star on GitHub to let us know!"),
     timeout: 0,
     onClose: dismiss,
     actionProps: {

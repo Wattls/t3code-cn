@@ -142,7 +142,11 @@ export const RightPanelMaximizeControl = memo(function RightPanelMaximizeControl
   maximized: boolean;
   onToggle: () => void;
 }) {
-  const label = maximized ? "Restore panel size" : "Maximize panel";
+  const { locale: panelLocale } = useStaticUiLocale();
+  const label = translateStaticUiCopy(
+    panelLocale,
+    maximized ? "Restore panel size" : "Maximize panel",
+  );
   return (
     <Tooltip>
       <TooltipTrigger

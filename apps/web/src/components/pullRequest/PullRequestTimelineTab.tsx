@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "~/i18n/messages";
 import {
   capitalizeTerm,
@@ -537,6 +539,7 @@ function CommitEvent({
 }
 
 function LifecycleEvent({ event, term }: { event: PullRequestTimelineEvent; term: string }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: uiLocale } = useI18n();
   const title = capitalizeTerm(term);
   const presentation =
@@ -548,11 +551,17 @@ function LifecycleEvent({ event, term }: { event: PullRequestTimelineEvent; term
       : event.kind === "merged"
         ? {
             icon: <PullRequestGlyph.merged className="size-3.5" />,
-            label: uiLocale === "zh-CN" ? "变更请求已合并" : `${title} merged`,
+            label:
+              uiLocale === "zh-CN"
+                ? "变更请求已合并"
+                : translateFullUiCopy(fullUiLocale, `${title} merged`),
           }
         : {
             icon: <PullRequestGlyph.closed className="size-3.5" />,
-            label: uiLocale === "zh-CN" ? "变更请求已关闭" : `${title} closed`,
+            label:
+              uiLocale === "zh-CN"
+                ? "变更请求已关闭"
+                : translateFullUiCopy(fullUiLocale, `${title} closed`),
           };
 
   return (

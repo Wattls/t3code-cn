@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "../../i18n/messages";
 import { useI18n } from "../../i18n/WebI18nContext";
 import type { EnvironmentId } from "@t3tools/contracts";
@@ -22,13 +24,14 @@ export function SourceControlHostSettings({
   };
   readonly onSaved: () => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: sourceLocale } = useI18n();
   const saved = useEnvironmentSettings(
     environmentId,
     (settings) => settings.sourceControlHosts[definition.kind],
   );
   const updateSettings = useAtomCommand(serverEnvironment.updateSettings, {
-    label: `save ${definition.label} settings`,
+    label: translateFullUiCopy(fullUiLocale, `save ${definition.label} settings`),
   });
   const [saving, setSaving] = useState(false);
   const formDefinition = { settingsSchema: definition.settings };

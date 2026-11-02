@@ -1,3 +1,6 @@
+import { localizeSnoozePresetLabel } from "../threadActionMenu.logic";
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useState } from "react";
@@ -236,7 +239,9 @@ function SnoozePresetList(props: {
   onAdd: () => void;
   onSettle: () => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
+  const { t: translatePreset } = useFullUiLocale();
   const nowMinute = useNowMinute();
   const now = new Date(`${nowMinute}Z`);
   const formatTime = (date: Date) =>
@@ -254,10 +259,16 @@ function SnoozePresetList(props: {
     }
     seenIds.add(resolved.id);
     seenWakes.add(resolved.snoozedUntil);
-    return { tone: "menu", label: resolved.label, when: resolved.whenLabel } as const;
+    return {
+      tone: "menu",
+      label: localizeSnoozePresetLabel(resolved, translatePreset),
+      when: resolved.whenLabel,
+    } as const;
   });
 
-  const menuPresets = resolveSnoozePresets(now, { presets: props.presets, formatTime });
+  const menuPresets = resolveSnoozePresets(now, { presets: props.presets, formatTime }).map(
+    (preset) => ({ ...preset, label: localizeSnoozePresetLabel(preset, translatePreset) }),
+  );
   const repeatedLabels = new Set(
     menuPresets
       .map((preset) => preset.label)
@@ -288,7 +299,7 @@ function SnoozePresetList(props: {
           <div
             key={props.keys[index]}
             role="group"
-            aria-label={`Snooze option ${index + 1}`}
+            aria-label={translateFullUiCopy(fullUiLocale, `Snooze option ${index + 1}`)}
             className="flex flex-wrap items-center gap-2"
           >
             <SnoozePresetFields preset={preset} onChange={(next) => props.onChange(index, next)} />
@@ -299,12 +310,12 @@ function SnoozePresetList(props: {
                   <span className="ps-2 tabular-nums">{preview.when}</span>
                 </span>
               ) : (
-                <span className="truncate">{preview.text}</span>
+                <span className="truncate">{translateFullUiCopy(fullUiLocale, preview.text)}</span>
               )}
               <Button
                 variant="ghost-muted"
                 size="icon-sm"
-                aria-label={`Remove snooze option ${index + 1}`}
+                aria-label={translateFullUiCopy(fullUiLocale, `Remove snooze option ${index + 1}`)}
                 onClick={() => props.onRemove(index)}
               >
                 <XIcon />
@@ -316,7 +327,7 @@ function SnoozePresetList(props: {
       <p className="text-xs text-muted-foreground">
         {menuOrder.length === 0
           ? translateStaticUiCopy(staticUiLocale, "Menus offer only Custom…")
-          : `Menu now: ${menuOrder.join(" · ")}`}
+          : translateFullUiCopy(fullUiLocale, `Menu now: ${menuOrder.join(" · ")}`)}
       </p>
       <div>
         <Button
@@ -344,6 +355,7 @@ function SnoozePresetFields(props: {
   preset: SnoozePresetSetting;
   onChange: (preset: SnoozePresetSetting) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { preset, onChange } = props;
   const when = preset.kind === "after" ? "after" : preset.day;
@@ -354,7 +366,12 @@ function SnoozePresetFields(props: {
     <div className="flex items-center gap-2">
       <Select
         value={when}
-        items={WHEN_LABELS}
+        items={Object.fromEntries(
+          Object.entries(WHEN_LABELS).map(([key, label]) => [
+            key,
+            translateFullUiCopy(fullUiLocale, label),
+          ]),
+        )}
         onValueChange={(value) => {
           const next = value === null ? null : withWhen(preset, value, memory);
           if (!next) return;
@@ -378,7 +395,7 @@ function SnoozePresetFields(props: {
         <SelectPopup>
           {WHEN_VALUES.map((value) => (
             <SelectItem hideIndicator key={value} value={value}>
-              {WHEN_LABELS[value]}
+              {translateFullUiCopy(fullUiLocale, WHEN_LABELS[value])}
             </SelectItem>
           ))}
         </SelectPopup>
@@ -465,7 +482,12 @@ function DurationFields(props: { minutes: number; onChange: (minutes: number) =>
       </NumberField>
       <Select
         value={unit}
-        items={amount === 1 ? SINGULAR_UNIT_LABELS : UNIT_LABELS}
+        items={Object.fromEntries(
+          Object.entries(amount === 1 ? SINGULAR_UNIT_LABELS : UNIT_LABELS).map(([key, label]) => [
+            key,
+            translateFullUiCopy(staticUiLocale, label),
+          ]),
+        )}
         onValueChange={(value) => {
           if (value === "minutes" || value === "hours" || value === "days") {
             setChosenUnit(value);
@@ -483,7 +505,10 @@ function DurationFields(props: { minutes: number; onChange: (minutes: number) =>
         <SelectPopup>
           {(Object.keys(UNIT_LABELS) as DurationUnit[]).map((value) => (
             <SelectItem hideIndicator key={value} value={value}>
-              {(amount === 1 ? SINGULAR_UNIT_LABELS : UNIT_LABELS)[value]}
+              {translateFullUiCopy(
+                staticUiLocale,
+                (amount === 1 ? SINGULAR_UNIT_LABELS : UNIT_LABELS)[value],
+              )}
             </SelectItem>
           ))}
         </SelectPopup>

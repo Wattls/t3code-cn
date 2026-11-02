@@ -246,7 +246,7 @@ function SidebarUpdateControl() {
   });
   const idleTooltip =
     !showUpdateDetails && !showCheckIcon ? getDesktopUpdateIdleTooltip(state) : null;
-  const tooltip = runsEverything
+  const rawTooltip = runsEverything
     ? everything.summary
     : showUpdateDetails
       ? state
@@ -255,6 +255,10 @@ function SidebarUpdateControl() {
       : showCheckIcon
         ? "Checking for updates…"
         : (idleTooltip?.title ?? "Check for updates");
+  const tooltip = translateStaticUiCopy(staticUiLocale, rawTooltip);
+  const idleDetail = idleTooltip?.detail
+    ? translateStaticUiCopy(staticUiLocale, idleTooltip.detail)
+    : undefined;
   const disabled = showCheckIcon
     ? true
     : runsEverything
@@ -449,7 +453,7 @@ function SidebarUpdateControl() {
   const updateButton = (
     <button
       type="button"
-      aria-label={idleTooltip?.detail ? `${tooltip}: ${idleTooltip.detail}` : tooltip}
+      aria-label={idleDetail ? `${tooltip}: ${idleDetail}` : tooltip}
       aria-disabled={isInteractionDisabled || undefined}
       className={cn(
         "inline-flex size-8 items-center justify-center rounded-full outline-hidden ring-ring transition-colors focus-visible:ring-2 focus-visible:ring-inset",
@@ -536,8 +540,8 @@ function SidebarUpdateControl() {
             >
               {idleTooltip?.detail ? (
                 <div className="text-left">
-                  <div className="font-medium">{idleTooltip.title}</div>
-                  <div className="text-muted-foreground">{idleTooltip.detail}</div>
+                  <div className="font-medium">{tooltip}</div>
+                  <div className="text-muted-foreground">{idleDetail}</div>
                 </div>
               ) : (
                 <span className="whitespace-pre-line">{tooltip}</span>

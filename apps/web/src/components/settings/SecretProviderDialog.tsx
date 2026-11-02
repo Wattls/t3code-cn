@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { EnvironmentId, SecretProviderConfig, SecretProviderId } from "@t3tools/contracts";
@@ -37,6 +39,7 @@ export function SecretProviderDialog({
   readonly existingIds: ReadonlySet<string>;
   readonly existing?: { readonly id: SecretProviderId; readonly config: SecretProviderConfig };
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const updateSettings = useUpdateEnvironmentSettings(environmentId);
   const [draft, setDraft] = useState<SecretProviderDraft>(
@@ -71,7 +74,7 @@ export function SecretProviderDialog({
         <DialogHeader>
           <DialogTitle>
             {existing
-              ? `Edit ${existing.config.label}`
+              ? translateFullUiCopy(fullUiLocale, `Edit ${existing.config.label}`)
               : translateStaticUiCopy(staticUiLocale, "Add a 1Password provider")}
           </DialogTitle>
           <DialogDescription>

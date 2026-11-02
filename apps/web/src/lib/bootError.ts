@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import type { DesktopBridge, DesktopUpdateState } from "@t3tools/contracts";
 
 const FALLBACK_TRIAGE_COMMAND = "npx t3 triage";
@@ -210,10 +211,10 @@ function mountUpdateButton(
     button.hidden = action === null;
     // aria-disabled keeps keyboard focus on the button while the download runs.
     button.setAttribute("aria-disabled", String(action?.kind === "downloading"));
-    if (action?.kind === "download") button.textContent = "Download update";
+    if (action?.kind === "download") button.textContent = localizeBuiltInUi("Download update");
     if (action?.kind === "downloading")
       button.textContent = `Downloading update (${action.percent}%)`;
-    if (action?.kind === "install") button.textContent = "Restart to update";
+    if (action?.kind === "install") button.textContent = localizeBuiltInUi("Restart to update");
     const failure = !action
       ? ""
       : state.errorContext === "download"
@@ -297,7 +298,7 @@ export function showBootError(error: unknown) {
   const copyCommand = element("button", {
     className: "boot-error-icon",
     type: "button",
-    title: "Copy command",
+    title: localizeBuiltInUi("Copy command"),
     innerHTML: COPY_ICON,
   });
   copyCommand.setAttribute("aria-label", "Copy command");
@@ -306,7 +307,7 @@ export function showBootError(error: unknown) {
       command,
       () => {
         copyCommand.innerHTML = CHECK_ICON;
-        copyCommand.title = "Copied";
+        copyCommand.title = localizeBuiltInUi("Copied");
         copyCommand.setAttribute("aria-label", "Copied");
         announce("Copied to clipboard.");
       },
@@ -332,7 +333,7 @@ export function showBootError(error: unknown) {
     copyText(
       details,
       () => {
-        copyDetails.textContent = "Copied";
+        copyDetails.textContent = localizeBuiltInUi("Copied");
         announce("Copied to clipboard.");
       },
       (hint) => {

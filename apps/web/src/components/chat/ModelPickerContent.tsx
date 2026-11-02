@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
@@ -207,6 +209,7 @@ function ModelPickerProviderNotices({
   onRequestClose: (() => void) | undefined;
   onOpenProviderSetup: ((instanceId: ProviderInstanceId) => void) | undefined;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const navigate = useNavigate();
   return (
@@ -228,7 +231,7 @@ function ModelPickerProviderNotices({
                 {setupEntries.length > 1
                   ? staticUiLocale === "zh-CN"
                     ? `设置 ${entry.displayName}`
-                    : `Set up ${entry.displayName}`
+                    : translateFullUiCopy(fullUiLocale, `Set up ${entry.displayName}`)
                   : translateStaticUiCopy(staticUiLocale, "Open provider setup")}
               </InlineButton>
             </div>
@@ -374,6 +377,7 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
   /** Right at the end of the search text moves into the popup's effort column. */
   onFocusEffort?: () => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const {
     searchInputRef,
@@ -836,7 +840,7 @@ export const ModelPickerContent = memo(function ModelPickerContent(props: {
     const name = flatModels.find(
       (item) => item.slug === selectedSlug && item.instanceId === model.instanceId,
     )?.name;
-    announce(`Model: ${name ?? selectedSlug}`, "model-picker");
+    announce(translateFullUiCopy(fullUiLocale, `Model: ${name ?? selectedSlug}`), "model-picker");
   };
 
   return (

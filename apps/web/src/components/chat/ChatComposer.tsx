@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "~/i18n/messages";
@@ -508,6 +510,7 @@ const NO_PROVIDER_SKILLS: ServerProvider["skills"] = [];
 const NO_PROVIDER_SLASH_COMMANDS: ServerProvider["slashCommands"] = [];
 
 export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: releaseLocale, t } = useI18n();
   const {
@@ -2502,7 +2505,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       if (path === null) {
         toastManager.add({
           type: "error",
-          title: `Couldn't get the path of "${folder.name}"`,
+          title: translateFullUiCopy(fullUiLocale, `Couldn't get the path of "${folder.name}"`),
           description: translateWebSource(releaseLocale, "Type the folder path with @ instead."),
         });
         continue;
@@ -3359,7 +3362,11 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                     // Switching threads lands focus here, so the label names the thread.
                     ariaLabel={
                       activeThread
-                        ? `${t("composer.messageLabel")} ${activeThread.title}`
+                        ? `${t("composer.messageLabel")} ${
+                            routeKind === "draft" && activeThread.title === "New thread"
+                              ? t("sidebar.newThread")
+                              : activeThread.title
+                          }`
                         : t("composer.messageLabel")
                     }
                     suggestionListId={composerSuggestionListId}

@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "../../i18n/messages";
@@ -689,6 +691,7 @@ function ScheduledTaskEnvironmentSection({
   readonly taskId?: ScheduledTaskId | undefined;
   readonly onEdit: (environmentId: EnvironmentId, task: ScheduledTask) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: sourceLocale } = useI18n();
   const { scope } = useSettingsScope();
   const connected =
@@ -719,7 +722,10 @@ function ScheduledTaskEnvironmentSection({
       {!connected ? (
         <SettingsRow
           title={translateWebSource(sourceLocale, "Environment disconnected")}
-          description={`Reconnect ${environment.label} to view its scheduled tasks.`}
+          description={translateFullUiCopy(
+            fullUiLocale,
+            `Reconnect ${environment.label} to view its scheduled tasks.`,
+          )}
         />
       ) : tasksQuery.error ? (
         <SettingsRow
@@ -776,6 +782,7 @@ function ScheduledTaskRow({
   readonly task: ScheduledTask;
   readonly onEdit: () => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: sourceLocale } = useI18n();
   const canOperate = useAtomValue(
@@ -845,7 +852,7 @@ function ScheduledTaskRow({
           <Switch
             checked={task.enabled}
             disabled={busy || !canOperate}
-            aria-label={`Enable ${task.title}`}
+            aria-label={translateFullUiCopy(fullUiLocale, `Enable ${task.title}`)}
             onCheckedChange={() => void act("toggle")}
           />
           <Menu>
@@ -855,7 +862,7 @@ function ScheduledTaskRow({
                   size="icon-sm"
                   variant="ghost"
                   disabled={busy || !canOperate}
-                  aria-label={`Actions for ${task.title}`}
+                  aria-label={translateFullUiCopy(fullUiLocale, `Actions for ${task.title}`)}
                 />
               }
             >
@@ -1287,6 +1294,7 @@ function ScheduledTaskEditorForm({
   readonly onSavingChange: (saving: boolean) => void;
   readonly onClose: () => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: sourceLocale } = useI18n();
   const { scope, connectedEnvironments } = useSettingsScope();
@@ -1630,7 +1638,9 @@ function ScheduledTaskEditorForm({
                 }
               >
                 <SelectTrigger size="sm" id="scheduled-task-workspace">
-                  <SelectValue>{WORKSPACE_MODE_LABELS[draft.workspaceMode]}</SelectValue>
+                  <SelectValue>
+                    {translateFullUiCopy(fullUiLocale, WORKSPACE_MODE_LABELS[draft.workspaceMode])}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectPopup>
                   <SelectItem value="worktree">
@@ -1985,7 +1995,11 @@ function ScheduledTaskEditorForm({
                   }}
                 >
                   {WEEKDAY_ORDER.map((day) => (
-                    <Toggle key={day} value={String(day)} aria-label={WEEKDAY_LABELS[day]}>
+                    <Toggle
+                      key={day}
+                      value={String(day)}
+                      aria-label={translateFullUiCopy(fullUiLocale, WEEKDAY_LABELS[day])}
+                    >
                       {WEEKDAY_SHORT[day]}
                     </Toggle>
                   ))}

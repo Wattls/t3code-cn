@@ -1,3 +1,6 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "~/i18n/messages";
@@ -798,6 +801,7 @@ function isOptimisticDropReleased(input: {
 
 // Build maps in a hook so the compiler can prove they are frozen and cache them.
 function useSidebarLookups() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const projects = useProjects();
   const environments = useEnvironmentIdentities();
   const serverConfigs = useServerConfigs();
@@ -820,7 +824,7 @@ function useSidebarLookups() {
     projectGroups.map((project) => [project.projectKey, project] as const),
   );
   const projectScopeItems = [
-    { value: "all", label: "All projects" },
+    { value: "all", label: translateFullUiCopy(fullUiLocale, "All projects") },
     ...pickableProjectGroups(projectGroups).map((project) => ({
       value: project.projectKey,
       label: project.displayName,
@@ -866,8 +870,8 @@ function checkThreadOperations(
   if (canOperateThreads(threads)) return true;
   toastManager.add({
     type: "error",
-    title: "Thread action unavailable",
-    description: "This connection cannot change one or more selected threads.",
+    title: localizeBuiltInUi("Thread action unavailable"),
+    description: localizeBuiltInUi("This connection cannot change one or more selected threads."),
   });
   return false;
 }
@@ -890,6 +894,7 @@ function readRouteThreadKey(router: AnyRouter): string | null {
 }
 
 export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReveal }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { t, locale: releaseLocale } = useI18n();
 
@@ -2309,14 +2314,14 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               : []),
             {
               id: "settle",
-              label: `Settle (${count})`,
+              label: translateFullUiCopy(fullUiLocale, `Settle (${count})`),
               disabled: settlingThreads.length === 0 || !canOperateThreads(settlingThreads),
             },
             ...(canSnoozeSelection
               ? [
                   {
                     id: "snooze",
-                    label: `Snooze (${count})`,
+                    label: translateFullUiCopy(fullUiLocale, `Snooze (${count})`),
                     disabled: !canOperateThreads(selectedThreads),
                     children: [
                       ...snoozePresets.map((preset) => ({
@@ -2344,10 +2349,13 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                   },
                 ]
               : []),
-            { id: "mark-unread", label: `Mark unread (${count})` },
+            {
+              id: "mark-unread",
+              label: translateFullUiCopy(fullUiLocale, `Mark unread (${count})`),
+            },
             {
               id: "delete",
-              label: `Delete (${count})`,
+              label: translateFullUiCopy(fullUiLocale, `Delete (${count})`),
               destructive: true,
               disabled: !canOperateThreads(selectedThreads),
             },
@@ -3147,7 +3155,10 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                                 variant="ghost-muted"
                                 tabIndex={-1}
                                 aria-hidden="true"
-                                title={`Project settings for ${project.displayName}`}
+                                title={translateFullUiCopy(
+                                  fullUiLocale,
+                                  `Project settings for ${project.displayName}`,
+                                )}
                                 className={canPinProject(project) ? undefined : "ml-auto"}
                                 onPointerDown={(event) => event.stopPropagation()}
                                 onClick={(event) => {
@@ -3283,6 +3294,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                 <SortableContext items={sortableIds} strategy={sidebarSortingStrategy}>
                   <ul
                     {...SIDEBAR_TREE_PROPS}
+                    aria-label={translateStaticUiCopy(staticUiLocale, "Threads")}
                     ref={attachTreeRef}
                     className={cn(
                       "relative flex flex-col gap-px",

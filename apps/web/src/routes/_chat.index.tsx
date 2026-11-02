@@ -1,4 +1,4 @@
-import { workspaceAreaProps } from "../lib/workspaceFocus";
+import { useWorkspaceAreaProps } from "../lib/workspaceFocus";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
@@ -94,7 +94,7 @@ function IndexDraftLanding() {
 function DraftStartError({ onRetry }: { readonly onRetry: () => void }) {
   const { t } = useI18n();
 
-  const contentArea = workspaceAreaProps("home", 1, "Home");
+  const contentArea = useWorkspaceAreaProps("home", 1, "Home");
   return (
     <SidebarInset
       {...contentArea}

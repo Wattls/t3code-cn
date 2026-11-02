@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "../../i18n/messages";
@@ -20,6 +22,7 @@ export function DatabaseStorageNotice({
 }: {
   environments: ReadonlyArray<{ readonly environmentId: EnvironmentId; readonly label: string }>;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: sourceLocale } = useI18n();
 
@@ -53,10 +56,13 @@ export function DatabaseStorageNotice({
       {visible.map(({ environmentId, status }) => (
         <SettingsRow
           key={environmentId}
-          title={`${(status.reclaimableBytes / 1024 ** 3).toFixed(1)} GiB on ${
-            environments.find((environment) => environment.environmentId === environmentId)
-              ?.label ?? environmentId
-          }`}
+          title={translateFullUiCopy(
+            fullUiLocale,
+            `${(status.reclaimableBytes / 1024 ** 3).toFixed(1)} GiB on ${
+              environments.find((environment) => environment.environmentId === environmentId)
+                ?.label ?? environmentId
+            }`,
+          )}
           description={<code className="select-text break-all">{status.compactCommand}</code>}
           control={
             <div className="flex flex-wrap items-center gap-1.5">

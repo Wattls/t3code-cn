@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
@@ -50,6 +52,7 @@ function PdfPage(props: {
   onSize: (index: number, ratio: number) => void;
   onError: (error: string) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const canvas = useRef<HTMLCanvasElement>(null);
   const text = useRef<HTMLDivElement>(null);
   const { document: pdf, index, width, onSize, onError } = props;
@@ -121,7 +124,11 @@ function PdfPage(props: {
   }, [props.query]);
   return (
     <>
-      <canvas ref={canvas} aria-label={`Page ${index + 1}`} className="block h-full w-full" />
+      <canvas
+        ref={canvas}
+        aria-label={translateFullUiCopy(fullUiLocale, `Page ${index + 1}`)}
+        className="block h-full w-full"
+      />
       <div ref={text} data-pdf-text-layer />
     </>
   );

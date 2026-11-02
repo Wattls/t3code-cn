@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import {
   ConnectionBlockedError,
   ConnectionTransientError,
@@ -92,6 +94,7 @@ export function useComposerContextImport(input: {
   readonly pendingThreadImportsRef: RefObject<Map<string, number>>;
   readonly addComposerFilesToDraft: (files: ComposerFileAttachment[]) => string[];
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const {
     environmentId,
     linkedEnvironments,
@@ -161,8 +164,11 @@ export function useComposerContextImport(input: {
     const fail = (reason: string) => {
       toastManager.add({
         type: "error",
-        title: `Couldn't bring ${record.name} into this message`,
-        description: `${reason} Remove the chip or attach the file again.`,
+        title: translateFullUiCopy(fullUiLocale, `Couldn't bring ${record.name} into this message`),
+        description: translateFullUiCopy(
+          fullUiLocale,
+          `${reason} Remove the chip or attach the file again.`,
+        ),
       });
     };
     let file = copiedComposerAttachmentFile(sourceEnvironmentId, record.attachmentId);

@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useParams } from "@tanstack/react-router";
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
 import {
@@ -66,6 +68,7 @@ async function runCloneAction(
 }
 
 function EnvironmentCloneToasts({ environmentId }: { environmentId: EnvironmentId }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const clones = useEnvironmentProjectClones(environmentId);
   const handleNewThread = useNewThreadHandler();
   const { draftId: routeDraftId } = useParams({ strict: false });
@@ -120,7 +123,7 @@ function EnvironmentCloneToasts({ environmentId }: { environmentId: EnvironmentI
       if (clone.phase === "running") {
         const options = stackedThreadToast({
           type: "loading",
-          title: `Cloning ${name}`,
+          title: translateFullUiCopy(fullUiLocale, `Cloning ${name}`),
           description: projectCloneProgressSummary(clone),
           timeout: 0,
           actionProps: {
@@ -146,7 +149,7 @@ function EnvironmentCloneToasts({ environmentId }: { environmentId: EnvironmentI
       if (clone.phase === "done") {
         const options = stackedThreadToast({
           type: "success",
-          title: `Cloned ${name}`,
+          title: translateFullUiCopy(fullUiLocale, `Cloned ${name}`),
           description: clone.destinationPath,
           timeout: 8_000,
           actionProps: {
@@ -207,6 +210,7 @@ function EnvironmentCloneToasts({ environmentId }: { environmentId: EnvironmentI
       toasts.current.delete(projectId);
     }
   }, [
+    fullUiLocale,
     cancelClone,
     clones,
     environmentId,

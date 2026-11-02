@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "../../i18n/messages";
@@ -122,6 +124,7 @@ function RetentionControl({
   onChange: (value: number | null) => void;
   minimum?: number;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const [draft, setDraft] = useState(value);
   const [savedValue, setSavedValue] = useState(value);
@@ -151,16 +154,20 @@ function RetentionControl({
           }}
         >
           <NumberFieldGroup>
-            <NumberFieldDecrement aria-label={`Decrease ${label}`} />
+            <NumberFieldDecrement
+              aria-label={translateFullUiCopy(fullUiLocale, `Decrease ${label}`)}
+            />
             <NumberFieldInput
-              aria-label={`${label} in days`}
+              aria-label={translateFullUiCopy(fullUiLocale, `${label} in days`)}
               size={5}
               className="w-auto grow-0 text-right"
             />
             <span aria-hidden="true" className="self-center pr-2 text-xs">
               {translateStaticUiCopy(staticUiLocale, "days")}
             </span>
-            <NumberFieldIncrement aria-label={`Increase ${label}`} />
+            <NumberFieldIncrement
+              aria-label={translateFullUiCopy(fullUiLocale, `Increase ${label}`)}
+            />
           </NumberFieldGroup>
         </NumberField>
       ) : (
@@ -293,6 +300,7 @@ const storageCleanupPermissionsAtom = environmentAtomList(
 );
 
 function CleanupSection() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const nowMinute = useNowMinute();
   const nowMs = Date.parse(`${nowMinute}:00.000Z`);
@@ -343,7 +351,13 @@ function CleanupSection() {
       report,
       label: settingsScopeEnvironmentLabel(environment, connectedEnvironments),
       counts: report
-        ? `${report.counts.removed} removed, ${report.counts.kept} kept${report.counts.failed > 0 ? `, ${report.counts.failed} failed` : ""}`
+        ? translateStaticUiCopy(
+            staticUiLocale,
+            `${report.counts.removed} removed, ${report.counts.kept} kept`,
+          ) +
+          (report.counts.failed > 0
+            ? `, ${translateStaticUiCopy(staticUiLocale, `${report.counts.failed} failed`)}`
+            : "")
         : "",
       description: report
         ? `Last run ${formatRelativeTimeLabel(report.finishedAt, nowMs)}. ${formatBytes(report.bytesFreed)} recovered.${report.counts.failed > 0 ? ` ${report.counts.failed} ${report.counts.failed === 1 ? "item" : "items"} couldn't be removed.` : ""}`
@@ -369,13 +383,16 @@ function CleanupSection() {
             if (failures.length > 0)
               toastManager.add({
                 type: "error",
-                title: `Cleanup failed on ${environment.label}`,
+                title: translateFullUiCopy(fullUiLocale, `Cleanup failed on ${environment.label}`),
                 description: failures[0]!.reason,
               });
           } else if (!isAtomCommandInterrupted(result)) {
             toastManager.add({
               type: "error",
-              title: `Could not run cleanup on ${environment.label}`,
+              title: translateFullUiCopy(
+                fullUiLocale,
+                `Could not run cleanup on ${environment.label}`,
+              ),
               description: String(squashAtomCommandFailure(result)),
             });
           }
@@ -398,7 +415,7 @@ function CleanupSection() {
                 : summaries.map(({ environment, label, description }) => (
                     <span key={environment.environmentId} className="block">
                       {supported.length > 1 ? `${label}: ` : ""}
-                      {description}
+                      {translateStaticUiCopy(staticUiLocale, description)}
                     </span>
                   ))}
             </span>

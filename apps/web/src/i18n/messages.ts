@@ -1,4 +1,5 @@
 import type { ResolvedAppLocale } from "@t3tools/shared/appLocale";
+import { translateBuiltInUiSource } from "@t3tools/shared/uiText";
 
 const EN_MESSAGES = {
   "contextMenu.snooze.minuteOne": "In {count} minute",
@@ -2934,6 +2935,8 @@ const EN_MESSAGES = {
   "markdownLink.unlinkFailed": "Unable to unlink pull request",
   "markdownLink.requestFailed": "The request failed.",
   "markdown.toggleTask": "Toggle task",
+  "markdown.source": "Source",
+  "markdown.sourceUnavailable": "The source link was not provided with this citation.",
   "projectIcon.label": "Choose project icon",
   "projectIcon.select": "Select icon",
   "projectIcon.search": "Search image files...",
@@ -6022,6 +6025,8 @@ const ZH_CN_MESSAGES = {
   "markdownLink.unlinkFailed": "无法取消关联拉取请求",
   "markdownLink.requestFailed": "请求失败。",
   "markdown.toggleTask": "切换任务状态",
+  "markdown.source": "来源",
+  "markdown.sourceUnavailable": "此引用未提供来源链接。",
   "projectIcon.label": "选择项目图标",
   "projectIcon.select": "选择图标",
   "projectIcon.search": "搜索图片文件...",
@@ -9552,7 +9557,8 @@ export function translateWebSource(locale: ResolvedAppLocale, source: string): s
     if (translatedSource !== undefined) return translatedSource;
   }
   const key = WEB_MESSAGE_KEY_BY_ENGLISH_SOURCE.get(source);
-  return key === undefined ? source : WEB_MESSAGES[locale][key];
+  if (key !== undefined) return WEB_MESSAGES[locale][key];
+  return translateBuiltInUiSource(locale, source);
 }
 
 export function translateWebMessage(

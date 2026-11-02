@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { DeviceHubAccess } from "@t3tools/client-runtime/state/deviceHubAccess";
@@ -353,9 +355,12 @@ function Section(props: { readonly title: string; readonly children: React.React
 }
 
 function Row(props: { readonly label: string; readonly children: React.ReactNode }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   return (
     <div className="flex min-h-7 items-center justify-between gap-3">
-      <span className="shrink-0 text-xs text-muted-foreground">{props.label}</span>
+      <span className="shrink-0 text-xs text-muted-foreground">
+        {translateFullUiCopy(fullUiLocale, props.label)}
+      </span>
       <div className="flex min-w-0 items-center justify-end">{props.children}</div>
     </div>
   );
@@ -367,11 +372,12 @@ function SwitchRow(props: {
   readonly disabled: boolean;
   readonly onChange: (value: boolean) => Promise<void>;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   return (
-    <Row label={props.label}>
+    <Row label={translateFullUiCopy(fullUiLocale, props.label)}>
       <Switch
         size="sm"
-        aria-label={props.label}
+        aria-label={translateFullUiCopy(fullUiLocale, props.label)}
         checked={props.checked ?? false}
         disabled={props.disabled || props.checked === undefined}
         onCheckedChange={(checked) => void props.onChange(checked)}
@@ -388,6 +394,7 @@ function ChoiceSelect<V extends string>(props: {
   readonly placeholder?: string;
   readonly onChange: (value: V) => Promise<void>;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const current = props.options.find((option) => option.value === props.value);
   return (
     <Select
@@ -400,7 +407,7 @@ function ChoiceSelect<V extends string>(props: {
       <SelectTrigger size="xs" className="w-40" aria-label={props.ariaLabel}>
         <SelectValue>
           {current ? (
-            current.label
+            translateFullUiCopy(fullUiLocale, current.label)
           ) : (
             <span className="text-muted-foreground">{props.placeholder ?? "Unknown"}</span>
           )}
@@ -409,7 +416,7 @@ function ChoiceSelect<V extends string>(props: {
       <SelectPopup align="end" alignItemWithTrigger={false}>
         {props.options.map((option) => (
           <SelectItem key={option.value} value={option.value}>
-            {option.label}
+            {translateFullUiCopy(fullUiLocale, option.label)}
           </SelectItem>
         ))}
       </SelectPopup>
@@ -464,6 +471,7 @@ function LocationSection(props: {
   readonly onSet: (latitude: number, longitude: number) => Promise<void>;
   readonly onClear: () => Promise<void>;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
@@ -522,8 +530,11 @@ function LocationSection(props: {
           </SelectTrigger>
           <SelectPopup align="start" alignItemWithTrigger={false}>
             {LOCATION_PRESETS.map((preset) => (
-              <SelectItem key={preset.label} value={preset.label}>
-                {preset.label}
+              <SelectItem
+                key={translateFullUiCopy(fullUiLocale, preset.label)}
+                value={translateFullUiCopy(fullUiLocale, preset.label)}
+              >
+                {translateFullUiCopy(fullUiLocale, preset.label)}
               </SelectItem>
             ))}
           </SelectPopup>

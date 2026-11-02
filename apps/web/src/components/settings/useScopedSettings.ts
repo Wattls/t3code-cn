@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { AuthSettingsWriteScope } from "@t3tools/contracts";
 import { useEnvironmentsWithScope } from "../../state/session";
 import {
@@ -48,12 +50,13 @@ export function useScopedSettingSource(keys: readonly (keyof ServerSettings)[]) 
 }
 
 function useRunScopedPlan() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const persistServer = useAtomCommand(serverEnvironment.updateSettings, { reportFailure: false });
   return (plan: ReturnType<typeof planScopedSettingsPatch>, onFailed?: () => void) => {
     if (plan.unavailableReason) {
       toastManager.add({
         type: "warning",
-        title: "Setting not saved",
+        title: translateFullUiCopy(fullUiLocale, "Setting not saved"),
         description: plan.unavailableReason,
       });
       onFailed?.();
@@ -85,8 +88,8 @@ function useRunScopedPlan() {
         title:
           savedEnvironmentCount > 0 ? "Setting saved on some environments" : "Setting not saved",
         description: [
-          ...failedEnvironments.map(
-            ({ label, message }) => `Could not save on ${label}: ${message}`,
+          ...failedEnvironments.map(({ label, message }) =>
+            translateFullUiCopy(fullUiLocale, `Could not save on ${label}: ${message}`),
           ),
           ...(savedEnvironmentCount > 0
             ? [`Saved on ${savedEnvironments.map(({ label }) => label).join(", ")}.`]

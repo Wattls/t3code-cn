@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
@@ -110,6 +112,7 @@ export function ThreadDetailsPrRow({
   onActed?: () => void;
   onStopWatching?: (() => void) | undefined;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: newCopyLocale } = useI18n();
   const serverConfigs = useServerConfigs();
@@ -334,7 +337,10 @@ export function ThreadDetailsPrRow({
           pending: handoff === "conflicts",
           destructive: true,
           suffix: <ArrowUpRightIcon aria-hidden className="size-3 shrink-0" />,
-          tooltip: "Check the branch out and resolve the conflicts in a new thread",
+          tooltip: translateFullUiCopy(
+            fullUiLocale,
+            "Check the branch out and resolve the conflicts in a new thread",
+          ),
           onClick: startResolveConflicts,
         }
       : rowAction === "ready"
@@ -344,7 +350,10 @@ export function ThreadDetailsPrRow({
             pending: actionPending,
             destructive: false,
             suffix: null,
-            tooltip: `Mark this ${terminology.singular} as ready for review`,
+            tooltip: translateFullUiCopy(
+              fullUiLocale,
+              `Mark this ${terminology.singular} as ready for review`,
+            ),
             onClick: () => void perform("ready"),
           }
         : rowAction === "fix"
@@ -354,7 +363,7 @@ export function ThreadDetailsPrRow({
               pending: handoff === "findings",
               destructive: true,
               suffix: <ArrowUpRightIcon aria-hidden className="size-3 shrink-0" />,
-              tooltip: "Fix the failing checks in a new thread",
+              tooltip: translateFullUiCopy(fullUiLocale, "Fix the failing checks in a new thread"),
               onClick: startFixChecks,
             }
           : rowAction === "merge"
@@ -364,7 +373,10 @@ export function ThreadDetailsPrRow({
                 pending: actionPending,
                 destructive: false,
                 suffix: null,
-                tooltip: `Merge this ${terminology.singular} (${selectedMergeMethod})`,
+                tooltip: translateFullUiCopy(
+                  fullUiLocale,
+                  `Merge this ${terminology.singular} (${selectedMergeMethod})`,
+                ),
                 onClick: () => setConfirmingMerge(true),
               }
             : null;
@@ -382,7 +394,7 @@ export function ThreadDetailsPrRow({
               size="sm"
               part={part}
               className="group/watch"
-              aria-label={`Stop watching #${number}`}
+              aria-label={translateFullUiCopy(fullUiLocale, `Stop watching #${number}`)}
               onClick={onStopWatching}
             />
           }
@@ -499,7 +511,8 @@ export function ThreadDetailsPrRow({
             <AlertDialogHeader>
               <AlertDialogTitle>
                 {translateStaticUiCopy(staticUiLocale, "Merge") + " "}
-                {terminology.singular}?
+                {terminology.singular}
+                {translateFullUiCopy(fullUiLocale, "?")}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {translateStaticUiCopy(staticUiLocale, "This merges #")}

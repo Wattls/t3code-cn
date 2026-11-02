@@ -1,4 +1,7 @@
 "use client";
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 
 import { useI18n } from "~/i18n/WebI18nContext";
 import { translateWebSource } from "~/i18n/messages";
@@ -115,7 +118,7 @@ async function copyPageText(text: string) {
   } catch {
     const id = toastManager.add({
       type: "info",
-      title: "The page copied text",
+      title: localizeBuiltInUi("The page copied text"),
       actionProps: {
         children: "Copy",
         onClick: () => {
@@ -130,7 +133,7 @@ async function copyPageText(text: string) {
 function offerDownload(download: PreviewStreamDownload) {
   const id = toastManager.add({
     type: "info",
-    title: `Downloaded ${download.fileName}`,
+    title: localizeBuiltInUi(`Downloaded ${download.fileName}`),
     actionProps: {
       children: "Save",
       onClick: () => {
@@ -159,6 +162,7 @@ export function ServerBrowserSurface(props: {
   readonly pdfUrl?: string | null;
   readonly ref?: Ref<ServerBrowserHandle>;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: newCopyLocale } = useI18n();
   const {
     environmentId,
@@ -195,7 +199,7 @@ export function ServerBrowserSurface(props: {
     void uploadPreviewStreamFiles(chooser, files).catch((cause: unknown) =>
       toastManager.add({
         type: "error",
-        title: "Could not send the files to the page",
+        title: translateFullUiCopy(fullUiLocale, "Could not send the files to the page"),
         description: cause instanceof Error ? cause.message : undefined,
       }),
     );
@@ -770,7 +774,9 @@ export function ServerBrowserSurface(props: {
               send({ type: control.controller === "you" ? "releaseControl" : "takeControl" })
             }
           >
-            {control.controller === "you" ? "Release control" : "Take control"}
+            {control.controller === "you"
+              ? translateFullUiCopy(fullUiLocale, "Release control")
+              : translateFullUiCopy(fullUiLocale, "Take control")}
           </Button>
         ) : null}
       </div>
@@ -802,7 +808,7 @@ export function ServerBrowserSurface(props: {
         {/* Pin top-left to avoid focus scrolling; 16px prevents iOS focus zoom. */}
         <textarea
           ref={inputRef}
-          aria-label="Browser page"
+          aria-label={translateFullUiCopy(fullUiLocale, "Browser page")}
           aria-description="Press Shift+Escape to leave the browser page."
           autoCapitalize="off"
           autoComplete="off"
@@ -832,10 +838,14 @@ export function ServerBrowserSurface(props: {
           <div
             className="absolute inset-x-2 top-2 z-10 flex flex-col gap-2 rounded-lg border border-border bg-background p-3 shadow-lg"
             role="dialog"
-            aria-label="Choose files for the page"
+            aria-label={translateFullUiCopy(fullUiLocale, "Choose files for the page")}
           >
             <p className="text-sm">
-              The page asks for {fileChooser.multiple ? "files" : "a file"}.
+              {translateFullUiCopy(fullUiLocale, "The page asks for") + " "}
+              {fileChooser.multiple
+                ? translateFullUiCopy(fullUiLocale, "files")
+                : translateFullUiCopy(fullUiLocale, "a file")}
+              .
             </p>
             <input
               ref={fileInputRef}
@@ -851,10 +861,13 @@ export function ServerBrowserSurface(props: {
             />
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => answerFileChooser([])}>
-                Cancel
+                {translateFullUiCopy(fullUiLocale, "Cancel")}
               </Button>
               <Button size="sm" onClick={() => fileInputRef.current?.click()}>
-                Choose {fileChooser.multiple ? "files" : "file"}
+                {translateFullUiCopy(fullUiLocale, "Choose") + " "}
+                {fileChooser.multiple
+                  ? translateFullUiCopy(fullUiLocale, "files")
+                  : translateFullUiCopy(fullUiLocale, "file")}
               </Button>
             </div>
           </div>
@@ -863,14 +876,14 @@ export function ServerBrowserSurface(props: {
           <div
             className="absolute inset-x-2 top-2 z-10 flex flex-col gap-2 rounded-lg border border-border bg-background p-3 shadow-lg"
             role="dialog"
-            aria-label="Browser dialog"
+            aria-label={translateFullUiCopy(fullUiLocale, "Browser dialog")}
           >
             <p className="break-words text-sm">{control.dialog.message}</p>
             {control.controller === "you" ? (
               <>
                 {control.dialog.type === "prompt" ? (
                   <Input
-                    aria-label="Dialog response"
+                    aria-label={translateFullUiCopy(fullUiLocale, "Dialog response")}
                     value={promptText}
                     onChange={(event) => setPromptText(event.target.value)}
                   />
@@ -881,7 +894,7 @@ export function ServerBrowserSurface(props: {
                     size="sm"
                     onClick={() => send({ type: "dialog", accept: false })}
                   >
-                    Dismiss
+                    {translateFullUiCopy(fullUiLocale, "Dismiss")}
                   </Button>
                   <Button
                     size="sm"
@@ -893,12 +906,14 @@ export function ServerBrowserSurface(props: {
                       })
                     }
                   >
-                    Accept
+                    {translateFullUiCopy(fullUiLocale, "Accept")}
                   </Button>
                 </div>
               </>
             ) : (
-              <p className="text-xs text-muted-foreground">Take control to respond.</p>
+              <p className="text-xs text-muted-foreground">
+                {translateFullUiCopy(fullUiLocale, "Take control to respond.")}
+              </p>
             )}
           </div>
         ) : null}
@@ -910,7 +925,7 @@ export function ServerBrowserSurface(props: {
           </p>
           <CommandBlock command={hostSetup.command} className="w-full max-w-md text-left" />
           <Button variant="outline" size="sm" onClick={() => setHostSetup(null)}>
-            Try again
+            {translateFullUiCopy(fullUiLocale, "Try again")}
           </Button>
         </div>
       ) : null}
@@ -918,7 +933,7 @@ export function ServerBrowserSurface(props: {
         // The page can be invisible beneath an empty or unreachable state; reconnect must remain reachable.
         <div className="visible absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-background p-3 text-center">
           <p role="alert" className="text-xs text-muted-foreground">
-            Browser connection was refused.
+            {translateFullUiCopy(fullUiLocale, "Browser connection was refused.")}
           </p>
           <Button
             variant="outline"
@@ -929,7 +944,7 @@ export function ServerBrowserSurface(props: {
               refreshPreviewStreamAccess(environmentId);
             }}
           >
-            Reconnect
+            {translateFullUiCopy(fullUiLocale, "Reconnect")}
           </Button>
         </div>
       ) : null}

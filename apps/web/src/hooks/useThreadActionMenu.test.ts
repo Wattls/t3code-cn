@@ -43,6 +43,19 @@ vi.mock("../i18n/readWebI18n", async () => {
   };
 });
 
+vi.mock("../i18n/WebI18nContext", async () => {
+  const { translateWebMessage } = await import("../i18n/messages");
+  return {
+    useI18n: () => ({
+      locale: state.locale,
+      t: (
+        key: Parameters<typeof translateWebMessage>[1],
+        values?: Parameters<typeof translateWebMessage>[2],
+      ) => translateWebMessage(state.locale, key, values),
+    }),
+  };
+});
+
 function recordEffect(action: string) {
   state.effects.push(action);
   state.completed.resolve();

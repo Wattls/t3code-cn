@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { ResolvedAppLocale } from "@t3tools/shared/appLocale";
@@ -398,6 +400,7 @@ function OpenCommandPaletteDialog(props: {
   ) => void;
   readonly initialContext: CommandPaletteReturnContext | undefined;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: uiLocale } = useI18n();
   const { locale, t } = useI18n();
@@ -1111,7 +1114,10 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: translateWebSource(uiLocale, "Environment unavailable"),
-          description: `${environment?.label ?? "The selected environment"} is not connected.`,
+          description: translateFullUiCopy(
+            fullUiLocale,
+            `${environment?.label ?? "The selected environment"} is not connected.`,
+          ),
         }),
       );
       return;
@@ -1265,7 +1271,7 @@ function OpenCommandPaletteDialog(props: {
             <span className="font-semibold">{activeProjectTitle}</span>
           </>
         ),
-        searchTitle: `New thread in ${activeProjectTitle}`,
+        searchTitle: translateFullUiCopy(fullUiLocale, `New thread in ${activeProjectTitle}`),
         icon: <SquarePenIcon className={ITEM_ICON_CLASS} />,
         shortcutCommand: "chat.newLocal",
         run: async () => {
@@ -1804,7 +1810,10 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: translateWebSource(uiLocale, "Environment unavailable"),
-          description: `${environment?.label ?? "The selected environment"} is not connected.`,
+          description: translateFullUiCopy(
+            fullUiLocale,
+            `${environment?.label ?? "The selected environment"} is not connected.`,
+          ),
         }),
       );
       return;
@@ -1990,7 +1999,10 @@ function OpenCommandPaletteDialog(props: {
         stackedThreadToast({
           type: "error",
           title: translateWebSource(uiLocale, "Environment unavailable"),
-          description: `${browseEnvironment?.label ?? "The selected environment"} is not connected.`,
+          description: translateFullUiCopy(
+            fullUiLocale,
+            `${browseEnvironment?.label ?? "The selected environment"} is not connected.`,
+          ),
         }),
       );
       return;
@@ -2738,8 +2750,8 @@ function OpenCommandPaletteDialog(props: {
             : translateStaticUiCopy(staticUiLocale, "Create")
         }
         shortcutLabel={createShortcutLabel}
-        ariaLabel={`Create (${createShortcutLabel})`}
-        tooltip={`Create (${createShortcutLabel})`}
+        ariaLabel={translateFullUiCopy(fullUiLocale, `Create (${createShortcutLabel})`)}
+        tooltip={translateFullUiCopy(fullUiLocale, `Create (${createShortcutLabel})`)}
         disabled={!canSubmitNewProject}
         onSubmit={() => {
           void submitNewProject();
@@ -2753,8 +2765,14 @@ function OpenCommandPaletteDialog(props: {
             : remoteProjectButtonLabel
         }
         shortcutLabel="Enter"
-        ariaLabel={`${remoteProjectButtonLabel ?? "Continue"} (Enter)`}
-        tooltip={`${remoteProjectButtonLabel ?? "Continue"} (Enter)`}
+        ariaLabel={translateFullUiCopy(
+          fullUiLocale,
+          `${remoteProjectButtonLabel ?? "Continue"} (Enter)`,
+        )}
+        tooltip={translateFullUiCopy(
+          fullUiLocale,
+          `${remoteProjectButtonLabel ?? "Continue"} (Enter)`,
+        )}
         disabled={!canSubmitRemoteProjectFlow}
         onSubmit={() => {
           void submitAddProjectCloneFlow();
@@ -2771,10 +2789,13 @@ function OpenCommandPaletteDialog(props: {
         ariaLabel={`${submitActionLabel} (${addShortcutLabel})`}
         tooltip={
           isCloneDestinationStep && !canCloneProject
-            ? "This connection needs permission to write source control and add projects."
+            ? translateFullUiCopy(
+                fullUiLocale,
+                "This connection needs permission to write source control and add projects.",
+              )
             : canCreateProject
               ? `${submitActionLabel} (${addShortcutLabel})`
-              : "This connection cannot add projects."
+              : translateFullUiCopy(fullUiLocale, "This connection cannot add projects.")
         }
         disabled={
           !canCreateProject ||

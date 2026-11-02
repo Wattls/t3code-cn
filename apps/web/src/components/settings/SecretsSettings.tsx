@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { SecretProviderConfig, SecretProviderId } from "@t3tools/contracts";
@@ -210,6 +212,7 @@ function RemoveSecretProviderButton({
   readonly label: string;
   readonly onConfirm: () => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const [open, setOpen] = useState(false);
   return (
@@ -222,7 +225,8 @@ function RemoveSecretProviderButton({
           <AlertDialogHeader>
             <AlertDialogTitle>
               {translateStaticUiCopy(staticUiLocale, "Remove") + " "}
-              {label}?
+              {label}
+              {translateFullUiCopy(fullUiLocale, "?")}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {translateStaticUiCopy(staticUiLocale, "Provider variables that read from") + " "}

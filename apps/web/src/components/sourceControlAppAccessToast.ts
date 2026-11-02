@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { appSignInTargetForRemote } from "@t3tools/client-runtime/source-control-clients";
 import { runAtomCommand } from "@t3tools/client-runtime/state/runtime";
@@ -25,7 +26,7 @@ export async function suggestAppAccessForRemote(
   const owner = target.input.repository.split("/")[0] ?? target.input.repository;
   const id = toastManager.add({
     type: "info",
-    title: `Give ${target.appSignIn.appName} access to ${owner}`,
+    title: localizeBuiltInUi(`Give ${target.appSignIn.appName} access to ${owner}`),
     description: `It isn't installed there, so GitHub requests for ${target.input.repository} use your own login and its lower rate limit.`,
     actionProps: {
       children: "Install",

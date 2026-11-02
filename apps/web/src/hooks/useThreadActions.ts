@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import {
   parseScopedThreadKey,
   scopeProjectRef,
@@ -190,7 +191,7 @@ export async function navigateAfterThreadDeletion(navigate: () => Promise<void>)
     toastManager.add(
       stackedThreadToast({
         type: "error",
-        title: "Thread deleted, but navigation failed",
+        title: localizeBuiltInUi("Thread deleted, but navigation failed"),
         description: error instanceof Error ? error.message : "An error occurred.",
       }),
     );

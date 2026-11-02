@@ -377,7 +377,7 @@ export function SnapShotSettings() {
                     disabled={setupBusy}
                     onClick={() => void openSetup()}
                   >
-                    {snapShotSetupButtonLabel(state)}
+                    {translateStaticUiCopy(staticUiLocale, snapShotSetupButtonLabel(state))}
                   </Button>
                 ) : null}
                 <Switch

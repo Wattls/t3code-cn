@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useAtomValue } from "@effect/atom-react";
@@ -105,6 +107,7 @@ export function UsagePriceOverrides({
   readonly initialModel?: string | undefined;
   readonly onOpenChange: (open: boolean) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale } = useI18n();
   const translate = (source: string) => translateWebSource(locale, source);
@@ -463,7 +466,10 @@ export function UsagePriceOverrides({
                                 <Input
                                   size="compact"
                                   value={row.alias ?? aliasCell.value}
-                                  aria-label={`Map ${row.model || "new model"} to model`}
+                                  aria-label={translateFullUiCopy(
+                                    fullUiLocale,
+                                    `Map ${row.model || "new model"} to model`,
+                                  )}
                                   list="usage-alias-models"
                                   placeholder={
                                     row.isNew
@@ -493,7 +499,10 @@ export function UsagePriceOverrides({
                                     <Input
                                       size="compact"
                                       inputMode="decimal"
-                                      aria-label={`${field.label} price for ${row.model || "new model"}`}
+                                      aria-label={translateFullUiCopy(
+                                        fullUiLocale,
+                                        `${field.label} price for ${row.model || "new model"}`,
+                                      )}
                                       value={value}
                                       placeholder={
                                         row.isNew

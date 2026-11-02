@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { TimelinePendingApprovalRow } from "./TimelinePendingApprovalRow";
@@ -280,6 +282,7 @@ function ExpandedWorkGroupEntries({
 const workEntryKey = (entry: TimelineWorkEntry) => entry.id;
 
 export function WorkingTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "working" }> }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { isCompacting, isPreparingWorktree, backgroundWorktreeSetup } =
     use(TimelineRowActivityCtx);
@@ -304,8 +307,12 @@ export function WorkingTimelineRow({ row }: { row: Extract<TimelineRow, { kind: 
           ref={shimmer ? observeVisibleAnimation : undefined}
           className="relative shrink-0 overflow-hidden whitespace-nowrap"
         >
-          {label}
-          {shimmer ? <ActivityShimmerOverlay>{label}</ActivityShimmerOverlay> : null}
+          {typeof label === "string" ? translateFullUiCopy(fullUiLocale, label) : label}
+          {shimmer ? (
+            <ActivityShimmerOverlay>
+              {typeof label === "string" ? translateFullUiCopy(fullUiLocale, label) : label}
+            </ActivityShimmerOverlay>
+          ) : null}
         </span>
         {backgroundWorktreeSetup ? (
           <BackgroundWorktreeSetupChip snapshot={backgroundWorktreeSetup} />
@@ -316,6 +323,7 @@ export function WorkingTimelineRow({ row }: { row: Extract<TimelineRow, { kind: 
 }
 
 function BackgroundWorktreeSetupChip({ snapshot }: { snapshot: WorktreeSetupSnapshot }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const ctx = use(TimelineRowCtx);
   const terminalId = snapshot.setupScript?.terminalId ?? null;
@@ -330,7 +338,10 @@ function BackgroundWorktreeSetupChip({ snapshot }: { snapshot: WorktreeSetupSnap
             variant="ghost-muted"
             size="micro"
             className="ml-auto min-w-0 shrink-0"
-            aria-label={`Background setup is still running: ${scriptName}. Show setup progress.`}
+            aria-label={translateFullUiCopy(
+              fullUiLocale,
+              `Background setup is still running: ${scriptName}. Show setup progress.`,
+            )}
           />
         }
       >
@@ -413,6 +424,7 @@ function LiveActivityRow({
   active?: boolean;
   shimmer?: boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const animated = active && !failed;
   const showShimmer = animated && shimmer;
   return (
@@ -421,7 +433,7 @@ function LiveActivityRow({
       className="relative min-h-6 w-fit max-w-full min-w-0 overflow-hidden rounded-md text-sm leading-relaxed"
     >
       <LiveActivityContent
-        label={label}
+        label={typeof label === "string" ? translateFullUiCopy(fullUiLocale, label) : label}
         iconName={iconName}
         toolIcon={toolIcon}
         failed={failed}
@@ -430,7 +442,12 @@ function LiveActivityRow({
       />
       {showShimmer ? (
         <ActivityShimmerOverlay>
-          <LiveActivityContent label={label} iconName={iconName} toolIcon={toolIcon} highlighted />
+          <LiveActivityContent
+            label={typeof label === "string" ? translateFullUiCopy(fullUiLocale, label) : label}
+            iconName={iconName}
+            toolIcon={toolIcon}
+            highlighted
+          />
         </ActivityShimmerOverlay>
       ) : null}
     </div>
@@ -454,6 +471,7 @@ function LiveActivityContent({
   active?: boolean;
   highlighted?: boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const showTrailingFailureMark =
     failed && iconName !== undefined && !toolIconAcceptsTint(toolIcon);
@@ -495,7 +513,7 @@ function LiveActivityContent({
             active && "live-tool-shine",
           )}
         >
-          {label}
+          {typeof label === "string" ? translateFullUiCopy(fullUiLocale, label) : label}
         </span>
       }
       trailing={
@@ -512,6 +530,7 @@ export function LiveWorkEntryTimelineRow({
 }: {
   row: Extract<TimelineRow, { kind: "work-live" }>;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const ctx = use(TimelineRowCtx);
   const threadTarget = useThreadReadTarget(row.entry, ctx.activeThreadEnvironmentId);
@@ -536,7 +555,7 @@ export function LiveWorkEntryTimelineRow({
       )}
       aria-label={
         failed
-          ? `${thoughtLine ? `${thoughtLine} ` : ""}${threadLabel?.text ?? label}, tool call failed`
+          ? `${thoughtLine ? `${thoughtLine} ` : ""}${threadLabel?.text ?? (typeof label === "string" ? translateFullUiCopy(fullUiLocale, label) : label)}, tool call failed`
           : undefined
       }
       aria-expanded={row.expanded}
@@ -590,6 +609,8 @@ export function LiveWorkEntryTimelineRow({
               environmentId={ctx.activeThreadEnvironmentId}
               linked={false}
             />
+          ) : typeof label === "string" ? (
+            translateFullUiCopy(fullUiLocale, label)
           ) : (
             label
           )
@@ -633,9 +654,14 @@ function WorkGroupHeader(props: {
   timestampFormat: TimestampFormat;
   onToggle: () => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   return (
     <WorkLogButton
-      aria-label={props.failed ? `${props.label}, tool call failed` : props.label}
+      aria-label={
+        props.failed
+          ? `${translateFullUiCopy(fullUiLocale, props.label)}, tool call failed`
+          : translateFullUiCopy(fullUiLocale, props.label)
+      }
       aria-expanded={props.expanded}
       onClick={props.onToggle}
       icon={
@@ -646,7 +672,9 @@ function WorkGroupHeader(props: {
           muted
         />
       }
-      label={<span className="block truncate">{props.label}</span>}
+      label={
+        <span className="block truncate">{translateFullUiCopy(fullUiLocale, props.label)}</span>
+      }
       trailing={
         <TimelineRowTimestamp createdAt={props.createdAt} timestampFormat={props.timestampFormat} />
       }

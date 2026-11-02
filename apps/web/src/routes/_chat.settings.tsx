@@ -1,8 +1,10 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "~/i18n/messages";
 import { useI18n } from "../i18n/WebI18nContext";
-import { workspaceAreaProps } from "../lib/workspaceFocus";
+import { useWorkspaceAreaProps } from "../lib/workspaceFocus";
 import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { RotateCcwIcon } from "lucide-react";
@@ -50,6 +52,7 @@ function RestoreDeviceDefaultsButton({ onRestored }: { onRestored: () => void })
 }
 
 function SettingsScopeBoundary({ pathname, children }: { pathname: string; children: ReactNode }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: uiLocale } = useI18n();
   const { scope, connectedEnvironments } = useSettingsScope();
   const { environments } = useEnvironments();
@@ -89,7 +92,10 @@ function SettingsScopeBoundary({ pathname, children }: { pathname: string; child
         : "all";
     return (
       <SettingsScopeNotice target={target} targetId={hash}>
-        {`${searchTarget.title} is not available for the selected target. Choose its owning scope to continue.`}
+        {translateFullUiCopy(
+          fullUiLocale,
+          `${searchTarget.title} is not available for the selected target. Choose its owning scope to continue.`,
+        )}
       </SettingsScopeNotice>
     );
   }
@@ -117,7 +123,7 @@ function SettingsScopeBoundary({ pathname, children }: { pathname: string; child
 
 function SettingsContentLayout() {
   const { locale: staticUiLocale } = useStaticUiLocale();
-  const contentArea = workspaceAreaProps("settings", 1, "Settings content");
+  const contentArea = useWorkspaceAreaProps("settings", 1, "Settings content");
   const location = useLocation();
   const { search, environment } = useSettingsScope();
   const contentScopeKey =

@@ -1,4 +1,4 @@
-import { workspaceAreaProps } from "../lib/workspaceFocus";
+import { useWorkspaceAreaProps } from "../lib/workspaceFocus";
 import { MessageSquareDashedIcon, PlusIcon } from "lucide-react";
 
 import { openCommandPalette } from "../commandPaletteBus";
@@ -13,7 +13,7 @@ import { useI18n } from "../i18n/WebI18nContext";
 
 export function NoProjectsHero() {
   const { t } = useI18n();
-  const contentArea = workspaceAreaProps("home", 1, "Home");
+  const contentArea = useWorkspaceAreaProps("home", 1, "Home");
   const primaryEnvironmentId = usePrimaryEnvironmentId();
   const { scratchEnvironmentId, startScratchThread } = useScratchProject();
   const scratchTargetEnvironmentId = scratchEnvironmentId(primaryEnvironmentId);

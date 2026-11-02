@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
@@ -15,6 +17,7 @@ export default function PreviewImageContent(props: {
   readonly mimeType?: string;
   readonly onError?: () => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: previewLocale } = useI18n();
   const [failed, setFailed] = useState(false);
@@ -91,7 +94,7 @@ export default function PreviewImageContent(props: {
         >
           <button
             type="button"
-            aria-label={`Zoom ${props.name}`}
+            aria-label={translateFullUiCopy(fullUiLocale, `Zoom ${props.name}`)}
             className="shrink-0 cursor-zoom-in"
             onClick={() => setExpanded(true)}
           >

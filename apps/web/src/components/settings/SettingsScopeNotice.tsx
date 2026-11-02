@@ -85,7 +85,10 @@ export function SettingsScopeNotice({
         })
       : target === "project"
         ? groups.map((group) => ({
-            label: group.displayName,
+            label:
+              group.isScratch && group.displayName === "No project"
+                ? translateStaticUiCopy(staticUiLocale, "No project")
+                : group.displayName,
             secondary: [
               ...(group.archived ? ["Archived"] : []),
               ...(groups.some(

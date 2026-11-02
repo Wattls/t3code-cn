@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useEnvironmentScope } from "../../state/session";
@@ -801,8 +803,9 @@ type KeybindingRowProps = KeybindingRowActions & {
 };
 
 function useCommandLabel() {
-  const { t } = useI18n();
-  return (command: KeybindingCommand) => localizedCommandLabel(command, t);
+  const { t, locale } = useI18n();
+  return (command: KeybindingCommand) =>
+    translateWebSource(locale, localizedCommandLabel(command, t));
 }
 
 function KeybindingKeyControl({
@@ -883,6 +886,7 @@ function WhenClauseControl({
   onChange: (value: KeybindingWhenNode | undefined) => void;
   onValidityChange: (valid: boolean) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { t } = useI18n();
   // Closing unmounts the builder, which drops an unparsed draft and keeps the last valid value.
   const handleOpenChange = (open: boolean) => {
@@ -899,7 +903,7 @@ function WhenClauseControl({
             className="min-w-0 shrink"
           />
         }
-        aria-label={`Edit when clause for ${label}`}
+        aria-label={translateFullUiCopy(fullUiLocale, `Edit when clause for ${label}`)}
       >
         <span className="truncate font-mono">{expression || t("keybindings.always")}</span>
         <ChevronDownIcon className="size-3.5 shrink-0 opacity-60" />
@@ -1284,9 +1288,14 @@ interface KeybindingsGroupsProps extends KeybindingRowActions {
 }
 
 function KeybindingsGroups(props: KeybindingsGroupsProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { groups, anchorIds, savingCommand, ...rowActions } = props;
   return groups.map((group) => (
-    <SettingsSection key={group.id} id={`keybindings-${group.id}`} title={group.title}>
+    <SettingsSection
+      key={group.id}
+      id={`keybindings-${group.id}`}
+      title={translateFullUiCopy(fullUiLocale, group.title)}
+    >
       {group.rows.map((row) => (
         <KeybindingSettingsRow
           key={row.id}

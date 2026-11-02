@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
@@ -88,6 +90,7 @@ const EFFORT_DISPLAY_LABELS: Record<EffortDisplay, string> = {
 };
 
 export function AppearanceSettingsPanel() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale } = useI18n();
   const {
@@ -290,7 +293,9 @@ export function AppearanceSettingsPanel() {
                   className="w-full min-w-0"
                   aria-label={translateStaticUiCopy(staticUiLocale, "Chat width")}
                 >
-                  <SelectValue>{CHAT_WIDTH_LABELS[settings.chatWidth]}</SelectValue>
+                  <SelectValue>
+                    {translateFullUiCopy(fullUiLocale, CHAT_WIDTH_LABELS[settings.chatWidth])}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
                   <SelectItem value="comfortable">
@@ -338,7 +343,12 @@ export function AppearanceSettingsPanel() {
                   className="w-full min-w-0"
                   aria-label={translateStaticUiCopy(staticUiLocale, "Effort display")}
                 >
-                  <SelectValue>{EFFORT_DISPLAY_LABELS[settings.effortDisplay]}</SelectValue>
+                  <SelectValue>
+                    {translateFullUiCopy(
+                      fullUiLocale,
+                      EFFORT_DISPLAY_LABELS[settings.effortDisplay],
+                    )}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
                   <SelectItem value="label">
@@ -483,12 +493,14 @@ export function AppearanceSettingsPanel() {
                   className="w-full sm:w-40"
                   aria-label={translateStaticUiCopy(staticUiLocale, "Environment identification")}
                 >
-                  <SelectValue>{environmentIdentificationLabel}</SelectValue>
+                  <SelectValue>
+                    {translateFullUiCopy(fullUiLocale, environmentIdentificationLabel)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
                   {environmentIdentificationOptionList.map(([value, label]) => (
                     <SelectItem hideIndicator key={value} value={value}>
-                      {label}
+                      {translateFullUiCopy(fullUiLocale, label)}
                     </SelectItem>
                   ))}
                 </SelectPopup>

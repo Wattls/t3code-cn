@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/WebI18nContext";
+import { translateWebSource } from "../i18n/messages";
 import type { AnyRouter } from "@tanstack/react-router";
 import { dismissContextMenu } from "../contextMenuFallback";
 import { useRightPanelStore } from "../rightPanelStore";
@@ -9,11 +11,12 @@ const FOCUSABLE_SELECTOR =
   'button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [contenteditable="true"], [tabindex]';
 
 /** Props that make an element one stop in the F6 cycle; `order` sets its place in the cycle. */
-export function workspaceAreaProps(name: string, order: number, label: string) {
+export function useWorkspaceAreaProps(name: string, order: number, label: string) {
+  const { locale } = useI18n();
   return {
     "data-workspace-area": name,
     "data-workspace-order": order,
-    "aria-label": label,
+    "aria-label": translateWebSource(locale, label),
     role: "region",
     tabIndex: -1,
   } as const;

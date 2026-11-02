@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { DeviceHostUpdates } from "../device/DeviceHostUpdates";
@@ -302,6 +304,7 @@ const rotateViewport = (
 });
 
 function BrowserViewportSetting({ disabled }: { readonly disabled: boolean }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale, t } = useI18n();
   const viewport = useClientSettings((settings) => settings.browserDefaultViewport);
@@ -392,7 +395,7 @@ function BrowserViewportSetting({ disabled }: { readonly disabled: boolean }) {
                 {PREVIEW_VIEWPORT_PRESETS.map((preset) => (
                   <SelectItem key={preset.id} value={preset.id}>
                     <span className="flex w-full items-center justify-between gap-5">
-                      <span>{preset.label}</span>
+                      <span>{translateFullUiCopy(fullUiLocale, preset.label)}</span>
                       <span className="text-xs tabular-nums text-muted-foreground">
                         {preset.detail}
                       </span>
@@ -738,6 +741,7 @@ const SEARCH_ENGINE_LABELS: Readonly<Record<BrowserSearchEngine, string>> = {
 };
 
 function BrowserSearchEngineSetting() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: sourceLocale } = useI18n();
   const engine = useClientSettings((settings) => settings.browserSearchEngine);
   const customUrl = useClientSettings((settings) => settings.browserCustomSearchUrl);
@@ -779,12 +783,14 @@ function BrowserSearchEngineSetting() {
               className="w-full sm:w-40"
               aria-label={translateWebSource(sourceLocale, "Search engine")}
             >
-              <SelectValue>{SEARCH_ENGINE_LABELS[engine]}</SelectValue>
+              <SelectValue>
+                {translateFullUiCopy(fullUiLocale, SEARCH_ENGINE_LABELS[engine])}
+              </SelectValue>
             </SelectTrigger>
             <SelectPopup align="end" alignItemWithTrigger={false}>
               {BrowserSearchEngine.literals.map((literal) => (
                 <SelectItem hideIndicator key={literal} value={literal}>
-                  {SEARCH_ENGINE_LABELS[literal]}
+                  {translateFullUiCopy(fullUiLocale, SEARCH_ENGINE_LABELS[literal])}
                 </SelectItem>
               ))}
             </SelectPopup>
@@ -889,6 +895,7 @@ function DeviceIntegrationControls({
   enabled: boolean;
   agentAccessEnabled: boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const canConfigure = useEnvironmentScope(environmentId, AuthSettingsWriteScope);
   const { state, loaded } = useDeviceState(environmentId);
@@ -937,7 +944,10 @@ function DeviceIntegrationControls({
           staticUiLocale,
           "Device settings not saved on all environments",
         ),
-        description: `Could not update ${failed.map((environment) => environment.label).join(", ")}.`,
+        description: translateFullUiCopy(
+          fullUiLocale,
+          `Could not update ${failed.map((environment) => environment.label).join(", ")}.`,
+        ),
       });
     }
   };

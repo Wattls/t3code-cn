@@ -142,7 +142,11 @@ export function DraftHeroHeadline({
           ),
         ) ?? null);
   const activeProjectKey = activeProjectGroup?.projectKey ?? "";
-  const activeProjectDisplayName = activeProjectGroup?.displayName ?? activeProjectTitle;
+  const rawActiveProjectDisplayName = activeProjectGroup?.displayName ?? activeProjectTitle;
+  const activeProjectDisplayName =
+    activeProjectGroup?.isScratch && rawActiveProjectDisplayName === "No project"
+      ? t("draftHero.noProject")
+      : rawActiveProjectDisplayName;
   const hasResolvedProject = activeProjectTitle !== null;
   const canChooseProject = projectPickerEntries.length > 0;
   const shouldShowProjectMenu = canChooseProject;

@@ -79,7 +79,7 @@ function startAnnotationThemeSync(preview: DesktopPreviewBridge): () => void {
   const observer = new MutationObserver(syncTheme);
   observer.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ["class", "style"],
+    attributeFilter: ["class", "style", "lang"],
   });
   const headObserver = new MutationObserver(syncTheme);
   headObserver.observe(document.head, {

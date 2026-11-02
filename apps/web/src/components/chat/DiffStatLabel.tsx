@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { memo } from "react";
 import { cn } from "~/lib/utils";
 
@@ -25,11 +27,15 @@ export const DiffStatLabel = memo(function DiffStatLabel(props: {
   className?: string;
   layout?: "aligned" | "inline";
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { additions, deletions, className, layout = "aligned" } = props;
   return (
     <span
       role="group"
-      aria-label={`${additions} additions, ${deletions} deletions`}
+      aria-label={translateFullUiCopy(
+        fullUiLocale,
+        `${additions} additions, ${deletions} deletions`,
+      )}
       className={cn(
         layout === "inline"
           ? "inline-flex items-center gap-1 tabular-nums align-middle"

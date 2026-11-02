@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
@@ -52,6 +54,7 @@ function isWorktreeSubmodules(value: string | null): value is WorktreeSubmodules
 }
 
 export function ProjectDefaultsSettings({ category }: { category: ProjectSettingsCategory }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale } = useI18n();
   const translate = (source: string) => translateWebSource(locale, source);
@@ -162,7 +165,9 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
               instanceEntries={entries}
               modelOptionsByInstance={modelOptions}
               triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
-              {...(mixedModel ? { triggerLabel: "Mixed" } : {})}
+              {...(mixedModel
+                ? { triggerLabel: translateStaticUiCopy(staticUiLocale, "Mixed") }
+                : {})}
               getModelDisabledReason={modelDisabledReason}
               onOpenProviderSetup={(instanceId) => {
                 if (representative)
@@ -287,9 +292,9 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
             triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
             triggerAriaLabel="Fallback model"
             {...(mixedFallback
-              ? { triggerLabel: "Mixed" }
+              ? { triggerLabel: translateStaticUiCopy(staticUiLocale, "Mixed") }
               : settings.fallbackModelSelection === null
-                ? { triggerLabel: "None" }
+                ? { triggerLabel: translateStaticUiCopy(staticUiLocale, "None") }
                 : {})}
             getModelDisabledReason={modelDisabledReason}
             onInstanceModelChange={(instanceId, model) => {
@@ -378,7 +383,10 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
                   <SelectValue>
                     {mixedPermissions
                       ? translateStaticUiCopy(staticUiLocale, "Mixed")
-                      : runtimeModeConfig[settings.defaultRuntimeMode].label}
+                      : translateFullUiCopy(
+                          fullUiLocale,
+                          runtimeModeConfig[settings.defaultRuntimeMode].label,
+                        )}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
@@ -390,10 +398,10 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
                         <div className="grid gap-0.5">
                           <span className="inline-flex items-center gap-1.5 font-medium">
                             <Icon className="size-3.5 shrink-0 text-muted-foreground" />
-                            {option.label}
+                            {translateFullUiCopy(fullUiLocale, option.label)}
                           </span>
                           <span className="text-xs leading-4 text-muted-foreground">
-                            {option.description}
+                            {translateFullUiCopy(fullUiLocale, option.description)}
                           </span>
                         </div>
                       </SelectItem>
@@ -428,7 +436,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
               settings.defaultAutoPull ? (
                 <SettingResetButton
                   label={translateStaticUiCopy(staticUiLocale, "default automatic pull")}
-                  tooltip="Reset automatic pull to off"
+                  tooltip={translateFullUiCopy(fullUiLocale, "Reset automatic pull to off")}
                   onClick={() => updateSettings({ defaultAutoPull: false })}
                 />
               ) : null
@@ -455,7 +463,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
               settings.removeAgentCreditsOnMerge ? (
                 <SettingResetButton
                   label={translateStaticUiCopy(staticUiLocale, "agent credit removal")}
-                  tooltip="Keep agent credits"
+                  tooltip={translateFullUiCopy(fullUiLocale, "Keep agent credits")}
                   onClick={() => updateSettings({ removeAgentCreditsOnMerge: false })}
                 />
               ) : null
@@ -494,7 +502,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
               settings.pullRequestMergeMethod !== null ? (
                 <SettingResetButton
                   label={translateStaticUiCopy(staticUiLocale, "default merge method")}
-                  tooltip="Reset to last selected"
+                  tooltip={translateFullUiCopy(fullUiLocale, "Reset to last selected")}
                   onClick={() => updateSettings({ pullRequestMergeMethod: null })}
                 />
               ) : null
@@ -517,11 +525,14 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
                 >
                   <SelectValue>
                     {(value: string | null) =>
-                      value === "merge" || value === "squash" || value === "rebase"
-                        ? PULL_REQUEST_MERGE_METHOD_LABELS[value]
-                        : value === "last"
-                          ? "Last selected"
-                          : "Mixed"
+                      translateStaticUiCopy(
+                        staticUiLocale,
+                        value === "merge" || value === "squash" || value === "rebase"
+                          ? PULL_REQUEST_MERGE_METHOD_LABELS[value]
+                          : value === "last"
+                            ? "Last selected"
+                            : "Mixed",
+                      )
                     }
                   </SelectValue>
                 </SelectTrigger>
@@ -529,9 +540,15 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
                   <SelectItem value="last">
                     {translateStaticUiCopy(staticUiLocale, "Last selected")}
                   </SelectItem>
-                  <SelectItem value="merge">{PULL_REQUEST_MERGE_METHOD_LABELS.merge}</SelectItem>
-                  <SelectItem value="squash">{PULL_REQUEST_MERGE_METHOD_LABELS.squash}</SelectItem>
-                  <SelectItem value="rebase">{PULL_REQUEST_MERGE_METHOD_LABELS.rebase}</SelectItem>
+                  <SelectItem value="merge">
+                    {translateFullUiCopy(fullUiLocale, PULL_REQUEST_MERGE_METHOD_LABELS.merge)}
+                  </SelectItem>
+                  <SelectItem value="squash">
+                    {translateFullUiCopy(fullUiLocale, PULL_REQUEST_MERGE_METHOD_LABELS.squash)}
+                  </SelectItem>
+                  <SelectItem value="rebase">
+                    {translateFullUiCopy(fullUiLocale, PULL_REQUEST_MERGE_METHOD_LABELS.rebase)}
+                  </SelectItem>
                 </SelectPopup>
               </Select>
             }
@@ -543,6 +560,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
 }
 
 export function WorktreeSubmodulesRow() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { scope, target, connectedEnvironments } = useSettingsScope();
   const settings = useScopedSettings();
@@ -603,7 +621,7 @@ export function WorktreeSubmodulesRow() {
           <SelectPopup align="end" alignItemWithTrigger={false}>
             {WORKTREE_SUBMODULES_OPTIONS.map((option) => (
               <SelectItem key={option} value={option}>
-                {WORKTREE_SUBMODULES_LABELS[option]}
+                {translateFullUiCopy(fullUiLocale, WORKTREE_SUBMODULES_LABELS[option])}
               </SelectItem>
             ))}
           </SelectPopup>

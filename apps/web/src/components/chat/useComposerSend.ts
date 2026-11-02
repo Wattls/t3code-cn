@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
 import { translateWebSource } from "~/i18n/messages";
 import {
@@ -264,6 +266,7 @@ interface ComposerSendInput {
  * when it fails.
  */
 export function useComposerSend(input: ComposerSendInput) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { t, locale: uiLocale } = useI18n();
 
   const {
@@ -499,7 +502,7 @@ export function useComposerSend(input: ComposerSendInput) {
       toastManager.add(
         stackedThreadToast({
           type: "warning",
-          title: "Side chat not started",
+          title: translateFullUiCopy(fullUiLocale, "Side chat not started"),
           description: sideChatDisabledReason,
         }),
       );
@@ -518,8 +521,11 @@ export function useComposerSend(input: ComposerSendInput) {
         toastManager.add(
           stackedThreadToast({
             type: "warning",
-            title: "Side chats take text only",
-            description: "Remove the attachments and context, then send it again.",
+            title: translateFullUiCopy(fullUiLocale, "Side chats take text only"),
+            description: translateFullUiCopy(
+              fullUiLocale,
+              "Remove the attachments and context, then send it again.",
+            ),
           }),
         );
         return;
@@ -626,8 +632,11 @@ export function useComposerSend(input: ComposerSendInput) {
       toastManager.add(
         stackedThreadToast({
           type: "warning",
-          title: "Attached thread is on another machine",
-          description: `This machine's agent can't read "${strandedThread.title}". Remove it, or switch back to ${owner} to send.`,
+          title: translateFullUiCopy(fullUiLocale, "Attached thread is on another machine"),
+          description: translateFullUiCopy(
+            fullUiLocale,
+            `This machine's agent can't read "${strandedThread.title}". Remove it, or switch back to ${owner} to send.`,
+          ),
         }),
       );
       return;
@@ -1146,7 +1155,7 @@ export function useComposerSend(input: ComposerSendInput) {
           toastManager.add({
             type: "info",
             title: notice,
-            description: "Send again when it's ready.",
+            description: translateFullUiCopy(fullUiLocale, "Send again when it's ready."),
           });
         }
         return;

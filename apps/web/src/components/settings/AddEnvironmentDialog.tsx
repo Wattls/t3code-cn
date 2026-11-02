@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
@@ -86,6 +88,7 @@ export function AddEnvironmentDialog({
   readonly onOpenChange: (open: boolean) => void;
   readonly onErrorChange: (error: string | null) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { t, locale } = useI18n();
 
@@ -261,7 +264,10 @@ export function AddEnvironmentDialog({
         ? {
             type: "success",
             title: translateStaticUiCopy(staticUiLocale, "Route added"),
-            description: `${routeTarget.label} now has another way to connect.`,
+            description: translateFullUiCopy(
+              fullUiLocale,
+              `${routeTarget.label} now has another way to connect.`,
+            ),
           }
         : {
             type: "success",
@@ -466,7 +472,10 @@ export function AddEnvironmentDialog({
     toastManager.add({
       type: "success",
       title: translateStaticUiCopy(staticUiLocale, "Route added"),
-      description: `${routeTarget.label} falls back to T3 Connect when its other routes are unreachable.`,
+      description: translateFullUiCopy(
+        fullUiLocale,
+        `${routeTarget.label} falls back to T3 Connect when its other routes are unreachable.`,
+      ),
     });
   };
   const renderRemoteModeBody = () => (

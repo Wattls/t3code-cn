@@ -1,3 +1,6 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { scopeProjectRef } from "@t3tools/client-runtime/environment";
 import {
   type AtomCommandResult,
@@ -22,7 +25,7 @@ const copyTriageCliCommand = () =>
   writeTextToClipboard(TRIAGE_CLI_COMMAND, "command").catch(() =>
     toastManager.add({
       type: "error",
-      title: `Could not copy. Type ${TRIAGE_CLI_COMMAND} instead.`,
+      title: localizeBuiltInUi(`Could not copy. Type ${TRIAGE_CLI_COMMAND} instead.`),
     }),
   );
 
@@ -36,6 +39,7 @@ export const isTriagePrompt = (prompt: string) => prompt.includes(`[${TRIAGE_PRO
  * the problem.
  */
 export function useStartTriage() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const router = useRouter();
   const { scratchWorkspaceRootFor } = useScratchProject();
   const handleNewThread = useNewThreadHandler();
@@ -47,8 +51,11 @@ export function useStartTriage() {
     toastManager.add(
       stackedThreadToast({
         type: "error",
-        title: "Could not start triage",
-        description: `${description} Run ${TRIAGE_CLI_COMMAND} in a terminal on that machine instead.`,
+        title: translateFullUiCopy(fullUiLocale, "Could not start triage"),
+        description: translateFullUiCopy(
+          fullUiLocale,
+          `${description} Run ${TRIAGE_CLI_COMMAND} in a terminal on that machine instead.`,
+        ),
         timeout: 0,
         actionProps: { children: "Copy command", onClick: () => void copyTriageCliCommand() },
         // "Copy command" is the copy that helps here, not the error text.
@@ -92,7 +99,7 @@ export function useStartTriage() {
     const pendingTimer = setTimeout(() => {
       pendingToastId = toastManager.add({
         type: "loading",
-        title: "Starting triage…",
+        title: translateFullUiCopy(fullUiLocale, "Starting triage…"),
         timeout: 0,
       });
     }, 400);

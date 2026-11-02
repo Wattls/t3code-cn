@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "../../i18n/messages";
@@ -81,6 +83,7 @@ export function AcpSessionManagementSection(props: {
   readonly projects: ReadonlyArray<AcpSessionProject>;
   readonly readOnly: boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: sourceLocale } = useI18n();
   const canOperate = useEnvironmentScope(props.environmentId, AuthOrchestrationOperateScope);
@@ -623,7 +626,13 @@ export function AcpSessionManagementSection(props: {
                           if (value !== null) updateDraft({ apiType: value });
                         }}
                       >
-                        <SelectTrigger aria-label={`${provider.providerId} protocol`} size="sm">
+                        <SelectTrigger
+                          aria-label={translateFullUiCopy(
+                            fullUiLocale,
+                            `${provider.providerId} protocol`,
+                          )}
+                          size="sm"
+                        >
                           <SelectValue>{draft.apiType}</SelectValue>
                         </SelectTrigger>
                         <SelectPopup>
@@ -637,7 +646,10 @@ export function AcpSessionManagementSection(props: {
                       <Input
                         size="sm"
                         type="url"
-                        aria-label={`${provider.providerId} base URL`}
+                        aria-label={translateFullUiCopy(
+                          fullUiLocale,
+                          `${provider.providerId} base URL`,
+                        )}
                         placeholder={translateWebSource(sourceLocale, "https://api.example.com")}
                         value={draft.baseUrl}
                         disabled={props.readOnly || savingProviderId !== null}
@@ -647,7 +659,10 @@ export function AcpSessionManagementSection(props: {
                     <Input
                       size="sm"
                       type="password"
-                      aria-label={`${provider.providerId} write-only headers JSON`}
+                      aria-label={translateFullUiCopy(
+                        fullUiLocale,
+                        `${provider.providerId} write-only headers JSON`,
+                      )}
                       placeholder={translateWebSource(
                         sourceLocale,
                         'Write-only headers JSON, e.g. {"Authorization":"Bearer …"}',

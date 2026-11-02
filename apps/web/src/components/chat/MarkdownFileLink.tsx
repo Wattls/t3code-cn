@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
 import { translateWebSource } from "~/i18n/messages";
 import { formatFilePathForClipboard } from "@t3tools/client-runtime/media-actions";
@@ -71,6 +73,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
   revealLabel,
   resolveCopyPaths,
 }: MarkdownFileLinkProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: releaseLocale, t: translateRelease } = useI18n();
   const handleOpenInEditor = () => {
     if (!onOpen) {
@@ -203,7 +206,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: `Failed to copy ${title.toLowerCase()}`,
+          title: translateFullUiCopy(fullUiLocale, `Failed to copy ${title.toLowerCase()}`),
           description: translateWebSource(releaseLocale, "Clipboard API unavailable."),
         }),
       );
@@ -224,7 +227,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
       ([, text]) => {
         toastManager.add({
           type: "success",
-          title: `${title} copied`,
+          title: translateFullUiCopy(fullUiLocale, `${title} copied`),
           description: text,
         });
       },
@@ -236,7 +239,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: `Failed to copy ${title.toLowerCase()}`,
+            title: translateFullUiCopy(fullUiLocale, `Failed to copy ${title.toLowerCase()}`),
             description: error instanceof Error ? error.message : translateRelease("common.error"),
           }),
         );
@@ -376,7 +379,7 @@ export const MarkdownFileLink = memo(function MarkdownFileLink({
               kind={chipKind}
               dir="ltr"
               render={<button type="button" />}
-              aria-label={`File options for ${label}`}
+              aria-label={translateFullUiCopy(fullUiLocale, `File options for ${label}`)}
               aria-haspopup="menu"
               className={cn(MARKDOWN_FILE_LINK_CLASS_NAME, "select-text")}
               data-markdown-copy={copyMarkdown}

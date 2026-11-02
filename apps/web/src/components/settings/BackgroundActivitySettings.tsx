@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
@@ -105,6 +107,7 @@ function BackgroundActivityAdvancedDialog({
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale } = useI18n();
   const canWriteSettings = useScopedSettingsWriteAllowed();
@@ -179,10 +182,13 @@ function BackgroundActivityAdvancedDialog({
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
                   <SelectItem hideIndicator value="balanced">
-                    {BACKGROUND_ACTIVITY_PROFILE_LABELS.balanced}
+                    {translateFullUiCopy(fullUiLocale, BACKGROUND_ACTIVITY_PROFILE_LABELS.balanced)}
                   </SelectItem>
                   <SelectItem hideIndicator value="performance">
-                    {BACKGROUND_ACTIVITY_PROFILE_LABELS.performance}
+                    {translateFullUiCopy(
+                      fullUiLocale,
+                      BACKGROUND_ACTIVITY_PROFILE_LABELS.performance,
+                    )}
                   </SelectItem>
                   <SelectItem hideIndicator value="battery-saver">
                     {translateWebSource(
@@ -197,7 +203,10 @@ function BackgroundActivityAdvancedDialog({
             <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0 space-y-1">
                 <div className="text-sm font-medium">
-                  {searchableSetting("git-fetch-interval").title}
+                  {translateStaticUiCopy(
+                    staticUiLocale,
+                    searchableSetting("git-fetch-interval").title,
+                  )}
                 </div>
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   {translateStaticUiCopy(
@@ -479,6 +488,7 @@ function BackgroundActivityAdvancedDialog({
 }
 
 export function BackgroundActivitySettingsRow() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale } = useI18n();
 
@@ -514,7 +524,7 @@ export function BackgroundActivitySettingsRow() {
       id={searchableSetting("background-activity").id}
       title={
         <span className="inline-flex items-center gap-1.5">
-          {searchableSetting("background-activity").title}
+          {translateStaticUiCopy(staticUiLocale, searchableSetting("background-activity").title)}
           <PolicyTooltip>
             {translateStaticUiCopy(
               staticUiLocale,
@@ -553,16 +563,19 @@ export function BackgroundActivitySettingsRow() {
             >
               <SelectValue>
                 {(value: BackgroundActivityProfileOption | null) =>
-                  value === null ? "Mixed" : BACKGROUND_ACTIVITY_PROFILE_OPTION_LABELS[value]
+                  translateStaticUiCopy(
+                    staticUiLocale,
+                    value === null ? "Mixed" : BACKGROUND_ACTIVITY_PROFILE_OPTION_LABELS[value],
+                  )
                 }
               </SelectValue>
             </SelectTrigger>
             <SelectPopup align="end" alignItemWithTrigger={false}>
               <SelectItem hideIndicator value="balanced">
-                {BACKGROUND_ACTIVITY_PROFILE_LABELS.balanced}
+                {translateFullUiCopy(fullUiLocale, BACKGROUND_ACTIVITY_PROFILE_LABELS.balanced)}
               </SelectItem>
               <SelectItem hideIndicator value="performance">
-                {BACKGROUND_ACTIVITY_PROFILE_LABELS.performance}
+                {translateFullUiCopy(fullUiLocale, BACKGROUND_ACTIVITY_PROFILE_LABELS.performance)}
               </SelectItem>
               <SelectItem hideIndicator value="battery-saver">
                 {translateWebSource(locale, BACKGROUND_ACTIVITY_PROFILE_LABELS["battery-saver"])}

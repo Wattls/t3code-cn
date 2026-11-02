@@ -518,6 +518,10 @@
     "./cloneUrl": {
       "types": "./src/cloneUrl.ts",
       "import": "./src/cloneUrl.ts"
+    },
+    "./uiText": {
+      "types": "./src/uiText.ts",
+      "import": "./src/uiText.ts"
     }
   },
   "scripts": {

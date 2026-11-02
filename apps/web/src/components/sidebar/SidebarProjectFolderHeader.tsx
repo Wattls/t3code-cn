@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/models";
@@ -45,8 +47,13 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
   onNewThread: (group: SidebarProjectSnapshot) => void;
   onContextMenu: (group: SidebarProjectSnapshot, position: { x: number; y: number }) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { group, collapsed, hiddenThreads } = props;
+  const projectDisplayName =
+    group.isScratch && group.displayName === "No project"
+      ? translateFullUiCopy(fullUiLocale, group.displayName)
+      : group.displayName;
   const rowId = sidebarFolderRowId(group.projectKey);
   const localLastVisitedAtById = useUiStateStore((state) => state.threadLastVisitedAtById);
   const dot = collapsed
@@ -82,7 +89,7 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
       >
         <ProjectFavicon project={group} className="size-4 shrink-0" />
         <span className="min-w-0 flex-1 truncate text-sm font-medium text-sidebar-foreground/90">
-          {group.displayName}
+          {projectDisplayName}
         </span>
         {dot ? (
           <span className={cn("size-1.5 shrink-0 rounded-full", FOLDER_DOT_CLASS_NAME[dot])}>
@@ -111,7 +118,10 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
                 data-sidebar-action-for={rowId}
                 size="icon-xs"
                 variant="ghost-muted"
-                aria-label={`New thread in ${group.displayName}`}
+                aria-label={translateFullUiCopy(
+                  fullUiLocale,
+                  `New thread in ${projectDisplayName}`,
+                )}
                 onClick={() => props.onNewThread(group)}
               />
             }
@@ -120,7 +130,7 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
           </TooltipTrigger>
           <TooltipPopup>
             {translateStaticUiCopy(staticUiLocale, "New thread in") + " "}
-            {group.displayName}
+            {projectDisplayName}
           </TooltipPopup>
         </Tooltip>
       </span>

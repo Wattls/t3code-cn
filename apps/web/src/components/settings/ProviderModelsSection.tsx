@@ -1,4 +1,6 @@
 "use client";
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
@@ -489,6 +491,7 @@ function ProviderModelRow({
   readonly onToggleEdit: (slug: string) => void;
   readonly onRemove: (slug: string) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale, t } = useI18n();
   const capLabels = describeModelCapabilities(model, flagMissingReasoning).map((label) =>
@@ -610,7 +613,7 @@ function ProviderModelRow({
                     size="icon-micro"
                     variant="ghost-muted"
                     disabled={!canManageCustomModels}
-                    aria-label={`Edit ${model.slug}`}
+                    aria-label={translateFullUiCopy(fullUiLocale, `Edit ${model.slug}`)}
                     onClick={() => onToggleEdit(model.slug)}
                   />
                 }
@@ -628,7 +631,7 @@ function ProviderModelRow({
                     size="icon-micro"
                     variant="ghost-muted"
                     disabled={!canManageCustomModels}
-                    aria-label={`Remove ${model.slug}`}
+                    aria-label={translateFullUiCopy(fullUiLocale, `Remove ${model.slug}`)}
                     onClick={() => onRemove(model.slug)}
                   />
                 }

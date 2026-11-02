@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { ProviderInstanceIcon } from "../chat/ProviderInstanceIcon";
@@ -167,6 +169,7 @@ export function AddProviderInstanceDialog({
   onOpenChange,
   onCreated,
 }: AddProviderInstanceDialogProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { t } = useI18n();
   const settings = useEnvironmentSettings(environmentId);
@@ -418,7 +421,10 @@ export function AddProviderInstanceDialog({
     toastManager.add({
       type: "success",
       title: translateStaticUiCopy(staticUiLocale, "Provider instance added"),
-      description: `${driverOption.label} instance '${instanceId}' was added.`,
+      description: translateFullUiCopy(
+        fullUiLocale,
+        `${driverOption.label} instance '${instanceId}' was added.`,
+      ),
     });
     onOpenChange(false);
   };
@@ -604,7 +610,10 @@ export function AddProviderInstanceDialog({
                   <div className="flex shrink-0 gap-2 text-2xs">
                     {selectedAcp.website ? (
                       <a
-                        aria-label={`Open documentation for ${selectedAcp.name} (${selectedAcp.id})`}
+                        aria-label={translateFullUiCopy(
+                          fullUiLocale,
+                          `Open documentation for ${selectedAcp.name} (${selectedAcp.id})`,
+                        )}
                         className="text-muted-foreground hover:text-foreground"
                         href={selectedAcp.website}
                         rel="noreferrer"
@@ -615,7 +624,10 @@ export function AddProviderInstanceDialog({
                     ) : null}
                     {selectedAcp.repository ? (
                       <a
-                        aria-label={`Open source for ${selectedAcp.name} (${selectedAcp.id})`}
+                        aria-label={translateFullUiCopy(
+                          fullUiLocale,
+                          `Open source for ${selectedAcp.name} (${selectedAcp.id})`,
+                        )}
                         className="text-muted-foreground hover:text-foreground"
                         href={selectedAcp.repository}
                         rel="noreferrer"

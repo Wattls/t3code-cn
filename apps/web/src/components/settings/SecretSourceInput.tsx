@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
@@ -81,6 +83,7 @@ export function SecretSourceInput({
   children,
   ...rest
 }: SecretSourceInputProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   // A provider picked here applies once a reference for it is committed.
   const [pendingProvider, setPendingProvider] = useState<SecretProviderId | null>(null);
@@ -115,7 +118,7 @@ export function SecretSourceInput({
         <SelectTrigger
           size="sm"
           className="w-auto min-w-0 shrink-0"
-          aria-label={`${label} source`}
+          aria-label={translateFullUiCopy(fullUiLocale, `${label} source`)}
           title={
             provider === null
               ? translateStaticUiCopy(staticUiLocale, "Value")
@@ -175,7 +178,7 @@ export function SecretSourceInput({
           autoComplete="off"
           placeholder={definition?.referencePlaceholder}
           spellCheck={false}
-          aria-label={`${label} reference`}
+          aria-label={translateFullUiCopy(fullUiLocale, `${label} reference`)}
           aria-invalid={rejectedReference !== null}
         />
         {rejectedReference !== null ? (

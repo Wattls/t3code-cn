@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { useI18n } from "~/i18n/WebI18nContext";
 import { translateWebSource } from "~/i18n/messages";
 import { BUILT_IN_THEMES } from "@t3tools/shared/themePalettes";
@@ -31,8 +32,8 @@ export function notifyThemeSaveFailure(): void {
   toastManager.add(
     stackedThreadToast({
       type: "error",
-      title: "Couldn't save theme selection",
-      description: "Try again.",
+      title: localizeBuiltInUi("Couldn't save theme selection"),
+      description: localizeBuiltInUi("Try again."),
     }),
   );
 }

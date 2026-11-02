@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
@@ -120,6 +122,7 @@ export function SavedBackendListRow({
   onRemove,
   onAddRoute,
 }: SavedBackendListRowProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const [routesOpen, setRoutesOpen] = useState(false);
   const [permissionsOpen, setPermissionsOpen] = useState(false);
@@ -159,7 +162,10 @@ export function SavedBackendListRow({
       toastManager.add({
         type: "success",
         title: translateStaticUiCopy(staticUiLocale, "MCP URL copied"),
-        description: `Add it to an agent, e.g. claude mcp add --transport http t3 ${url}`,
+        description: translateFullUiCopy(
+          fullUiLocale,
+          `Add it to an agent, e.g. claude mcp add --transport http t3 ${url}`,
+        ),
       });
     },
     onError: (error) => {
@@ -423,7 +429,10 @@ export function SavedBackendListRow({
               variant="ghost-muted"
               size="icon-xs"
               disabled={isRemoving}
-              aria-label={`More actions for ${environment.label}`}
+              aria-label={translateFullUiCopy(
+                fullUiLocale,
+                `More actions for ${environment.label}`,
+              )}
             />
           }
         >
@@ -475,9 +484,10 @@ function CloudLinkSwitch({
   readonly onCheckedChange?: (enabled: boolean) => void;
   readonly ariaLabel?: string;
 }) {
+  const { locale: switchLocale } = useStaticUiLocale();
   const control = (
     <Switch
-      aria-label={ariaLabel}
+      aria-label={translateStaticUiCopy(switchLocale, ariaLabel)}
       checked={checked}
       disabled={disabled}
       {...(onCheckedChange ? { onCheckedChange } : {})}
@@ -595,6 +605,9 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
   const reachabilityStatus =
     reachability?.status === "reachable" ? (
       formatConnectReachable(reachability)
+        .split(" · ")
+        .map((part) => translateStaticUiCopy(staticUiLocale, part))
+        .join(" · ")
     ) : reachability?.status === "unreachable" ? (
       <span className="block text-destructive">
         {[reachability.reason, reachability.hint, `Fix: ${reachability.fix}`]

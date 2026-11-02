@@ -17,6 +17,7 @@ import type { BackendStartupFailure } from "../backend/DesktopBackendManager.ts"
 import * as DesktopEnvironment from "./DesktopEnvironment.ts";
 import * as DesktopObservability from "./DesktopObservability.ts";
 import * as DesktopState from "./DesktopState.ts";
+import { localizeDesktopUiHtml, localizeDesktopUiText } from "../window/DesktopUiLocale.ts";
 
 const RELEASES_URL = "https://github.com/pingdotgg/t3code/releases";
 const LAST_STARTED_VERSION_FILE = "desktop-last-started-version";
@@ -185,7 +186,9 @@ export const listen: Effect.Effect<
       logDir: environment.logDir,
     });
     if ((yield* Ref.getAndSet(renderedHtmlRef, html)) === html) return;
-    void window.value.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+    void window.value.loadURL(
+      `data:text/html;charset=utf-8,${encodeURIComponent(localizeDesktopUiHtml(html))}`,
+    );
   });
 
   const runAction = Effect.fn("desktop.startupRecovery.runAction")(function* (
@@ -245,7 +248,7 @@ export const listen: Effect.Effect<
           minWidth: 420,
           minHeight: 320,
           show: false,
-          title: "T3 Code could not start",
+          title: localizeDesktopUiText("T3 Code could not start"),
           autoHideMenuBar: true,
           backgroundColor: shouldUseDarkColors ? "#000000" : "#ffffff",
           webPreferences: {

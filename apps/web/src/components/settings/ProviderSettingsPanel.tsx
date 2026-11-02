@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { SettingsGroup } from "./SettingsGroup";
@@ -1116,7 +1118,7 @@ export function EnvironmentProviderSettings({
           id={searchableSetting("provider-health-check-interval").id}
           title={
             <span className="inline-flex items-center gap-1.5">
-              {searchableSetting("provider-health-check-interval").title}
+              {t("providers.healthCheck.title")}
               <PolicyTooltip>
                 {translateStaticUiCopy(
                   staticUiLocale,
@@ -1297,6 +1299,7 @@ function ProviderInstanceRow({
   readonly favorites: UnifiedSettings["favorites"];
   readonly actions: ProviderInstanceRowActions;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const allProjects = useProjects();
   const secretSources = useSecretSources(environmentId);
@@ -1432,7 +1435,7 @@ function ProviderInstanceRow({
       headerAction={
         mode === "editor" && isDefault && isDirty ? (
           <SettingResetButton
-            label={`${resetLabel} provider settings`}
+            label={translateFullUiCopy(fullUiLocale, `${resetLabel} provider settings`)}
             onClick={() => actions.resetDefaultInstance(driver)}
           />
         ) : null

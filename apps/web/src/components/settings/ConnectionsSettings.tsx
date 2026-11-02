@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "~/i18n/messages";
@@ -148,16 +150,18 @@ const BACKEND_VALUE_WSL_OFF = "backend:wsl-off";
 
 // Subscribes on its own so desktop download progress does not re-render the page.
 function LocalVersionStatusLabel() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const updateState = useDesktopUpdateState();
   return (
     <span className="text-xs text-muted-foreground">
-      {resolveLocalVersionStatusLabel(updateState)}
+      {translateStaticUiCopy(staticUiLocale, resolveLocalVersionStatusLabel(updateState))}
     </span>
   );
 }
 
 /** Environments lists the machines this app connects to; access covers who may reach this one. */
 export function ConnectionsSettings({ view }: { readonly view: "environments" | "access" }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale, t } = useI18n();
   const desktopBridge = window.desktopBridge;
@@ -566,7 +570,10 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: `Could not switch backend ${enabled ? "on" : "off"}`,
+          title: translateFullUiCopy(
+            fullUiLocale,
+            `Could not switch backend ${enabled ? "on" : "off"}`,
+          ),
           description: message,
         }),
       );
@@ -1162,10 +1169,10 @@ export function ConnectionsSettings({ view }: { readonly view: "environments" | 
             <FoldedSettingsSection
               id="authorized-clients"
               title={t("connections.access.authorizedClients")}
-              summary={summarizeAuthorizedClients(
-                desktopClientSessions,
-                visibleDesktopPairingLinks,
-              )}
+              summary={summarizeAuthorizedClients(desktopClientSessions, visibleDesktopPairingLinks)
+                .split(" · ")
+                .map((part) => translateStaticUiCopy(staticUiLocale, part))
+                .join(" · ")}
               control={
                 canWriteAccess ? (
                   <AuthorizedClientsHeaderAction

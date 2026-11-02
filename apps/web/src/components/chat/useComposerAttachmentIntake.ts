@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
 import { translateWebSource } from "~/i18n/messages";
 import type { ChatComposerProps } from "./ChatComposer";
@@ -85,6 +87,7 @@ export function useComposerAttachmentIntake(input: {
     selection?: { start: number; end: number },
   ) => boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: releaseLocale } = useI18n();
 
   const {
@@ -235,10 +238,13 @@ export function useComposerAttachmentIntake(input: {
         const attached = storedFiles[0]!;
         toastManager.add({
           type: "info",
-          title: `Large paste attached as ${attached.name}`,
-          description: `${formatAttachmentSize(attached.sizeBytes)} · Use ${
-            isMacPlatform(navigator.platform) ? "⌘⇧V" : "Ctrl+Shift+V"
-          } to keep a large paste inline.`,
+          title: translateFullUiCopy(fullUiLocale, `Large paste attached as ${attached.name}`),
+          description: translateFullUiCopy(
+            fullUiLocale,
+            `${formatAttachmentSize(attached.sizeBytes)} · Use ${
+              isMacPlatform(navigator.platform) ? "⌘⇧V" : "Ctrl+Shift+V"
+            } to keep a large paste inline.`,
+          ),
           data: { hideCopyButton: true },
         });
       }

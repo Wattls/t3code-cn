@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { readWebI18n } from "~/i18n/readWebI18n";
 import { translateWebSource } from "~/i18n/messages";
 import type {
@@ -110,7 +111,7 @@ export function goalNowItem(input: {
           tone="muted"
           onClick={() => void onSendCommand("/goal clear", "Failed to clear goal.")}
         >
-          Clear
+          {localizeBuiltInUi("Clear")}
         </InlineButton>
       </>
     ),
@@ -149,7 +150,9 @@ export function runStopNowItem(input: {
         />
         {unresponsive && input.canForceStop ? (
           <InlineButton disabled={input.forceStopping} onClick={input.onForceStop}>
-            {input.forceStopping ? "Force stopping..." : "Force stop"}
+            {input.forceStopping
+              ? localizeBuiltInUi("Force stopping...")
+              : localizeBuiltInUi("Force stop")}
           </InlineButton>
         ) : null}
       </>
@@ -224,11 +227,11 @@ export function backgroundWorkNowItem(input: {
         )}
         {onlyThreadId === undefined ? null : (
           <InlineButton tone="muted" onClick={() => onOpenThread(onlyThreadId)}>
-            Open
+            {localizeBuiltInUi("Open")}
           </InlineButton>
         )}
         <InlineButton disabled={input.stopDisabled} onClick={() => void input.onStop()}>
-          {input.stopping ? "Stopping..." : "Stop"}
+          {input.stopping ? localizeBuiltInUi("Stopping...") : localizeBuiltInUi("Stop")}
         </InlineButton>
       </>
     ),
@@ -265,15 +268,16 @@ export function branchMismatchBannerItem(input: {
             }
           />
           <TooltipPopup side="top">
-            This thread last ran on {mismatch.threadBranch}. Sending will continue on{" "}
-            {mismatch.currentBranch}.
+            {localizeBuiltInUi("This thread last ran on") + " "}
+            {mismatch.threadBranch}
+            {localizeBuiltInUi(". Sending will continue on")} {mismatch.currentBranch}.
           </TooltipPopup>
         </Tooltip>
       </span>
     ),
     actions: (
       <Button size="xs" variant="ghost" disabled={input.restoreDisabled} onClick={input.onRestore}>
-        {input.restoring ? "Restoring..." : "Restore branch"}
+        {input.restoring ? localizeBuiltInUi("Restoring...") : localizeBuiltInUi("Restore branch")}
       </Button>
     ),
     dismissLabel: "Dismiss branch change notice",

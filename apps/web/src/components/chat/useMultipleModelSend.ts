@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
 import { translateWebSource } from "~/i18n/messages";
 import {
@@ -63,6 +65,7 @@ interface MultipleModelSendInput {
  * user has moved on, through a "Restore prompt" toast.
  */
 export function useMultipleModelSend(input: MultipleModelSendInput) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: uiLocale } = useI18n();
 
   const {
@@ -220,7 +223,10 @@ export function useMultipleModelSend(input: MultipleModelSendInput) {
         toastManager.add(
           stackedThreadToast({
             type: "success",
-            title: `Started ${startedCount} ${startedCount === 1 ? translateWebSource(uiLocale, "thread") : translateWebSource(uiLocale, "threads")} in background`,
+            title: translateFullUiCopy(
+              fullUiLocale,
+              `Started ${startedCount} ${startedCount === 1 ? translateWebSource(uiLocale, "thread") : translateWebSource(uiLocale, "threads")} in background`,
+            ),
           }),
         );
       }

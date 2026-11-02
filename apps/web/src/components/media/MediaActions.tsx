@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
@@ -119,6 +121,7 @@ export function MediaActions({
   source: MediaActionSource;
   children: ReactElement;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { save, copyImage, canReadMedia, assertCanReadMedia } = useMediaActions(source);
   const [tooltipOpen, setTooltipOpen] = useState(false);
@@ -131,7 +134,7 @@ export function MediaActions({
     if (!api || menuOpen.current) return;
     menuOpen.current = true;
     setTooltipOpen(false);
-    let failureTitle = "Could not open media menu";
+    let failureTitle = translateFullUiCopy(fullUiLocale, "Could not open media menu");
     let progressToast: ReturnType<typeof toastManager.add> | undefined;
     const result = await settlePromise(async () => {
       const noun = source.kind === "image" ? "image" : "video";
@@ -160,7 +163,11 @@ export function MediaActions({
           label: translateStaticUiCopy(staticUiLocale, "Open in file viewer"),
           disabled: !canReadMedia,
         });
-      items.push({ id: "save", label: `Save ${noun}`, disabled: unavailable });
+      items.push({
+        id: "save",
+        label: translateFullUiCopy(fullUiLocale, `Save ${noun}`),
+        disabled: unavailable,
+      });
       if (source.kind === "image") {
         items.push({
           id: "copy-image",

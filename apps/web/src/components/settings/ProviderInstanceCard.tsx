@@ -1,4 +1,6 @@
 "use client";
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
@@ -287,6 +289,7 @@ function ProviderEnvironmentFieldRow(props: {
   readonly onRemove: (field: ProviderEnvironmentField) => void;
   readonly secretSources: ReadonlyArray<SecretSource>;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const inputId = `${props.idPrefix}-environment-${props.field.name}`;
   const value = props.variable?.valueRedacted ? "" : (props.variable?.value ?? "");
 
@@ -328,7 +331,7 @@ function ProviderEnvironmentFieldRow(props: {
               size="icon-sm"
               variant="ghost-destructive"
               onClick={() => props.onRemove(props.field)}
-              aria-label={`Clear ${props.field.label}`}
+              aria-label={translateFullUiCopy(fullUiLocale, `Clear ${props.field.label}`)}
             >
               <XIcon className="size-3.5" />
             </Button>
@@ -344,6 +347,7 @@ export function ProviderEnvironmentSection(props: {
   readonly onChange: (environment: ReadonlyArray<ProviderInstanceEnvironmentVariable>) => void;
   readonly secretSources?: ReadonlyArray<SecretSource>;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { t } = useI18n();
   const [storedDraft, setDraft] = useState(() =>
@@ -449,7 +453,10 @@ export function ProviderEnvironmentSection(props: {
                 onCommit={(name) => updateVariable(variable.id, { name: name.trim() })}
                 placeholder="VARIABLE_NAME"
                 spellCheck={false}
-                aria-label={`Environment variable name ${index + 1}`}
+                aria-label={translateFullUiCopy(
+                  fullUiLocale,
+                  `Environment variable name ${index + 1}`,
+                )}
               />
             );
             const removeButton = (
@@ -458,7 +465,10 @@ export function ProviderEnvironmentSection(props: {
                 size="icon-micro"
                 variant="ghost-destructive"
                 onClick={() => removeVariable(variable.id)}
-                aria-label={`Remove environment variable ${variable.name || index + 1}`}
+                aria-label={translateFullUiCopy(
+                  fullUiLocale,
+                  `Remove environment variable ${variable.name || index + 1}`,
+                )}
               >
                 <XIcon className="size-3" />
               </Button>
@@ -482,7 +492,10 @@ export function ProviderEnvironmentSection(props: {
                           });
                         }}
                         aria-pressed={variable.sensitive}
-                        aria-label={`Mark environment variable ${variable.name || index + 1} as sensitive`}
+                        aria-label={translateFullUiCopy(
+                          fullUiLocale,
+                          `Mark environment variable ${variable.name || index + 1} as sensitive`,
+                        )}
                       >
                         <MorphIcon
                           className="size-3"
@@ -523,7 +536,10 @@ export function ProviderEnvironmentSection(props: {
                     placeholder={translateStaticUiCopy(staticUiLocale, "value")}
                     configured={variable.valueRedacted === true}
                     spellCheck={false}
-                    aria-label={`Environment variable value ${index + 1}`}
+                    aria-label={translateFullUiCopy(
+                      fullUiLocale,
+                      `Environment variable value ${index + 1}`,
+                    )}
                     sources={props.secretSources ?? []}
                     onSecretChange={(secret) => setVariableSecret(variable.id, secret)}
                   >
@@ -545,7 +561,10 @@ export function ProviderEnvironmentSection(props: {
                       autoComplete="off"
                       placeholder={translateStaticUiCopy(staticUiLocale, "value")}
                       spellCheck={false}
-                      aria-label={`Environment variable value ${index + 1}`}
+                      aria-label={translateFullUiCopy(
+                        fullUiLocale,
+                        `Environment variable value ${index + 1}`,
+                      )}
                     />,
                   )
                 )}
@@ -737,6 +756,7 @@ export function ProviderInstanceCard({
   secretSources = NO_SECRET_SOURCES,
   projectOverride,
 }: ProviderInstanceCardProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { t } = useI18n();
   const enabled = projectOverride?.effectiveEnabled ?? resolveProviderInstanceEnabled(instance);
@@ -977,7 +997,10 @@ export function ProviderInstanceCard({
                   size={mode === "list" ? "icon-micro" : "icon-xs"}
                   variant="ghost-muted"
                   className={mode === "list" ? "pointer-events-auto relative shrink-0" : undefined}
-                  aria-label={`${updateProgress ? "Updating" : versionAdvisory.title}, view details`}
+                  aria-label={translateFullUiCopy(
+                    fullUiLocale,
+                    `${updateProgress ? "Updating" : versionAdvisory.title}, view details`,
+                  )}
                 >
                   {updateProgress ? (
                     <Spinner tone="muted" {...(mode === "list" ? { size: "sm" as const } : {})} />
@@ -1100,7 +1123,7 @@ export function ProviderInstanceCard({
             type="button"
             className="pointer-events-auto absolute inset-0 cursor-pointer rounded-md outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
             onClick={onSelect}
-            aria-label={`Select ${displayName}`}
+            aria-label={translateFullUiCopy(fullUiLocale, `Select ${displayName}`)}
             aria-pressed={selected}
           />
           {titleIconNode}
@@ -1145,8 +1168,8 @@ export function ProviderInstanceCard({
                 deviceEnabled={resolveProviderInstanceEnabled(instance)}
               />
               <SettingResetButton
-                label={`${displayName} enablement`}
-                tooltip="Reset to the device setting"
+                label={translateFullUiCopy(fullUiLocale, `${displayName} enablement`)}
+                tooltip={translateFullUiCopy(fullUiLocale, "Reset to the device setting")}
                 disabled={readOnly || !canWriteSettings}
                 onClick={projectOverride.onReset}
               />

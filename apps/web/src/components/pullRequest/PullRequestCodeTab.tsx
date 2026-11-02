@@ -1116,7 +1116,7 @@ function PullRequestCodeTab({
           </span>
           {hiddenTestFileCount > 0 ? (
             <Button type="button" size="xs" variant="link" onClick={() => setHideTestFiles(false)}>
-              {hiddenTestFileCount} test{" "}
+              {hiddenTestFileCount} {translateStaticUiCopy(staticUiLocale, "test")}{" "}
               {hiddenTestFileCount === 1
                 ? translateStaticUiCopy(staticUiLocale, "file")
                 : translateStaticUiCopy(staticUiLocale, "files")}

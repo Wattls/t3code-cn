@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import type { EnvironmentId } from "@t3tools/contracts";
 
 import type {
@@ -66,7 +67,7 @@ export function resolveSettingsScope(
   ): ResolvedSettingsScope => ({
     kind: "unavailable",
     reason,
-    label: "Unavailable selection",
+    label: localizeBuiltInUi("Unavailable selection"),
     message,
     members: [],
     environmentIds: [],
@@ -143,7 +144,7 @@ export function resolveSettingsScope(
   }
   return {
     kind: "all",
-    label: "All environments",
+    label: localizeBuiltInUi("All environments"),
     members: [],
     environmentIds: environments.map((candidate) => candidate.environmentId),
   };

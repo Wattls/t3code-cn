@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import {
   executeAtomQuery,
   runAtomCommand,
@@ -112,7 +113,7 @@ export async function addProjectToMachine(input: AddProjectToMachineInput): Prom
           environmentId: input.source.environmentId,
           input: { cwd: input.source.cwd, relativePath },
         }),
-        { label: "Read file to copy", reportFailure: false, refresh: true },
+        { label: localizeBuiltInUi("Read file to copy"), reportFailure: false, refresh: true },
       );
       if (result._tag === "Failure") return { relativePath, error: failureMessage(result) };
       if (result.value.truncated) return { relativePath, error: "Too large to copy." };
@@ -138,7 +139,7 @@ export async function addProjectToMachine(input: AddProjectToMachineInput): Prom
         destinationPath: input.destinationPath,
       },
     },
-    { label: "Add project to machine", reportFailure: false },
+    { label: localizeBuiltInUi("Add project to machine"), reportFailure: false },
   );
   if (started._tag === "Failure") {
     setFileCopy(copyKey, null);
@@ -172,7 +173,7 @@ export async function addProjectToMachine(input: AddProjectToMachineInput): Prom
             contents: read.contents,
           },
         },
-        { label: "Copy file to machine", reportFailure: false },
+        { label: localizeBuiltInUi("Copy file to machine"), reportFailure: false },
       );
       if (written._tag === "Failure")
         failed.push(`${read.relativePath}: ${failureMessage(written)}`);
@@ -183,7 +184,9 @@ export async function addProjectToMachine(input: AddProjectToMachineInput): Prom
         ? null
         : {
             phase: "failed",
-            title: `Could not copy ${failed.length} ${failed.length === 1 ? "file" : "files"} to ${input.target.label}`,
+            title: localizeBuiltInUi(
+              `Could not copy ${failed.length} ${failed.length === 1 ? "file" : "files"} to ${input.target.label}`,
+            ),
             failures: failed,
           },
     );

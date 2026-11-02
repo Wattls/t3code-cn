@@ -47,6 +47,7 @@ interface MarkdownAstNode {
   data?: {
     codexArtifactTemplate?: CodexArtifactTemplate;
     codexFileCitationMarkdown?: string;
+    codexWebCitationMarkdown?: string;
     codexFollowUp?: true;
     hName?: string;
     hProperties?: Record<string, unknown>;
@@ -180,6 +181,45 @@ function restoreTextDirective(node: MarkdownAstNode, source: string): void {
   delete node.children;
 }
 
+function splitWebCitationText(node: MarkdownAstNode, source: string): MarkdownAstNode[] {
+  if (node.type !== "text" || !node.value?.includes("\uE200")) return [node];
+  const markers =
+    /\uE200cite\uE202[^\uE200\uE201\r\n]*(?:\uE201|$)|\uE200(?:c(?:i(?:t(?:e)?)?)?)?$/g;
+  const children: MarkdownAstNode[] = [];
+  const rawSource = sourceForNode(node, source);
+  let offset = 0;
+  let rawOffset = 0;
+  for (const match of node.value.matchAll(markers)) {
+    if (match.index > offset) {
+      children.push({ type: "text", value: node.value.slice(offset, match.index) });
+    }
+    const complete = match[0].endsWith("\uE201");
+    const value = complete ? "[Source]" : "";
+    const markerOffset = rawSource.indexOf(match[0], rawOffset);
+    const sourceStart = node.position?.start.offset;
+    const start =
+      sourceStart === undefined
+        ? undefined
+        : sourceStart + (markerOffset < 0 ? match.index : markerOffset);
+    children.push({
+      type: "text",
+      value,
+      ...(start === undefined
+        ? {}
+        : { position: { start: { offset: start }, end: { offset: start + match[0].length } } }),
+      data: {
+        codexWebCitationMarkdown: value,
+        ...(complete ? { hName: "sup", hProperties: { dataCodexWebCitation: "true" } } : {}),
+      },
+    });
+    offset = match.index + match[0].length;
+    rawOffset = markerOffset + match[0].length;
+  }
+  if (offset === 0) return [node];
+  if (offset < node.value.length) children.push({ type: "text", value: node.value.slice(offset) });
+  return children;
+}
+
 function restoreLeafDirective(node: MarkdownAstNode, source: string): void {
   const value = sourceForDirective(node, source, "::");
   node.type = "paragraph";
@@ -264,6 +304,9 @@ function transformCodexDirectives(node: MarkdownAstNode, source: string, insideL
   for (const child of node.children ?? []) {
     transformCodexDirectives(child, source, childrenInsideLink);
   }
+  if (node.children?.some((child) => child.type === "text" && child.value?.includes("\uE200"))) {
+    node.children = node.children.flatMap((child) => splitWebCitationText(child, source));
+  }
 }
 
 function attachCodexDirectives(this: Processor) {
@@ -302,6 +345,10 @@ function collectDirectiveMatches(node: MarkdownAstNode, matches: DirectiveMatch[
   if (start !== undefined && end !== undefined) {
     if (node.data?.codexFileCitationMarkdown !== undefined) {
       matches.push({ start, end, markdown: node.data.codexFileCitationMarkdown });
+      return;
+    }
+    if (node.data?.codexWebCitationMarkdown !== undefined) {
+      matches.push({ start, end, markdown: node.data.codexWebCitationMarkdown });
       return;
     }
     if (node.data?.codexArtifactTemplate !== undefined) {
@@ -349,6 +396,7 @@ export function renderCodexInlineDirectivesAsMarkdown(markdown: string): string 
 
 export function renderCodexDirectivesForCopy(markdown: string): string {
   if (
+    !markdown.includes("\uE200") &&
     !markdown.includes(`:${CODEX_FILE_CITATION_NAME}`) &&
     !markdown.includes(`:${CODEX_FOLLOW_UP_NAME}`) &&
     !markdown.includes(`::${CODEX_ARTIFACT_TEMPLATE_NAME}`)

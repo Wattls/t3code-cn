@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
@@ -216,6 +218,7 @@ export default function DiffPanel({
   workspaceMutationId,
   visible,
 }: DiffPanelProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const resolvedTheme = useRenderedAppearance();
   const settings = useClientSettings((settings) => ({
@@ -417,7 +420,8 @@ export default function DiffPanel({
       : undefined;
   const selectedGitScopeLabel =
     selectedCommitSha !== null
-      ? (selectedCommitSubject ?? `Commit ${selectedCommitSha.slice(0, 7)}`)
+      ? (selectedCommitSubject ??
+        translateFullUiCopy(fullUiLocale, `Commit ${selectedCommitSha.slice(0, 7)}`))
       : selectedGitScope === "unstaged"
         ? "Uncommitted"
         : "Changes";
@@ -796,7 +800,7 @@ export default function DiffPanel({
           <DropdownMenuTrigger
             render={<Button size="xs" variant="secondary" />}
             className={cn("max-w-full", headerCommitSha !== null && "min-w-0 shrink")}
-            aria-label={`Diff scope: ${selectedScopeLabel}`}
+            aria-label={translateFullUiCopy(fullUiLocale, `Diff scope: ${selectedScopeLabel}`)}
             data-workspace-focus-default
           >
             <span className="truncate">{selectedScopeLabel}</span>
@@ -925,7 +929,10 @@ export default function DiffPanel({
                                 href={commitUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                aria-label={`Open commit ${commit.sha.slice(0, 7)}`}
+                                aria-label={translateFullUiCopy(
+                                  fullUiLocale,
+                                  `Open commit ${commit.sha.slice(0, 7)}`,
+                                )}
                               />
                             }
                             onClick={(event) => openCommitUrl(event, commitUrl)}
@@ -961,7 +968,10 @@ export default function DiffPanel({
                   </DropdownMenuItem>
                 ) : branchCommits.truncated ? (
                   <DropdownMenuItem disabled>
-                    {`Showing latest ${branchCommits.commits.length} commits`}
+                    {translateFullUiCopy(
+                      fullUiLocale,
+                      `Showing latest ${branchCommits.commits.length} commits`,
+                    )}
                   </DropdownMenuItem>
                 ) : null}
               </DropdownMenuSubContent>
@@ -971,7 +981,10 @@ export default function DiffPanel({
         {isGitSelection && selectedGitScope === "branch" && selectedGitSource?.baseRef && (
           <div
             className="flex min-w-0 max-w-full items-center gap-2 overflow-hidden text-xs text-muted-foreground"
-            aria-label={`Comparing ${selectedGitSource.headRef ?? "HEAD"} against ${selectedGitSource.baseRef}`}
+            aria-label={translateFullUiCopy(
+              fullUiLocale,
+              `Comparing ${selectedGitSource.headRef ?? "HEAD"} against ${selectedGitSource.baseRef}`,
+            )}
           >
             <Tooltip>
               <TooltipTrigger
@@ -1015,7 +1028,10 @@ export default function DiffPanel({
               <ComboboxTrigger
                 render={<Button variant="ghost-muted" size="xs" />}
                 className="min-w-9 max-w-48 shrink-0"
-                aria-label={`Change comparison target. Currently ${selectedGitSource.baseRef}`}
+                aria-label={translateFullUiCopy(
+                  fullUiLocale,
+                  `Change comparison target. Currently ${selectedGitSource.baseRef}`,
+                )}
               >
                 <span className="min-w-0 truncate">{selectedGitSource.baseRef}</span>
                 <ChevronDownIcon className="size-3.5 shrink-0 opacity-70" />
@@ -1069,7 +1085,10 @@ export default function DiffPanel({
                               onPointerDown={(event) => event.stopPropagation()}
                             >
                               <Switch
-                                aria-label={`Use remote version of ${choice.label}`}
+                                aria-label={translateFullUiCopy(
+                                  fullUiLocale,
+                                  `Use remote version of ${choice.label}`,
+                                )}
                                 checked={useRemote}
                                 className="[--thumb-size:--spacing(3)]"
                                 onCheckedChange={(checked) => {
@@ -1535,7 +1554,7 @@ export default function DiffPanel({
                 {fileTreeOpen ? (
                   <aside className="flex w-[min(16rem,40%)] min-w-40 shrink-0 border-l border-border/60">
                     <DiffFileTree
-                      ariaLabel={`${reviewSectionTitle} files`}
+                      ariaLabel={translateFullUiCopy(fullUiLocale, `${reviewSectionTitle} files`)}
                       entries={fileTreeEntries}
                       selectedPath={selectedFilePath}
                       revealRequestId={selectedFileRevealRequestId}

@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { EnvironmentId, ThreadId, TurnItemId } from "@t3tools/contracts";
@@ -88,6 +90,7 @@ export function McpAppFrame(props: {
   readonly awaitingUser?: boolean;
   readonly onFullscreenChange?: (fullscreen: boolean) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { app } = props;
   const theme = useHtmlRenderTheme();
@@ -474,7 +477,7 @@ export function McpAppFrame(props: {
           <iframe
             ref={attachFrame}
             src={src}
-            title={`${app.server} app`}
+            title={translateFullUiCopy(fullUiLocale, `${app.server} app`)}
             // Omitting allow-same-origin isolates the app from the session.
             sandbox="allow-scripts allow-forms"
             allow={mcpAppAllowAttribute(app.permissions)}

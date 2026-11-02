@@ -60,8 +60,8 @@ export function SidebarThreadHeader({
   // Shrinking results can remove the active option; never leave aria-activedescendant pointing at it.
   const activeResultExists = resultsVisible && activeSearchResultIndex < searchResultCount;
   const newThreadLabel = newThreadShortcutLabel
-    ? `New thread (${newThreadShortcutLabel})`
-    : "New thread";
+    ? `${t("sidebar.newThread")} (${newThreadShortcutLabel})`
+    : t("sidebar.newThread");
 
   return (
     <div className="flex items-center gap-1">

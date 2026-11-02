@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useAtomValue } from "@effect/atom-react";
 import type {
   AtomCommandFailure,
@@ -158,6 +160,7 @@ export function useSourceControlActionRunning(
 }
 
 export function useVcsInitAction(scope: SourceControlActionScope) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const init = useAtomCommand(vcsEnvironment.init, { reportFailure: false });
   const action = async () => {
     const target = resolveScope(scope);
@@ -177,10 +180,16 @@ export function useVcsInitAction(scope: SourceControlActionScope) {
       input: { cwd: target.cwd },
     });
   };
-  return useAction({ kind: "init", label: "Initializing repository", scope, action });
+  return useAction({
+    kind: "init",
+    label: translateFullUiCopy(fullUiLocale, "Initializing repository"),
+    scope,
+    action,
+  });
 }
 
 export function useVcsPullAction(scope: SourceControlActionScope) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const pull = useAtomCommand(vcsEnvironment.pull, { reportFailure: false });
   const status = useEnvironmentQuery(
     scope.environmentId !== null && scope.cwd !== null
@@ -210,7 +219,7 @@ export function useVcsPullAction(scope: SourceControlActionScope) {
   };
   return useAction({
     kind: "pull",
-    label: "Pulling latest changes...",
+    label: translateFullUiCopy(fullUiLocale, "Pulling latest changes..."),
     scope,
     action,
     onSuccess: status.refresh,
@@ -218,6 +227,7 @@ export function useVcsPullAction(scope: SourceControlActionScope) {
 }
 
 export function useGitStackedAction(scope: SourceControlActionScope) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const runStackedAction = useAtomCommand(vcsActionManager.runStackedAction(scope), {
     reportFailure: false,
   });
@@ -247,7 +257,7 @@ export function useGitStackedAction(scope: SourceControlActionScope) {
 
   return useAction({
     kind: "runStackedAction",
-    label: "Running source control action",
+    label: translateFullUiCopy(fullUiLocale, "Running source control action"),
     scope,
     action,
     onSuccess: status.refresh,
@@ -256,6 +266,7 @@ export function useGitStackedAction(scope: SourceControlActionScope) {
 }
 
 export function useSourceControlPublishRepositoryAction(scope: SourceControlActionScope) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const publishRepository = useAtomCommand(sourceControlEnvironment.publishRepository, {
     reportFailure: false,
   });
@@ -300,7 +311,7 @@ export function useSourceControlPublishRepositoryAction(scope: SourceControlActi
   };
   return useAction({
     kind: "publishRepository",
-    label: "Publishing repository",
+    label: translateFullUiCopy(fullUiLocale, "Publishing repository"),
     scope,
     action,
     onSuccess: status.refresh,
@@ -308,6 +319,7 @@ export function useSourceControlPublishRepositoryAction(scope: SourceControlActi
 }
 
 export function usePreparePullRequestThreadAction(scope: SourceControlActionScope) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const preparePullRequestThread = useAtomCommand(gitEnvironment.preparePullRequestThread, {
     reportFailure: false,
   });
@@ -354,7 +366,7 @@ export function usePreparePullRequestThreadAction(scope: SourceControlActionScop
   };
   return useAction({
     kind: "preparePullRequestThread",
-    label: "Preparing pull request thread",
+    label: translateFullUiCopy(fullUiLocale, "Preparing pull request thread"),
     scope,
     action,
   });

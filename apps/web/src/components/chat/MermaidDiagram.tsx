@@ -308,7 +308,7 @@ function DiagramError({
       <div className="flex items-center justify-between gap-2">
         <p className="m-0 text-xs text-destructive">
           {translateStaticUiCopy(staticUiLocale, "Unable to render diagram:") + " "}
-          {message}
+          {translateStaticUiCopy(staticUiLocale, message)}
         </p>
         {onRetry ? (
           <Button type="button" variant="ghost" size="xs" onClick={onRetry}>

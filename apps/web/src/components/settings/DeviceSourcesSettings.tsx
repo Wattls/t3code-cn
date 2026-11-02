@@ -1,3 +1,6 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useAtomValue } from "@effect/atom-react";
@@ -114,18 +117,22 @@ function hostStatus(
   state: DeviceServiceState | undefined,
   hostId: string,
 ): SourceStatus | undefined {
-  if (!state) return { tone: "pending", label: "Loading" };
+  if (!state) return { tone: "pending", label: localizeBuiltInUi("Loading") };
   const status = state.hostStatuses[hostId];
   switch (status?.status) {
     case "ready":
       return status.androidDiscoveryIncomplete
-        ? { tone: "warning", label: "Android list may be incomplete", detail: status.detail }
+        ? {
+            tone: "warning",
+            label: localizeBuiltInUi("Android list may be incomplete"),
+            detail: status.detail,
+          }
         : undefined;
     case "installing":
     case "starting":
-      return { tone: "pending", label: "Starting", detail: status.detail };
+      return { tone: "pending", label: localizeBuiltInUi("Starting"), detail: status.detail };
     case "failed":
-      return { tone: "error", label: "Failed", detail: status.detail };
+      return { tone: "error", label: localizeBuiltInUi("Failed"), detail: status.detail };
     default:
       return undefined;
   }
@@ -142,6 +149,7 @@ export function DeviceSourcesSettings(props: {
   readonly supportsEas: boolean;
   readonly supportsSimlock: boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { scope, environments, connectedEnvironments, environment: primary } = useSettingsScope();
   const projectScope = scope.kind === "project" || scope.kind === "checkout";
@@ -189,7 +197,10 @@ export function DeviceSourcesSettings(props: {
       toastManager.add({
         type: "error",
         title: failedTitle,
-        description: `This connection cannot change settings on ${unwritable.map((patch) => name(patch.environmentId)).join(", ")}.`,
+        description: translateFullUiCopy(
+          fullUiLocale,
+          `This connection cannot change settings on ${unwritable.map((patch) => name(patch.environmentId)).join(", ")}.`,
+        ),
       });
       return false;
     }
@@ -363,10 +374,12 @@ export function DeviceSourcesSettings(props: {
     key: "local",
     shared: false,
     title: translateStaticUiCopy(staticUiLocale, "Local simulators"),
-    description:
+    description: translateStaticUiCopy(
+      staticUiLocale,
       members.length > 1
         ? "Simulators and emulators installed on each environment's own machine."
         : "Simulators and emulators installed on this environment's machine.",
+    ),
     environments: active.map((member) => {
       const local = member.state?.hosts.find((host) => host.kind === "local");
       const status = local ? hostStatus(member.state, local.id) : hostStatus(member.state, "");
@@ -675,7 +688,7 @@ function PlatformIcon(props: {
         render={
           <button
             type="button"
-            aria-label={`${props.row.title}: ${props.label} ${available ? "available" : "not available"}`}
+            aria-label={`${props.row.title}: ${props.label} ${translateStaticUiCopy(staticUiLocale, available ? "available" : "not available")}`}
             className={cn(
               "relative grid size-6 shrink-0 place-items-center rounded-md outline-hidden hover:bg-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
               available ? "text-foreground" : "text-muted-foreground/45",
@@ -720,7 +733,9 @@ function PlatformIcon(props: {
                 ).map(([heading, environments]) =>
                   environments.length > 0 ? (
                     <div key={heading}>
-                      <dt className="text-muted-foreground">{heading}</dt>
+                      <dt className="text-muted-foreground">
+                        {translateStaticUiCopy(staticUiLocale, heading)}
+                      </dt>
                       {environments.map((environment) => {
                         const reason =
                           heading === "Not available"
@@ -751,7 +766,7 @@ function PlatformIcon(props: {
                   <dd className={entry?.available ? "" : "text-muted-foreground"}>
                     {entry?.available
                       ? translateStaticUiCopy(staticUiLocale, "Available")
-                      : (entry?.reason ?? "Not available")}
+                      : (entry?.reason ?? translateStaticUiCopy(staticUiLocale, "not available"))}
                   </dd>
                 </Fragment>
               );
@@ -759,7 +774,8 @@ function PlatformIcon(props: {
           </dl>
         ) : !available ? (
           <p className="mt-1 text-xs text-muted-foreground">
-            {availability(props.known[0]!)?.reason ?? "Not set up on this machine."}
+            {availability(props.known[0]!)?.reason ??
+              translateStaticUiCopy(staticUiLocale, "Not set up on this machine.")}
           </p>
         ) : null}
       </PopoverPopup>

@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import type { EnvironmentId, PullRequestContextMetadata } from "@t3tools/contracts";
 import { CircleDashedIcon, FilmIcon, ImageIcon } from "lucide-react";
 import { useEffect, useState, type ComponentProps, type MouseEvent, type ReactNode } from "react";
@@ -62,6 +64,7 @@ export function ContextChipPopover(props: {
   accessibleLabel: string;
   children: ReactNode;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   return (
     <Popover>
       <PopoverTrigger
@@ -69,7 +72,7 @@ export function ContextChipPopover(props: {
           <ContextChip
             kind={props.kind}
             render={<button type="button" />}
-            aria-label={`${props.accessibleLabel}. Show details`}
+            aria-label={translateFullUiCopy(fullUiLocale, `${props.accessibleLabel}. Show details`)}
             data-markdown-copy={props.copyMarkdown}
           />
         }
@@ -94,6 +97,7 @@ export function PullRequestChip(props: {
   copyMarkdown?: string;
   onOpen: (event: MouseEvent<HTMLElement>, url: string) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const previewTarget = usePullRequestPreviewTarget(props.environmentId, props.metadata.url);
   const displayState =
     props.metadata.state === "open" && props.metadata.isDraft ? "draft" : props.metadata.state;
@@ -102,7 +106,10 @@ export function PullRequestChip(props: {
     <ContextChip
       kind={props.kind}
       render={<button type="button" />}
-      aria-label={`Open ${props.kindLabel} ${props.label}: ${props.metadata.title}`}
+      aria-label={translateFullUiCopy(
+        fullUiLocale,
+        `Open ${props.kindLabel} ${props.label}: ${props.metadata.title}`,
+      )}
       data-markdown-copy={props.copyMarkdown}
       onClick={(event) => props.onOpen(event, props.metadata.url)}
       onAuxClick={(event) => props.onOpen(event, props.metadata.url)}
@@ -148,11 +155,12 @@ export function ImageChipButton({
   disabled?: boolean | undefined;
   onPreviewError?: (() => void) | undefined;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   return (
     <ContextChip
       kind="image"
       render={<button type="button" disabled={disabled} />}
-      aria-label={`Image attachment, ${name}, ${size}`}
+      aria-label={translateFullUiCopy(fullUiLocale, `Image attachment, ${name}, ${size}`)}
       {...props}
     >
       {previewUrl ? (
@@ -327,12 +335,13 @@ function FileChipContent(props: {
 }
 
 export function UnresolvedChip(props: { label: string; tooltip: string; copyMarkdown?: string }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   return (
     <ContextChipShell
       icon={<CircleDashedIcon />}
       label={props.label}
       state="unresolved"
-      aria-label={`Unavailable context, ${props.label}`}
+      aria-label={translateFullUiCopy(fullUiLocale, `Unavailable context, ${props.label}`)}
       data-markdown-copy={props.copyMarkdown}
       tooltip={props.tooltip}
     />

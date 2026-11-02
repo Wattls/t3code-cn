@@ -5,6 +5,10 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 
 import * as Electron from "electron";
+import { DEFAULT_APP_LOCALE_PREFERENCE } from "@t3tools/contracts";
+import { resolveAppLocale } from "@t3tools/shared/appLocale";
+import { translateBuiltInUiSource } from "@t3tools/shared/uiText";
+import * as DesktopClientSettings from "../settings/DesktopClientSettings.ts";
 
 export class ElectronDialogPickFolderError extends Schema.TaggedError<ElectronDialogPickFolderError>()(
   "ElectronDialogPickFolderError",
@@ -166,12 +170,35 @@ export const make = ElectronDialog.of({
     });
     return result.canceled ? [] : result.filePaths;
   }),
-  showMessageBox: Effect.fn("ElectronDialog.showMessageBox")(function (options, owner) {
-    return Effect.tryPromise({
+  showMessageBox: Effect.fn("ElectronDialog.showMessageBox")(function* (options, owner) {
+    const settingsService = yield* Effect.serviceOption(
+      DesktopClientSettings.DesktopClientSettings,
+    );
+    const settings = Option.isSome(settingsService)
+      ? yield* settingsService.value.get.pipe(Effect.orElseSucceed(() => Option.none()))
+      : Option.none();
+    const preference = Option.isSome(settings)
+      ? settings.value.appLocale
+      : DEFAULT_APP_LOCALE_PREFERENCE;
+    const locale = resolveAppLocale(preference, [Electron.app.getSystemLocale()]);
+    // Authentication dialogs retain upstream wording, like their browser sign-in pages.
+    const isAuthentication = /sign.?in|log.?in|authenticat|authoriz|passkey|password/i.test(
+      `${options.title ?? ""} ${options.message}`,
+    );
+    const t = (text: string) => (isAuthentication ? text : translateBuiltInUiSource(locale, text));
+    const localizedOptions = {
+      ...options,
+      ...(options.title ? { title: t(options.title) } : {}),
+      message: t(options.message),
+      ...(options.detail ? { detail: t(options.detail) } : {}),
+      ...(options.buttons ? { buttons: options.buttons.map(t) } : {}),
+      ...(options.checkboxLabel ? { checkboxLabel: t(options.checkboxLabel) } : {}),
+    };
+    return yield* Effect.tryPromise({
       try: () =>
         owner === undefined
-          ? Electron.dialog.showMessageBox(options)
-          : Electron.dialog.showMessageBox(owner, options),
+          ? Electron.dialog.showMessageBox(localizedOptions)
+          : Electron.dialog.showMessageBox(owner, localizedOptions),
       catch: (cause) =>
         new ElectronDialogShowMessageBoxError({
           type: options.type ?? null,

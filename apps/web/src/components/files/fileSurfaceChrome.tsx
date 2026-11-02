@@ -141,7 +141,7 @@ export function FileSurfaceFailure(props: {
       role="alert"
       className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6 text-center text-xs leading-relaxed"
     >
-      <p className="text-destructive">{props.message}</p>
+      <p className="text-destructive">{translateStaticUiCopy(staticUiLocale, props.message)}</p>
       {props.onRetry ? (
         <button
           type="button"

@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { type ProviderInstanceId, type ServerProvider } from "@t3tools/contracts";
@@ -96,6 +98,7 @@ export const ProviderStatusBanner = memo(function ProviderStatusBanner({
   onOpenProviderSetup?: (instanceId: ProviderInstanceId) => void;
   status: ServerProvider | null;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   if (!status || getProviderStatusBannerKey(status) === null) {
     return null;
@@ -138,7 +141,10 @@ export const ProviderStatusBanner = memo(function ProviderStatusBanner({
         </AlertDescription>
         <AlertAction>
           <Button
-            aria-label={`Dismiss ${providerName} provider ${status.status}`}
+            aria-label={translateFullUiCopy(
+              fullUiLocale,
+              `Dismiss ${providerName} provider ${status.status}`,
+            )}
             onClick={onDismiss}
             size="icon-xs"
             variant="ghost-muted"

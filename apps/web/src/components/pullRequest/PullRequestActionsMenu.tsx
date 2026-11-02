@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
@@ -159,6 +161,7 @@ export function PullRequestActionsMenu({
   openOnHostText: string;
   copyReference: (value: string, label: string) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: uiLocale, t, locale } = useI18n();
   const tx = (source: string) => translateWebSource(locale, source);
@@ -453,7 +456,7 @@ export function PullRequestActionsMenu({
         >
           <CopyIcon className="size-3.5" />
           {translateStaticUiCopy(staticUiLocale, "Copy") + " "}
-          {terminology.shortLabel} number
+          {terminology.shortLabel} {translateStaticUiCopy(staticUiLocale, "number")}
           <MenuShortcut>
             {shortcutLabelForCommand(keybindings, "pullRequest.copyNumber")}
           </MenuShortcut>
@@ -468,7 +471,7 @@ export function PullRequestActionsMenu({
                   ? translateWebSource(uiLocale, "Confirm close?")
                   : uiLocale === "zh-CN"
                     ? "关闭变更请求"
-                    : `Close ${terminology.singular}`
+                    : translateFullUiCopy(fullUiLocale, `Close ${terminology.singular}`)
               }
               variant="destructive"
               disabled={actionPending}
@@ -479,7 +482,7 @@ export function PullRequestActionsMenu({
                 ? translateWebSource(uiLocale, "Confirm close?")
                 : uiLocale === "zh-CN"
                   ? "关闭变更请求"
-                  : `Close ${terminology.singular}`}
+                  : translateFullUiCopy(fullUiLocale, `Close ${terminology.singular}`)}
             </MenuItem>
           </>
         ) : detail.state === "closed" && can("reopen") ? (

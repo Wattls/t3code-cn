@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
 import { buildFileLinkParentSuffixByPath, fileLinkLabel } from "@t3tools/shared/fileLinks";
@@ -278,6 +280,7 @@ function CodexArtifactTemplateCard(props: {
   readonly template: CodexArtifactTemplate;
   readonly onUse?: ((template: CodexArtifactTemplate) => void) | undefined;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: uiLocale } = useI18n();
   const Icon = ARTIFACT_TEMPLATE_ICON_BY_KIND[props.template.artifactKind];
   const presentationLabel = codexArtifactTemplatePresentationLabel(props.template.artifactKind);
@@ -285,7 +288,7 @@ function CodexArtifactTemplateCard(props: {
   return (
     <div
       role="group"
-      aria-label={`${props.template.displayName} template`}
+      aria-label={translateFullUiCopy(fullUiLocale, `${props.template.displayName} template`)}
       data-chat-markdown-artifact-template
       className="my-[0.65rem] flex w-full min-w-0 items-center gap-3 rounded-xl border border-border/70 bg-card/60 px-3 py-2.5 text-foreground shadow-xs"
       data-artifact-kind={props.template.artifactKind}
@@ -508,6 +511,7 @@ function useChatMarkdownState({
   headingLevelOffset = 0,
   sourceControlMedia = false,
 }: ChatMarkdownProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const resolvedTheme = useRenderedAppearance();
   const markdownRef = useRef<HTMLElement>(null);
   const mediaRequestId = useRef(0);
@@ -622,7 +626,7 @@ function useChatMarkdownState({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Media unavailable",
+            title: translateFullUiCopy(fullUiLocale, "Media unavailable"),
             description,
           }),
         );
@@ -729,7 +733,7 @@ function useChatMarkdownState({
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: "Unable to open link in browser",
+              title: translateFullUiCopy(fullUiLocale, "Unable to open link in browser"),
               description: error.message,
             }),
           );
@@ -968,6 +972,20 @@ function selectInlineCode(event: ReactMouseEvent<HTMLElement>) {
 }
 
 const CHAT_MARKDOWN_COMPONENTS = {
+  sup: function MarkdownSuperscript({ node, children, ...props }) {
+    const { t: translate } = useI18n();
+    if (node?.properties.dataCodexWebCitation === "true") {
+      return (
+        <Tooltip>
+          <TooltipTrigger render={<sup />} tabIndex={0}>
+            [{translate("markdown.source")}]
+          </TooltipTrigger>
+          <TooltipPopup>{translate("markdown.sourceUnavailable")}</TooltipPopup>
+        </Tooltip>
+      );
+    }
+    return <sup {...props}>{children}</sup>;
+  },
   h1: markdownHeadingRenderer(1),
   h2: markdownHeadingRenderer(2),
   h3: markdownHeadingRenderer(3),

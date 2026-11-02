@@ -1,3 +1,6 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { projectChangeRequestUrl } from "@t3tools/client-runtime/change-request-links";
@@ -220,7 +223,7 @@ const composerTargetKey = (target: ScopedThreadRef | DraftId): string =>
 function reportCheckoutCommandError(error: Error) {
   toastManager.add({
     type: "error",
-    title: "Could not copy checkout command",
+    title: localizeBuiltInUi("Could not copy checkout command"),
     description: error.message,
   });
 }
@@ -304,6 +307,7 @@ export function PullRequestDetailPanel({
   initialTab?: PullRequestDetailTab;
   onTabChange?: ((tab: PullRequestDetailTab) => void) | undefined;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: uiLocale } = useI18n();
   const { locale, t } = useI18n();
@@ -482,7 +486,7 @@ export function PullRequestDetailPanel({
   ).changeRequest;
   const keybindings = useAtomValue(primaryServerKeybindingsAtom);
   const { copyToClipboard: copyReference } = useCopyToClipboard<string>({
-    target: `${terminology.singular} reference`,
+    target: translateFullUiCopy(fullUiLocale, `${terminology.singular} reference`),
     onCopy: (label) =>
       toastManager.add({ type: "success", title: t("pullRequests.detail.copied", { label }) }),
     onError: (error, label) =>
@@ -908,7 +912,7 @@ export function PullRequestDetailPanel({
       title:
         uiLocale === "zh-CN"
           ? "正在准备检出变更请求…"
-          : `Preparing the ${terminology.singular} checkout...`,
+          : translateFullUiCopy(fullUiLocale, `Preparing the ${terminology.singular} checkout...`),
     });
     const projectRef = scopeProjectRef(
       actingEnvironmentId,
@@ -940,7 +944,10 @@ export function PullRequestDetailPanel({
         title:
           uiLocale === "zh-CN"
             ? "无法准备检出变更请求"
-            : `Could not prepare the ${terminology.singular} checkout`,
+            : translateFullUiCopy(
+                fullUiLocale,
+                `Could not prepare the ${terminology.singular} checkout`,
+              ),
         description: checkoutFailureDescription(
           isAtomCommandInterrupted(prepared) ? undefined : squashAtomCommandFailure(prepared),
         ),
@@ -1515,9 +1522,12 @@ export function PullRequestDetailPanel({
                   <span className="ml-auto inline-flex shrink-0 items-baseline justify-end gap-2 text-2xs">
                     <span
                       className="inline-flex items-baseline gap-1 tabular-nums"
-                      aria-label={`${detail.changedFiles.toLocaleString()} changed ${
-                        detail.changedFiles === 1 ? "file" : "files"
-                      }`}
+                      aria-label={translateFullUiCopy(
+                        fullUiLocale,
+                        `${detail.changedFiles.toLocaleString()} changed ${
+                          detail.changedFiles === 1 ? "file" : "files"
+                        }`,
+                      )}
                     >
                       <FileDiffIcon aria-hidden className="size-3 self-center" />
                       {detail.changedFiles.toLocaleString()}

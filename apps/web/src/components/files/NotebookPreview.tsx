@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
@@ -49,6 +51,7 @@ export default function NotebookPreview(props: {
   readonly notebook: Extract<OfficeWorkerResult, { type: "notebook" }>;
   readonly sizeBytes?: number | undefined;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: previewLocale } = useI18n();
   const [visible, setVisible] = useState(20);
@@ -119,7 +122,7 @@ export default function NotebookPreview(props: {
           {props.notebook.cells.slice(0, visible).map((cell, index) => (
             <section
               key={index}
-              aria-label={`Cell ${index + 1}`}
+              aria-label={translateFullUiCopy(fullUiLocale, `Cell ${index + 1}`)}
               className="min-w-0 overflow-hidden rounded-md border border-border/60"
             >
               <div className="border-b border-border/60 bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground">
@@ -164,7 +167,7 @@ export default function NotebookPreview(props: {
                   ) : output.kind === "image" ? (
                     <img
                       src={output.text}
-                      alt={`Cell ${index + 1} output`}
+                      alt={translateFullUiCopy(fullUiLocale, `Cell ${index + 1} output`)}
                       loading="lazy"
                       className="max-h-96 max-w-full p-4 object-contain"
                     />

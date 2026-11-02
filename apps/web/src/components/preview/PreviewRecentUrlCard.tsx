@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import type { ScopedThreadRef } from "@t3tools/contracts";
 import { X } from "lucide-react";
 
@@ -14,6 +16,7 @@ interface Props {
 }
 
 export function PreviewRecentUrlCard({ threadRef, entry, onOpen, onRemove }: Props) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const parsed = new URL(entry.url);
   const path = parsed.pathname === "/" ? "" : parsed.pathname;
   const label = `${parsed.host}${path}${parsed.search}${parsed.hash}`;
@@ -40,7 +43,7 @@ export function PreviewRecentUrlCard({ threadRef, entry, onOpen, onRemove }: Pro
       </button>
       <button
         type="button"
-        aria-label={`Remove ${label} from history`}
+        aria-label={translateFullUiCopy(fullUiLocale, `Remove ${label} from history`)}
         onClick={onRemove}
         className="absolute right-3 rounded p-1 text-muted-foreground opacity-0 hover:bg-accent hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring group-hover:opacity-100"
       >

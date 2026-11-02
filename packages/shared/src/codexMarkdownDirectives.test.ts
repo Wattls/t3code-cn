@@ -41,6 +41,47 @@ function parseOrdinaryMarkdown(markdown: string): TestNode {
 }
 
 describe("remarkCodexDirectives", () => {
+  it("renders web citation markers as readable source placeholders and normalizes copied text", () => {
+    const marker = "\uE200cite\uE202turn673781view0\uE202turn673781view1\uE201";
+    const markdown = `**说明**：正文。${marker} [官方说明](https://example.com)`;
+    const paragraph = parse(markdown).children?.[0];
+    expect(paragraph?.children).toContainEqual(
+      expect.objectContaining({
+        type: "text",
+        value: "[Source]",
+        data: expect.objectContaining({
+          hName: "sup",
+          hProperties: { dataCodexWebCitation: "true" },
+        }),
+      }),
+    );
+    expect(renderCodexDirectivesForCopy(markdown)).toBe(
+      "**说明**：正文。[Source] [官方说明](https://example.com)",
+    );
+    expect(renderCodexDirectivesForCopy(`\\*前缀 &amp; ${marker}${marker}`)).toBe(
+      "\\*前缀 &amp; [Source][Source]",
+    );
+  });
+
+  it("keeps web citation examples in code and unrelated private-use syntax unchanged", () => {
+    const marker = "\uE200cite\uE202turn0search0\uE201";
+    for (const markdown of [
+      `\`${marker}\``,
+      `\`\`\`text\n${marker}\n\`\`\``,
+      "\uE200other\uE202value\uE201",
+    ]) {
+      expect(parse(markdown)).toEqual(parseOrdinaryMarkdown(markdown));
+      expect(renderCodexDirectivesForCopy(markdown)).toBe(markdown);
+    }
+  });
+
+  it("hides unfinished web citation markers at every streaming boundary", () => {
+    const marker = "\uE200cite\uE202turn673781view0\uE201";
+    for (let end = 1; end < marker.length; end++) {
+      expect(renderCodexDirectivesForCopy(`正文。${marker.slice(0, end)}`)).toBe("正文。");
+    }
+  });
+
   it("renders a file citation as a link without changing its source position", () => {
     const markdown = `Created ${FILE_CITATION}.`;
     const link = parse(markdown).children?.[0]?.children?.[1];

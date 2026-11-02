@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { ThreadHoverCardPopup } from "../ThreadHoverCard";
@@ -71,6 +73,7 @@ export function V2LifecycleRow(props: {
   readonly runs: ReadonlyArray<HandoffTimelineRun>;
   readonly onOpenThread: (threadId: ThreadId) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { item } = props;
   if (item.type === "run_interrupt_result") {
@@ -122,7 +125,7 @@ export function V2LifecycleRow(props: {
           <Button
             size="xs"
             variant="outline"
-            aria-label={`Open ${item.title ?? "created thread"}`}
+            aria-label={translateFullUiCopy(fullUiLocale, `Open ${item.title ?? "created thread"}`)}
             onClick={() => props.onOpenThread(item.targetThreadId)}
           >
             {translateStaticUiCopy(staticUiLocale, "Open chat")}
@@ -142,7 +145,7 @@ export function V2LifecycleRow(props: {
         }
         trailing={
           <InlineButton
-            aria-label={`Open ${item.title ?? "created thread"}`}
+            aria-label={translateFullUiCopy(fullUiLocale, `Open ${item.title ?? "created thread"}`)}
             onClick={() => props.onOpenThread(item.targetThreadId)}
           >
             {translateStaticUiCopy(staticUiLocale, "Open chat")}
@@ -398,6 +401,7 @@ function SubagentTimelineLink(props: {
     readonly timestamp: string;
   };
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const agent = useAtomValue(
     environmentThreadDetails.threadAtom(props.parentRef),
@@ -502,7 +506,7 @@ function SubagentTimelineLink(props: {
             <button
               type="button"
               data-v2-item-type="subagent"
-              aria-label={`Open ${props.title}`}
+              aria-label={translateFullUiCopy(fullUiLocale, `Open ${props.title}`)}
               aria-description={statusLabel}
               onClick={open}
               className={cn(

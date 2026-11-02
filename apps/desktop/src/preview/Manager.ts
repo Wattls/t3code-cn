@@ -77,6 +77,7 @@ import {
 import { isPreviewAnnotationPayload } from "./PickedElementPayload.ts";
 import { captureFavicon, safeHttpOrigin, selectFaviconCandidates } from "./FaviconCapture.ts";
 import { DEFAULT_RECORDING_INPUT_OPTIONS, type RecordingInputOptions } from "./RecordingInput.ts";
+import { localizeDesktopUiHtml } from "../window/DesktopUiLocale.ts";
 
 export type PreviewNavStatus =
   | { kind: "Idle" }
@@ -175,7 +176,7 @@ const buildPreviewPictureInPictureDataUrl = (): string => {
     </script>
   </body>
 </html>`;
-  return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+  return `data:text/html;charset=utf-8,${encodeURIComponent(localizeDesktopUiHtml(html))}`;
 };
 
 export const fitPictureInPictureContentSize = (

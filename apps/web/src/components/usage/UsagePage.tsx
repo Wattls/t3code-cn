@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { ChatGptUsageButton } from "../settings/ChatGptUsageButton";
@@ -179,6 +181,7 @@ function UsageModelDialogHost({
 }
 
 export function UsagePage() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale, t } = useI18n();
   const [preferences, setPreferences] = useState(readUsagePagePreferences);
@@ -423,7 +426,7 @@ export function UsagePage() {
           >
             {WINDOW_OPTIONS.map((option) => (
               <Toggle key={option.days} value={String(option.days)} title={shortcutTitle(option)}>
-                {option.label}
+                {translateFullUiCopy(fullUiLocale, option.label)}
               </Toggle>
             ))}
           </ToggleGroup>
@@ -474,7 +477,7 @@ export function UsagePage() {
                   value={String(option.days)}
                   title={shortcutTitle(option)}
                 >
-                  {option.label}
+                  {translateFullUiCopy(fullUiLocale, option.label)}
                 </SelectItem>
               ))}
             </SelectPopup>
@@ -1135,6 +1138,7 @@ function CursorEnableButton({
   readonly tooltip: boolean;
   readonly buttonText?: string;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const updateSettings = useAtomCommand(serverEnvironment.updateSettings, {
     label: translateStaticUiCopy(staticUiLocale, "enable Cursor account usage"),
@@ -1153,7 +1157,7 @@ function CursorEnableButton({
     <InlineButton
       disabled={pending}
       aria-busy={pending}
-      aria-label={`Enable Cursor usage from ${label}`}
+      aria-label={translateFullUiCopy(fullUiLocale, `Enable Cursor usage from ${label}`)}
       onClick={() => void enable()}
     >
       {buttonText}
@@ -1164,7 +1168,7 @@ function CursorEnableButton({
       variant="outline"
       disabled={pending}
       aria-busy={pending}
-      aria-label={`Enable Cursor usage from ${label}`}
+      aria-label={translateFullUiCopy(fullUiLocale, `Enable Cursor usage from ${label}`)}
       onClick={() => void enable()}
     >
       {buttonText}

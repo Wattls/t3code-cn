@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
@@ -37,6 +39,7 @@ export function CaptureShortcutConfig({
   onSaved?: () => Promise<unknown>;
   onComplete?: () => Promise<void>;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const bridge = getDesktopSnapShotBridge();
   const resolvedTheme = useRenderedAppearance();
@@ -125,7 +128,10 @@ export function CaptureShortcutConfig({
         toastManager.add({
           type: "success",
           title: translateStaticUiCopy(staticUiLocale, "Shortcut saved"),
-          description: `Use ${preview.shortcut} from another app.`,
+          description: translateFullUiCopy(
+            fullUiLocale,
+            `Use ${preview.shortcut} from another app.`,
+          ),
         });
         await onComplete();
       }

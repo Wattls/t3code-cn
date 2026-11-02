@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { scopeProjectRef, scopeThreadRef } from "@t3tools/client-runtime/environment";
@@ -100,6 +102,7 @@ const pullRequestThreadLookupAtom = Atom.family((key: string) => {
 const NO_PULL_REQUEST_THREAD_LOOKUP = Atom.make(null);
 
 export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const locationKey = useLocation({ select: (location) => location.state.__TSR_key ?? "" });
   const navigate = useNavigate();
@@ -250,7 +253,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
     if (link.kind === "pull-request") {
       setState({
         status: "failed",
-        title: `Cloning ${repository.owner}/${repository.name}`,
+        title: translateFullUiCopy(fullUiLocale, `Cloning ${repository.owner}/${repository.name}`),
         message: "Open this link again when the clone finishes.",
       });
       return;
@@ -362,7 +365,7 @@ export function NewThreadLinkView({ link }: { readonly link: NewThreadLink }) {
       const name = `${state.repository.owner}/${state.repository.name}`;
       return (
         <LinkPage
-          title={`You don't have ${name}`}
+          title={translateFullUiCopy(fullUiLocale, `You don't have ${name}`)}
           description={translateStaticUiCopy(
             staticUiLocale,
             "Clone it to work on it here, or start without a project.",
@@ -393,6 +396,7 @@ function PullRequestLinkCheckout({
   readonly link: Extract<NewThreadLink, { kind: "pull-request" }>;
   readonly project: EnvironmentProject;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { handoff, startHandoff } = usePullRequestHandoffs({
     environmentId: project.environmentId,
@@ -412,7 +416,7 @@ function PullRequestLinkCheckout({
   const { owner, name, number } = link.pullRequest;
   return (
     <LinkPage
-      title={`Check out ${owner}/${name}#${number}?`}
+      title={translateFullUiCopy(fullUiLocale, `Check out ${owner}/${name}#${number}?`)}
       description={translateStaticUiCopy(
         staticUiLocale,
         "This puts the pull request's code in a new worktree and runs your project's setup script on it.",

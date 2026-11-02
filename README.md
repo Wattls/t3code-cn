@@ -2,10 +2,10 @@
 
 基于 [pingdotgg/t3code](https://github.com/pingdotgg/t3code) 的简体中文社区分叉，保留官方功能，并维护中文界面、macOS 原生菜单和相关修复。本项目由社区维护，不是 T3 Tools 官方发行版。
 
-- **代码与反馈**：[ycj715925/t3code-cn](https://github.com/ycj715925/t3code-cn)
-- **安装包发布入口**：[GitHub Releases](https://github.com/ycj715925/t3code-cn/releases)，当前 DMG 上传尚未完成
+- **代码与反馈**：[Dealyoung/t3code-cn](https://github.com/Dealyoung/t3code-cn)
+- **安装包发布入口**：[GitHub Releases](https://github.com/Dealyoung/t3code-cn/releases)
 - **当前基础**：官方 `v0.1.6`，提交 `2359643cffa6ba9ee84d6f2694b935de54a8013e`
-- **当前中文构建**：`0.1.6-zh-test.7`，macOS Apple Silicon，测试发布
+- **当前中文构建**：`0.1.6-zh-test.12`，macOS Apple Silicon，测试发布
 - **汉化参考**：[ZhiweiXiao98/t3code](https://github.com/ZhiweiXiao98/t3code)，来源与许可证见 [NOTICE.zh-CN.md](./NOTICE.zh-CN.md)
 
 ## 中文版包含什么
@@ -14,11 +14,13 @@
 
 已修复会话复制、稍后处理、自动收起等右键子菜单未随语言切换的问题，以及源码打包缺少 Clerk / T3 Connect 公开配置、导致账号入口被隐藏的问题。
 
-**账号登录页面保持官方英文，使用原版 Clerk 服务和 `t3code://` 协议。** 模型名称、协议值、代码、路径、用户内容以及提供商返回的原始错误不强制翻译。部分动态时间和辅助功能标签仍可能显示英文。
+本版补齐浏览器批注工具栏、设置下拉框、快捷键命令和动态提示的翻译。网页引用的内部标记显示为“来源”上标；缺少来源网址时提示链接未提供，流式输出中未完成的标记会隐藏，复制文本使用可读占位文字。重新打开历史消息即可生效，无需重新生成或改写记录。
+
+**账号登录页面保持官方英文，使用原版 Clerk 服务和 `t3code://` 协议。** 模型名称、协议值、代码、路径、用户内容以及提供商返回的原始错误不强制翻译。
 
 ## 安装与数据
 
-当前社区源码已公开，测试版 DMG 的远端上传因连接中断尚未完成，可按下文从源码构建。完成上传后，安装包会列在 [Releases](https://github.com/ycj715925/t3code-cn/releases)。当前本地构建使用本机 ad-hoc 签名，没有 Apple Developer ID 签名或 Apple 公证。
+在 [Releases](https://github.com/Dealyoung/t3code-cn/releases) 下载 `T3-Code-CN-arm64.dmg`，校验同一发布中的 `SHA256SUMS.txt`，退出中文 App 后覆盖安装。后续更新沿用同一个中文 App 和固定安装包名称。当前构建使用本机本地证书签名，没有 Apple Developer ID 签名或 Apple 公证。
 
 应用名称暂为 `T3 Code CN Test (Beta)`，与官方版分开保存数据：
 

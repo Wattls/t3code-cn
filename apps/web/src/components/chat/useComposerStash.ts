@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
 import { translateWebSource } from "~/i18n/messages";
 import type { ChatComposerProps } from "./ChatComposer";
@@ -100,6 +102,7 @@ export function useComposerStash(input: {
   ) => ReadonlyMap<string, string>;
   readonly expandMobileComposer: () => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { t, locale: releaseLocale } = useI18n();
 
   const {
@@ -593,7 +596,10 @@ export function useComposerStash(input: {
         toastManager.add({
           type: "warning",
           title: t("composer.stash.toast.evictedTitle"),
-          description: `The stash holds ${MAX_STASH_ENTRIES} prompts; the oldest was removed to make room.`,
+          description: translateFullUiCopy(
+            fullUiLocale,
+            `The stash holds ${MAX_STASH_ENTRIES} prompts; the oldest was removed to make room.`,
+          ),
           data: { hideCopyButton: true },
         });
       }
@@ -643,7 +649,10 @@ export function useComposerStash(input: {
         toastManager.add({
           type: "warning",
           title: t("composer.stash.toast.imagesDidNotAttachTitle"),
-          description: `That prompt was restored or deleted before ${kept.length} image${kept.length === 1 ? "" : "s"} finished saving. Re-attach ${kept.length === 1 ? "it" : "them"} if you still need ${kept.length === 1 ? "it" : "them"}.`,
+          description: translateFullUiCopy(
+            fullUiLocale,
+            `That prompt was restored or deleted before ${kept.length} image${kept.length === 1 ? "" : "s"} finished saving. Re-attach ${kept.length === 1 ? "it" : "them"} if you still need ${kept.length === 1 ? "it" : "them"}.`,
+          ),
           data: { hideCopyButton: true },
         });
       }

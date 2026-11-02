@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
 import { translateWebSource } from "~/i18n/messages";
 import type {
@@ -149,6 +151,7 @@ export function ComposerAttachmentMediaRow({
   readonly onRemoveImage: (imageId: string) => void;
   readonly onRemoveFile: (fileId: string) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { t } = useI18n();
 
   const uploadsByImageId = useAttachmentUploadStore((state) => state.uploadsByImageId);
@@ -200,7 +203,7 @@ export function ComposerAttachmentMediaRow({
                 <button
                   type="button"
                   className={cn("h-full w-full", ready && "cursor-zoom-in")}
-                  aria-label={`Preview ${image.name}`}
+                  aria-label={translateFullUiCopy(fullUiLocale, `Preview ${image.name}`)}
                   disabled={!ready}
                   onClick={() => {
                     const preview = buildExpandedImagePreview(images, image.id);
@@ -284,7 +287,10 @@ export function ComposerAttachmentMediaRow({
                           })
                         }
                         disabled={!canOperateThread}
-                        aria-label={`Retry upload for ${image.name}`}
+                        aria-label={translateFullUiCopy(
+                          fullUiLocale,
+                          `Retry upload for ${image.name}`,
+                        )}
                       />
                     }
                   >
@@ -304,7 +310,7 @@ export function ComposerAttachmentMediaRow({
                   variant="media-close"
                   size="icon-xs"
                   onClick={() => onRemoveImage(image.id)}
-                  aria-label={`Remove ${image.name}`}
+                  aria-label={translateFullUiCopy(fullUiLocale, `Remove ${image.name}`)}
                 >
                   <XIcon />
                 </Button>
@@ -342,7 +348,7 @@ export function ComposerAttachmentMediaRow({
             <button
               type="button"
               className="flex h-full w-full cursor-zoom-in flex-col items-center justify-center gap-1 px-1 text-white"
-              aria-label={`Play ${file.name}`}
+              aria-label={translateFullUiCopy(fullUiLocale, `Play ${file.name}`)}
               onClick={() => {
                 if (file.file !== null) {
                   const preview = buildExpandedImagePreview([file], file.id);
@@ -382,7 +388,10 @@ export function ComposerAttachmentMediaRow({
                         })
                       }
                       disabled={!canOperateThread}
-                      aria-label={`Retry upload for ${file.name}`}
+                      aria-label={translateFullUiCopy(
+                        fullUiLocale,
+                        `Retry upload for ${file.name}`,
+                      )}
                     />
                   }
                 >
@@ -396,7 +405,7 @@ export function ComposerAttachmentMediaRow({
               size="icon-xs"
               className="absolute right-1 top-1"
               onClick={() => onRemoveFile(file.id)}
-              aria-label={`Remove ${file.name}`}
+              aria-label={translateFullUiCopy(fullUiLocale, `Remove ${file.name}`)}
             >
               <XIcon />
             </Button>
@@ -431,6 +440,7 @@ export function ComposerAttachmentFileList({
   readonly onPreviewFile: (fileId: string) => void;
   readonly onRemoveFile: (fileId: string) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: releaseLocale } = useI18n();
 
   const uploadsByImageId = useAttachmentUploadStore((state) => state.uploadsByImageId);
@@ -482,7 +492,10 @@ export function ComposerAttachmentFileList({
                         })
                       }
                       disabled={!canOperateThread}
-                      aria-label={`Retry upload for ${file.name}`}
+                      aria-label={translateFullUiCopy(
+                        fullUiLocale,
+                        `Retry upload for ${file.name}`,
+                      )}
                     />
                   }
                 >
@@ -495,7 +508,7 @@ export function ComposerAttachmentFileList({
               variant="ghost"
               size="icon-xs"
               onClick={() => onRemoveFile(file.id)}
-              aria-label={`Remove ${file.name}`}
+              aria-label={translateFullUiCopy(fullUiLocale, `Remove ${file.name}`)}
             >
               <XIcon />
             </Button>
@@ -569,6 +582,7 @@ export function ComposerRestingImagePreviews({
   readonly onExpandImage: (preview: ExpandedImagePreview) => void;
   readonly onShowMore: () => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const counts = getRestingComposerImagePreviewCounts(images.length);
   const visibleImages = images.slice(0, counts.visibleCount);
   return (
@@ -578,7 +592,7 @@ export function ComposerRestingImagePreviews({
           key={image.id}
           type="button"
           className="relative size-7 shrink-0 cursor-zoom-in overflow-hidden rounded-md border border-border/70 bg-muted/60"
-          aria-label={`Preview ${image.name}`}
+          aria-label={translateFullUiCopy(fullUiLocale, `Preview ${image.name}`)}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => {
             const preview = buildExpandedImagePreview(allImages, image.id);
@@ -623,7 +637,10 @@ export function ComposerRestingImagePreviews({
         <button
           type="button"
           className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border/70 bg-muted/60 font-medium text-secondary-label text-xs tabular-nums outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
-          aria-label={`Show ${String(counts.overflowCount)} more image attachments`}
+          aria-label={translateFullUiCopy(
+            fullUiLocale,
+            `Show ${String(counts.overflowCount)} more image attachments`,
+          )}
           onPointerDown={(event) => event.preventDefault()}
           onClick={onShowMore}
         >
@@ -645,6 +662,7 @@ export function ComposerQueuedAttachmentRow({
   }>;
   readonly onRemove: (attachmentId: string) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   return (
     <div className="mb-3 flex flex-wrap gap-2">
       {attachments.map(({ attachment, url }) => (
@@ -664,7 +682,7 @@ export function ComposerQueuedAttachmentRow({
             size="icon-xs"
             className="absolute right-1 top-1"
             onClick={() => onRemove(attachment.id)}
-            aria-label={`Remove ${attachment.name}`}
+            aria-label={translateFullUiCopy(fullUiLocale, `Remove ${attachment.name}`)}
           >
             <XIcon />
           </Button>

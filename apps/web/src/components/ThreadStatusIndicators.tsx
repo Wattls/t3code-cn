@@ -1,3 +1,6 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { pipe } from "effect/Function";
@@ -180,19 +183,24 @@ function resolveThreadPullRequestBadgePresentation({
     return {
       Icon: PullRequestGlyph.stack,
       toneClassName: aggregate.toneClassName,
-      label: `Stack of ${badge.layers} ${terminology.plural}, ${aggregate.label.toLowerCase()}`,
+      label: localizeBuiltInUi(
+        `Stack of ${badge.layers} ${terminology.plural}, ${aggregate.label.toLowerCase()}`,
+      ),
       text: badge.layers,
     };
   }
   if (number === undefined || url === undefined) return null;
 
-  const tooltip = status?.tooltip ?? `${terminology.shortLabel} #${number}, status pending`;
+  const tooltip =
+    status?.tooltip ?? localizeBuiltInUi(`${terminology.shortLabel} #${number}, status pending`);
   if (badge?.kind === "pull-request" && badge.others > 0) {
     const aggregate = PULL_REQUEST_STATE_PRESENTATION[badge.state];
     return {
       Icon: aggregate.Icon,
       toneClassName: aggregate.toneClassName,
-      label: `${tooltip}, and ${badge.others} more linked; overall ${aggregate.label.toLowerCase()}`,
+      label: localizeBuiltInUi(
+        `${tooltip}, and ${badge.others} more linked; overall ${aggregate.label.toLowerCase()}`,
+      ),
       text: `+${badge.others + 1}`,
     };
   }
@@ -261,6 +269,7 @@ function PullRequestBadge({
   onOpenList: () => void;
   onOpenPullRequest: (event: MouseEvent<HTMLElement>, url?: string) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const onClick = opensList
     ? (event: MouseEvent<HTMLElement>) => {
         event.preventDefault();
@@ -309,7 +318,9 @@ function PullRequestBadge({
               <ThreadPullRequestMiniListItem
                 number={number}
                 url={url}
-                title={status?.tooltipTitle ?? presentation.label}
+                title={
+                  status?.tooltipTitle ?? translateFullUiCopy(fullUiLocale, presentation.label)
+                }
                 presentation={presentation}
                 onOpenPullRequest={onOpenPullRequest}
               />
@@ -450,9 +461,12 @@ export function ChangeRequestStatusIcon({
 }
 
 function PrStatusTooltipContent({ status }: { status: PrStatusIndicator }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   return (
     <span className="flex max-w-[min(34rem,calc(100vw-2rem))] items-stretch overflow-hidden whitespace-nowrap">
-      <span className="shrink-0 pr-2 font-medium">{status.tooltipLead}</span>
+      <span className="shrink-0 pr-2 font-medium">
+        {translateFullUiCopy(fullUiLocale, status.tooltipLead)}
+      </span>
       <span className="min-h-4 shrink-0 border-border/70 border-l" aria-hidden="true" />
       <span className="min-w-0 truncate pl-2">{status.tooltipTitle}</span>
     </span>
@@ -535,6 +549,7 @@ export function ThreadTerminalStatusButton({
   terminalIds: readonly string[];
   onThreadActivate: (threadRef: ScopedThreadRef) => void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const terminalId = terminalIds[0];
   if (terminalId === undefined) return null;
   const status = terminalStatusFromRunningIds(terminalIds);
@@ -548,7 +563,7 @@ export function ThreadTerminalStatusButton({
         render={
           <button
             type="button"
-            aria-label={label}
+            aria-label={translateFullUiCopy(fullUiLocale, label)}
             data-testid={`sidebar-terminal-status-${threadRef.threadId}`}
             className={cn(
               "inline-flex shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
@@ -570,7 +585,7 @@ export function ThreadTerminalStatusButton({
           onAnimationStart={synchronizeTerminalPulse}
         />
       </TooltipTrigger>
-      <TooltipPopup side="top">{label}</TooltipPopup>
+      <TooltipPopup side="top">{translateFullUiCopy(fullUiLocale, label)}</TooltipPopup>
     </Tooltip>
   );
 }
@@ -616,6 +631,7 @@ function ThreadStatusLabel({
   status: ThreadStatusPill;
   compact?: boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   if (compact) {
     return (
       <Tooltip>
@@ -623,7 +639,7 @@ function ThreadStatusLabel({
           render={
             <span
               role="img"
-              aria-label={status.label}
+              aria-label={translateFullUiCopy(fullUiLocale, status.label)}
               className={`inline-flex size-3.5 shrink-0 items-center justify-center ${status.colorClass}`}
             />
           }
@@ -634,7 +650,7 @@ function ThreadStatusLabel({
             }`}
           />
         </TooltipTrigger>
-        <TooltipPopup side="top">{status.label}</TooltipPopup>
+        <TooltipPopup side="top">{translateFullUiCopy(fullUiLocale, status.label)}</TooltipPopup>
       </Tooltip>
     );
   }
@@ -645,7 +661,7 @@ function ThreadStatusLabel({
         render={
           <span
             role="img"
-            aria-label={status.label}
+            aria-label={translateFullUiCopy(fullUiLocale, status.label)}
             className={`inline-flex items-center gap-1 text-3xs ${status.colorClass}`}
           />
         }
@@ -655,14 +671,15 @@ function ThreadStatusLabel({
             status.pulse ? "motion-safe:animate-status-pulse" : ""
           }`}
         />
-        <span className="hidden md:inline">{status.label}</span>
+        <span className="hidden md:inline">{translateFullUiCopy(fullUiLocale, status.label)}</span>
       </TooltipTrigger>
-      <TooltipPopup side="top">{status.label}</TooltipPopup>
+      <TooltipPopup side="top">{translateFullUiCopy(fullUiLocale, status.label)}</TooltipPopup>
     </Tooltip>
   );
 }
 
 export function ThreadRowLeadingStatus({ thread }: { thread: SidebarThreadSummary }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { leaseLiveStatus, rowRef } = useSidebarRowSubscriptionLease(false);
   // A new ref callback would detach and reattach the row, and each reattach sets lease state.
   const statusRef = useStableCallback((node: HTMLSpanElement | null) =>
@@ -744,7 +761,10 @@ export function ThreadRowLeadingStatus({ thread }: { thread: SidebarThreadSummar
       {pendingLink ? (
         <PullRequestGlyph.pullRequest
           className="size-3 text-muted-foreground"
-          aria-label={`${changeRequestTerminologyForUrl(pendingLink.url).shortLabel} #${pendingLink.number}, status pending`}
+          aria-label={translateFullUiCopy(
+            fullUiLocale,
+            `${changeRequestTerminologyForUrl(pendingLink.url).shortLabel} #${pendingLink.number}, status pending`,
+          )}
         />
       ) : null}
       {threadStatus ? <ThreadStatusLabel status={threadStatus} /> : null}
@@ -753,6 +773,7 @@ export function ThreadRowLeadingStatus({ thread }: { thread: SidebarThreadSummar
 }
 
 export function ThreadRowTrailingStatus({ thread }: { thread: SidebarThreadSummary }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const runningTerminalIds = useThreadRunningTerminalIds({
     environmentId: thread.environmentId,
     threadId: thread.id,
@@ -777,7 +798,7 @@ export function ThreadRowTrailingStatus({ thread }: { thread: SidebarThreadSumma
             render={
               <span
                 role="img"
-                aria-label={terminalStatus.label}
+                aria-label={translateFullUiCopy(fullUiLocale, terminalStatus.label)}
                 className={`inline-flex items-center justify-center ${terminalStatus.colorClass}`}
               />
             }
@@ -787,7 +808,9 @@ export function ThreadRowTrailingStatus({ thread }: { thread: SidebarThreadSumma
               onAnimationStart={synchronizeTerminalPulse}
             />
           </TooltipTrigger>
-          <TooltipPopup side="top">{terminalStatus.label}</TooltipPopup>
+          <TooltipPopup side="top">
+            {translateFullUiCopy(fullUiLocale, terminalStatus.label)}
+          </TooltipPopup>
         </Tooltip>
       ) : null}
       {isRemoteThread ? (
@@ -837,6 +860,7 @@ export function ThreadSearchPullRequestNumber({
   enabled?: boolean;
   settled?: boolean;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const matched = pullRequestMatchesSearchQuery(thread, query);
   const supportsMultiplePullRequests = useSupportsMultiplePullRequests(thread.environmentId);
   const linked = useLinkedThreadPullRequest(
@@ -878,7 +902,7 @@ export function ThreadSearchPullRequestNumber({
         : pr.state;
   return (
     <span
-      aria-label={presentation.label}
+      aria-label={translateFullUiCopy(fullUiLocale, presentation.label)}
       className={cn(
         "inline-flex shrink-0 items-center gap-0.5 text-xs tabular-nums",
         settled

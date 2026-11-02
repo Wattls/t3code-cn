@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
@@ -224,6 +226,7 @@ export async function deliverSnapShot(
 }
 
 export function SnapShotCoordinator() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const {
     activeDraftThread,
@@ -381,9 +384,12 @@ export function SnapShotCoordinator() {
               stackedThreadToast({
                 type: "error",
                 title: translateStaticUiCopy(staticUiLocale, "Snapshot failed"),
-                description: `Capture ${item.id}: ${
-                  error instanceof Error ? error.message : "Try the capture again."
-                }`,
+                description: translateFullUiCopy(
+                  fullUiLocale,
+                  `Capture ${item.id}: ${
+                    error instanceof Error ? error.message : "Try the capture again."
+                  }`,
+                ),
               }),
             );
           }

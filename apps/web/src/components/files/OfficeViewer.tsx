@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
@@ -72,6 +74,7 @@ function ExtendedOfficeViewer(props: {
   readonly kind: OfficePreviewKind;
   readonly sizeBytes?: number;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: previewLocale } = useI18n();
   const [error, setError] = useState<string | null>(null);
@@ -194,7 +197,7 @@ function ExtendedOfficeViewer(props: {
       {count > 0 ? (
         <div className="flex h-10 shrink-0 items-center gap-2 border-b border-border/60 px-3 text-xs">
           <FileSurfaceAction
-            label={`Previous ${navigation}`}
+            label={translateFullUiCopy(fullUiLocale, `Previous ${navigation}`)}
             disabled={page === 0}
             onPress={() => selectPage(page - 1)}
           >
@@ -251,7 +254,7 @@ function ExtendedOfficeViewer(props: {
             </span>
           )}
           <FileSurfaceAction
-            label={`Next ${navigation}`}
+            label={translateFullUiCopy(fullUiLocale, `Next ${navigation}`)}
             disabled={page + 1 === count}
             onPress={() => selectPage(page + 1)}
           >

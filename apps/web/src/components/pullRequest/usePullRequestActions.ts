@@ -1,3 +1,6 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { useI18n } from "~/i18n/WebI18nContext";
 import { translateWebSource } from "~/i18n/messages";
 import { useAtomCommand } from "~/state/use-atom-command";
@@ -81,7 +84,7 @@ const actionSuccessLabels = (term: string): Record<PullRequestAction, string> =>
   merge: "Merge requested",
   ready: "Marked ready for review",
   draft: "Converted to draft",
-  close: `${capitalizeTerm(term)} closed`,
+  close: localizeBuiltInUi(`${capitalizeTerm(term)} closed`),
   reopen: `${capitalizeTerm(term)} reopened`,
   "update-branch": "Branch updated with the base branch",
   "enable-auto-merge": "Auto-merge enabled",
@@ -255,6 +258,7 @@ export function usePullRequestHandoffs({
   environmentId: EnvironmentId;
   detail: PullRequestHandoffDetail | null;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { t, locale } = useI18n();
   const newThread = useNewThreadHandler();
   const prepareThread = usePreparePullRequestThreadAction({
@@ -340,7 +344,7 @@ export function usePullRequestHandoffs({
     // Explicit timeouts survive toast updates and would pin the result after loading.
     const toastId = toastManager.add({
       type: "loading",
-      title: `Preparing the ${terminology.singular} checkout...`,
+      title: translateFullUiCopy(fullUiLocale, `Preparing the ${terminology.singular} checkout...`),
     });
     const projectRef = scopeProjectRef(environmentId, detail.projectId);
     // Checkout setup requires the thread to exist first.
@@ -369,7 +373,10 @@ export function usePullRequestHandoffs({
       setHandoff(null);
       toastManager.update(toastId, {
         type: "error",
-        title: `Could not prepare the ${terminology.singular} checkout`,
+        title: translateFullUiCopy(
+          fullUiLocale,
+          `Could not prepare the ${terminology.singular} checkout`,
+        ),
         description: checkoutFailureDescription(
           isAtomCommandInterrupted(prepared) ? undefined : squashAtomCommandFailure(prepared),
         ),
@@ -421,8 +428,11 @@ export function usePullRequestHandoffs({
       prepared.value.isOnPullRequestHead
         ? {
             type: "success",
-            title: "Checkout ready",
-            description: "The task is in the composer. Read it over, then send.",
+            title: translateFullUiCopy(fullUiLocale, "Checkout ready"),
+            description: translateFullUiCopy(
+              fullUiLocale,
+              "The task is in the composer. Read it over, then send.",
+            ),
           }
         : offHeadPullRequestCheckoutToast(terminology),
     );

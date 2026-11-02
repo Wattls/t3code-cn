@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import {
@@ -213,6 +215,7 @@ function moveBetweenRows(event: KeyboardEvent<HTMLElement>) {
 }
 
 function EffortLevels(props: { traits: TraitsSelectionInput }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const traits = useTraitsSelection(props.traits);
   const { effort, others } = columnControls(
@@ -227,8 +230,12 @@ function EffortLevels(props: { traits: TraitsSelectionInput }) {
           const value = traits.currentLabel(descriptor);
           return value ? (
             <div key={descriptor.id}>
-              <div className={COLUMN_LABEL}>{descriptor.label}</div>
-              <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">{value}</div>
+              <div className={COLUMN_LABEL}>
+                {translateFullUiCopy(fullUiLocale, descriptor.label)}
+              </div>
+              <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">
+                {translateFullUiCopy(fullUiLocale, value)}
+              </div>
             </div>
           ) : null;
         })}
@@ -244,10 +251,14 @@ function EffortLevels(props: { traits: TraitsSelectionInput }) {
         <div
           key={descriptor.id}
           role="radiogroup"
-          aria-label={descriptor.label}
+          aria-label={translateFullUiCopy(fullUiLocale, descriptor.label)}
           className="flex flex-col gap-0.5"
         >
-          {isEffort ? null : <div className={COLUMN_LABEL}>{descriptor.label}</div>}
+          {isEffort ? null : (
+            <div className={COLUMN_LABEL}>
+              {translateFullUiCopy(fullUiLocale, descriptor.label)}
+            </div>
+          )}
           {([true, false] as const).map((value) => (
             <ColumnRow
               key={String(value)}
@@ -271,10 +282,12 @@ function EffortLevels(props: { traits: TraitsSelectionInput }) {
       <div
         key={descriptor.id}
         role="radiogroup"
-        aria-label={descriptor.label}
+        aria-label={translateFullUiCopy(fullUiLocale, descriptor.label)}
         className="flex flex-col gap-0.5"
       >
-        {isEffort ? null : <div className={COLUMN_LABEL}>{descriptor.label}</div>}
+        {isEffort ? null : (
+          <div className={COLUMN_LABEL}>{translateFullUiCopy(fullUiLocale, descriptor.label)}</div>
+        )}
         {locked ? (
           <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">
             {ULTRATHINK_IN_BODY_NOTE}
@@ -283,9 +296,11 @@ function EffortLevels(props: { traits: TraitsSelectionInput }) {
         {selectableProviderOptionChoices(control.descriptor).map((option) => (
           <ColumnRow
             key={option.id}
-            label={option.label}
+            label={translateFullUiCopy(fullUiLocale, option.label)}
             selected={option.id === value}
-            description={option.description}
+            description={
+              option.description ? translateFullUiCopy(fullUiLocale, option.description) : undefined
+            }
             isDefault={option.isDefault}
             disabled={locked}
             level={isEffort}
@@ -381,6 +396,7 @@ function SpeedSegment(props: {
 }
 
 function SpeedControl(props: { traits: TraitsSelectionInput }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const traits = useTraitsSelection(props.traits);
   const { speedSelect, fastToggle } = splitSpeed(
@@ -400,8 +416,12 @@ function SpeedControl(props: { traits: TraitsSelectionInput }) {
             <SpeedSegment
               key={option.id}
               checked={option.id === traits.selectValue(speedSelect)}
-              label={option.label}
-              description={option.description}
+              label={translateFullUiCopy(fullUiLocale, option.label)}
+              description={
+                option.description
+                  ? translateFullUiCopy(fullUiLocale, option.description)
+                  : undefined
+              }
               onPick={() => traits.changeSelect(speedSelect, option.id)}
             />
           ))

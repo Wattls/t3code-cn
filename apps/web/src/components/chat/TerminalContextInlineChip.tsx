@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { TerminalIcon } from "lucide-react";
@@ -16,6 +18,7 @@ interface TerminalContextInlineChipProps {
 }
 
 export function TerminalContextInlineChip(props: TerminalContextInlineChipProps) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { label, terminalLabel, lineStart, lineEnd, text, detailsMode, expired = false } = props;
 
@@ -55,7 +58,10 @@ export function TerminalContextInlineChip(props: TerminalContextInlineChipProps)
       {...(expired ? { state: "invalid" as const } : {})}
       icon={<TerminalIcon />}
       label={label}
-      aria-label={`Terminal excerpt, ${label}${expired ? ", expired" : ""}`}
+      aria-label={translateFullUiCopy(
+        fullUiLocale,
+        `Terminal excerpt, ${label}${expired ? ", expired" : ""}`,
+      )}
       data-terminal-context-expired={expired ? "true" : undefined}
       tooltip={
         expired

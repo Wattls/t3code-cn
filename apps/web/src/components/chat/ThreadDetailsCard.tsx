@@ -1,4 +1,4 @@
-import { workspaceAreaProps } from "../../lib/workspaceFocus";
+import { useWorkspaceAreaProps } from "../../lib/workspaceFocus";
 import {
   useLayoutEffect,
   useState,
@@ -35,7 +35,7 @@ export function ThreadDetailsCard({
   onContextMenu?: MouseEventHandler<HTMLDivElement>;
   children: (density: "full" | "compact" | "essential") => ReactNode;
 }) {
-  const detailsArea = workspaceAreaProps("details", 3, "Thread details");
+  const detailsArea = useWorkspaceAreaProps("details", 3, "Thread details");
   const canvas = useChatCanvas();
   const preferredPlacement = canvas?.preferredDetailsCard ?? null;
   const placement = canvas?.detailsCardPlacement ?? null;

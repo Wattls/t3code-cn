@@ -31,10 +31,17 @@ const PROMPT_PREVIEW_TEXT =
 function noop() {}
 
 export function PromptFontPreview() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const defaultPrompt =
+    locale === "zh-CN"
+      ? "使用 $frontend-design 修复 [surface.test.ts](apps/web/src/terminal/ghostty/surface.test.ts) 中不稳定的测试，" +
+        "并在发布前对齐 [SettingsPanels.tsx](apps/web/src/components/settings/SettingsPanels.tsx) 中的标题。"
+      : PROMPT_PREVIEW_TEXT;
   const editorRef = useRef<ComposerPromptEditorHandle>(null);
-  const [prompt, setPrompt] = useState(PROMPT_PREVIEW_TEXT);
-  const [cursor, setCursor] = useState(PROMPT_PREVIEW_TEXT.length);
+  const [editedPrompt, setPrompt] = useState<string | null>(null);
+  const [editedCursor, setCursor] = useState<number | null>(null);
+  const prompt = editedPrompt ?? defaultPrompt;
+  const cursor = editedCursor ?? prompt.length;
   const onChange = (nextValue: string, nextCursor: number) => {
     setPrompt(nextValue);
     setCursor(nextCursor);

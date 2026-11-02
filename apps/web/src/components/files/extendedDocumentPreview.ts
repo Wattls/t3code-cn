@@ -1,3 +1,4 @@
+import { localizeUiText as localizeBuiltInUi } from "~/i18n/uiText";
 import { pipe } from "effect/Function";
 import {
   IMAGE_DIMENSIONS_HEADER_BYTES,
@@ -374,7 +375,7 @@ export async function openDocument(
   const rendered = [];
   for (const [index, page] of pages.entries()) {
     rendered.push({
-      title: page.attrs["draw:name"] || `Page ${index + 1}`,
+      title: page.attrs["draw:name"] || localizeBuiltInUi(`Page ${index + 1}`),
       html: await odfHtml(page, archive),
     });
   }
@@ -490,7 +491,7 @@ export function openRtf(bytes: ArrayBuffer): OfficeWorkerResult {
   let completedLength = 0;
   const finishPage = () => {
     if (pages.length >= 500) throw new Error("Rich text preview limited to 500 pages.");
-    pages.push({ title: `Page ${pages.length + 1}`, html: `<p>${html}</p>` });
+    pages.push({ title: localizeBuiltInUi(`Page ${pages.length + 1}`), html: `<p>${html}</p>` });
     completedLength += html.length;
     html = "";
   };
