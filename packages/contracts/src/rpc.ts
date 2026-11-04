@@ -1,4 +1,17 @@
 import {
+  CompanySnapshot,
+  CompanyCommand,
+  CompanyConfigureInput,
+  CompanySaveOrganizationInput,
+  CompanyCatalog,
+  CompanyTerminalInput,
+  CompanyTerminalKeysInput,
+  CompanyTerminalOutput,
+  CompanyArtifactInput,
+  CompanyArtifactContent,
+  CompanyError,
+} from "./company.ts";
+import {
   OrchestrationV2SearchThreadError,
   OrchestrationV2SearchThreadInput,
   OrchestrationV2SearchThreadResult,
@@ -221,6 +234,7 @@ import {
 import {
   ORCHESTRATION_V2_WS_METHODS,
   OrchestrationGetWorkflowScriptError,
+  OrchestrationV2GetNativeChildWorkError,
   OrchestrationV2StopWorkflowError,
   OrchestrationV2ForceStopThreadError,
   OrchestrationV2DispatchCommandError,
@@ -537,6 +551,14 @@ export const WS_METHODS = {
   serverGetUsageSummary: "server.getUsageSummary",
   serverRefreshUsageRates: "server.refreshUsageRates",
 
+  companySubscribe: "company.subscribe",
+  companyCommand: "company.command",
+  companyConfigure: "company.configure",
+  companySaveOrganization: "company.saveOrganization",
+  companyCatalog: "company.catalog",
+  companyTerminal: "company.terminal",
+  companyKeys: "company.keys",
+  companyArtifact: "company.artifact",
   scheduledTasksSubscribe: "scheduledTasks.subscribe",
   scheduledTasksUpsert: "scheduledTasks.upsert",
   scheduledTasksSetEnabled: "scheduledTasks.setEnabled",
@@ -594,6 +616,7 @@ export const WS_METHODS = {
   sourceControlSignInCancel: "sourceControl.signInCancel",
   sourceControlAppAccess: "sourceControl.appAccess",
   sourceControlStarred: "sourceControl.starred",
+  sourceControlStar: "sourceControl.star",
   projectCloneStart: "projectClone.start",
   projectCloneCancel: "projectClone.cancel",
   projectCloneRetry: "projectClone.retry",
@@ -1251,6 +1274,13 @@ const WsSourceControlStarredRpc = Rpc.make(WS_METHODS.sourceControlStarred, {
   error: EnvironmentAuthorizationError,
 });
 
+// Stars the repository as the server's forge account. False when the forge refused or cannot star.
+const WsSourceControlStarRpc = Rpc.make(WS_METHODS.sourceControlStar, {
+  payload: SourceControlStarredInput,
+  success: Schema.Boolean,
+  error: EnvironmentAuthorizationError,
+});
+
 // Returns when the project exists and cloning starts; progress uses the subscription.
 const WsProjectCloneStartRpc = Rpc.make(WS_METHODS.projectCloneStart, {
   payload: ProjectCloneStartInput,
@@ -1816,6 +1846,15 @@ const WsOrchestrationV2GetWorkflowScriptRpc = Rpc.make(
   },
 );
 
+const WsOrchestrationV2GetNativeChildWorkRpc = Rpc.make(
+  ORCHESTRATION_V2_WS_METHODS.getNativeChildWork,
+  {
+    payload: OrchestrationV2RpcSchemas.getNativeChildWork.input,
+    success: OrchestrationV2RpcSchemas.getNativeChildWork.output,
+    error: Schema.Union([OrchestrationV2GetNativeChildWorkError, EnvironmentAuthorizationError]),
+  },
+);
+
 const WsOrchestrationV2GetTurnItemRpc = Rpc.make(ORCHESTRATION_V2_WS_METHODS.getTurnItem, {
   payload: OrchestrationV2RpcSchemas.getTurnItem.input,
   success: OrchestrationV2RpcSchemas.getTurnItem.output,
@@ -1879,6 +1918,48 @@ const WsSubscribeServerLifecycleRpc = Rpc.make(WS_METHODS.subscribeServerLifecyc
   success: ServerLifecycleStreamEvent,
   error: EnvironmentAuthorizationError,
   stream: true,
+});
+
+const WsCompanySubscribeRpc = Rpc.make(WS_METHODS.companySubscribe, {
+  payload: Schema.Struct({}),
+  success: CompanySnapshot,
+  error: Schema.Union([CompanyError, EnvironmentAuthorizationError]),
+  stream: true,
+});
+const WsCompanyCommandRpc = Rpc.make(WS_METHODS.companyCommand, {
+  payload: CompanyCommand,
+  success: Schema.Void,
+  error: Schema.Union([CompanyError, EnvironmentAuthorizationError]),
+});
+const WsCompanyConfigureRpc = Rpc.make(WS_METHODS.companyConfigure, {
+  payload: CompanyConfigureInput,
+  success: Schema.Void,
+  error: Schema.Union([CompanyError, EnvironmentAuthorizationError]),
+});
+const WsCompanySaveOrganizationRpc = Rpc.make(WS_METHODS.companySaveOrganization, {
+  payload: CompanySaveOrganizationInput,
+  success: Schema.Void,
+  error: Schema.Union([CompanyError, EnvironmentAuthorizationError]),
+});
+const WsCompanyCatalogRpc = Rpc.make(WS_METHODS.companyCatalog, {
+  payload: Schema.Struct({}),
+  success: CompanyCatalog,
+  error: Schema.Union([CompanyError, EnvironmentAuthorizationError]),
+});
+const WsCompanyTerminalRpc = Rpc.make(WS_METHODS.companyTerminal, {
+  payload: CompanyTerminalInput,
+  success: CompanyTerminalOutput,
+  error: Schema.Union([CompanyError, EnvironmentAuthorizationError]),
+});
+const WsCompanyKeysRpc = Rpc.make(WS_METHODS.companyKeys, {
+  payload: CompanyTerminalKeysInput,
+  success: Schema.Void,
+  error: Schema.Union([CompanyError, EnvironmentAuthorizationError]),
+});
+const WsCompanyArtifactRpc = Rpc.make(WS_METHODS.companyArtifact, {
+  payload: CompanyArtifactInput,
+  success: CompanyArtifactContent,
+  error: Schema.Union([CompanyError, EnvironmentAuthorizationError]),
 });
 
 const WsScheduledTasksSubscribeRpc = Rpc.make(WS_METHODS.scheduledTasksSubscribe, {
@@ -2026,6 +2107,14 @@ export const WsRpcGroup = RpcGroup.make(
   WsServerGetUsageSummaryRpc,
   WsServerRefreshUsageRatesRpc,
   WsServerSignalProcessRpc,
+  WsCompanySubscribeRpc,
+  WsCompanyCommandRpc,
+  WsCompanyConfigureRpc,
+  WsCompanySaveOrganizationRpc,
+  WsCompanyCatalogRpc,
+  WsCompanyTerminalRpc,
+  WsCompanyKeysRpc,
+  WsCompanyArtifactRpc,
   WsScheduledTasksSubscribeRpc,
   WsScheduledTasksUpsertRpc,
   WsScheduledTasksSetEnabledRpc,
@@ -2080,6 +2169,7 @@ export const WsRpcGroup = RpcGroup.make(
   WsSourceControlSignInCancelRpc,
   WsSourceControlAppAccessRpc,
   WsSourceControlStarredRpc,
+  WsSourceControlStarRpc,
   WsProjectCloneStartRpc,
   WsProjectCloneCancelRpc,
   WsProjectCloneRetryRpc,
@@ -2161,6 +2251,7 @@ export const WsRpcGroup = RpcGroup.make(
   WsSubscribeResourceTelemetryRpc,
   WsOrchestrationV2DispatchCommandRpc,
   WsOrchestrationV2GetWorkflowScriptRpc,
+  WsOrchestrationV2GetNativeChildWorkRpc,
   WsOrchestrationV2StopWorkflowRpc,
   WsOrchestrationV2ForceStopThreadRpc,
   WsOrchestrationV2GetTurnItemRpc,

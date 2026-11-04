@@ -54,6 +54,10 @@ import * as ThreadManagementService from "./ThreadManagementService.ts";
 import * as ThreadLaunchService from "./ThreadLaunchService.ts";
 import * as ThreadForkService from "./ThreadForkService.ts";
 import * as TurnItemPositionStore from "./TurnItemPositionStore.ts";
+import * as CompanyService from "../company/CompanyService.ts";
+import * as CompanyFiles from "../company/CompanyFiles.ts";
+import * as HerdrBridge from "../company/HerdrBridge.ts";
+import * as ProcessRunner from "../processRunner.ts";
 import * as ScheduledTaskService from "../scheduledTasks/ScheduledTaskService.ts";
 import * as SecretRequests from "../secrets/SecretRequests.ts";
 
@@ -368,6 +372,10 @@ export const layer = Layer.mergeAll(
 );
 
 export const layerProduction = Layer.mergeAll(
+  CompanyService.layer.pipe(
+    Layer.provide(CompanyFiles.layer),
+    Layer.provide(HerdrBridge.layer.pipe(Layer.provide(ProcessRunner.layer))),
+  ),
   layer.pipe(Layer.provide(layerProjectService)),
   layerProjectService,
   layerManagedProjectFoldersProvided,

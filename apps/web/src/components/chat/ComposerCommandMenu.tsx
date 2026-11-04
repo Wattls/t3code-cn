@@ -1,3 +1,5 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { translateWebSource, type WebMessageKey } from "~/i18n/messages";
 import { formatProviderSkillDisplayName } from "@t3tools/shared/inlineSkills";
 import type { ComposerPathSearchTarget } from "@t3tools/client-runtime/state/threads";
@@ -103,6 +105,7 @@ export const ComposerCommandMenu = memo(function ComposerCommandMenu(props: {
   onHighlightedItemChange: (itemId: string | null) => void;
   onSelect: (item: ComposerCommandItem) => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: uiLocale } = useI18n();
   const { t } = useI18n();
   const listRef = useRef<HTMLDivElement>(null);
@@ -158,8 +161,8 @@ export const ComposerCommandMenu = memo(function ComposerCommandMenu(props: {
           <div className="px-5 pt-3.5 pb-7">
             <p className="text-secondary-label text-xs">
               {props.isLoading
-                ? props.triggerKind === "skill"
-                  ? t("composer.menu.searchingSkills")
+                ? props.triggerKind === "skill" || props.triggerKind === "slash-command"
+                  ? translateStaticUiCopy(staticUiLocale, "Searching workspace skills...")
                   : props.triggerKind === "pull-request"
                     ? translateWebSource(uiLocale, "Finding pull request...")
                     : t("composer.menu.searchingFiles")

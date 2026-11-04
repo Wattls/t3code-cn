@@ -1,7 +1,3 @@
-import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
-import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
-import { translateWebSource } from "../../i18n/messages";
-import { useI18n } from "../../i18n/WebI18nContext";
 import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
@@ -44,8 +40,6 @@ export function ProviderAuthenticationSection({
   readonly provider: ServerProvider;
   readonly readOnly: boolean;
 }) {
-  const { locale: staticUiLocale } = useStaticUiLocale();
-  const { locale: sourceLocale } = useI18n();
   const target = { environmentId, input: { instanceId } };
   const query = useEnvironmentQuery(serverEnvironment.providerAuthState(target));
   const commands = { reportFailure: false, reportDefect: false };
@@ -79,27 +73,29 @@ export function ProviderAuthenticationSection({
     !signedIn &&
     (provider.setup?.canAuthenticate === false ||
       (provider.driver === "acpRegistry" && auth?.methods?.length === 0));
+  const usesCredentials =
+    provider.driver === "antigravity" &&
+    (provider.auth.type === "gemini-api-key" || provider.auth.type === "agent-platform");
   const accountDescription = active
     ? auth?.phase === "starting"
-      ? (auth.message ?? translateWebSource(sourceLocale, "Starting sign-in…"))
+      ? (auth.message ?? (usesCredentials ? "Connecting…" : "Starting sign-in…"))
       : auth?.phase === "verifying"
-        ? translateWebSource(sourceLocale, "Checking your account…")
+        ? usesCredentials
+          ? "Checking credentials and loading models…"
+          : "Checking your account…"
         : interaction?.type === "terminal"
-          ? translateWebSource(sourceLocale, "Complete sign-in in the terminal below.")
+          ? "Complete sign-in in the terminal below."
           : interaction?.type === "credentials"
-            ? translateWebSource(sourceLocale, "Enter your credentials below.")
-            : translateWebSource(sourceLocale, "Finish signing in in your browser.")
+            ? "Enter your credentials below."
+            : "Finish signing in in your browser."
     : signedIn
-      ? translateWebSource(sourceLocale, "Signed in.")
+      ? "Signed in."
       : isDiscovering
-        ? translateWebSource(sourceLocale, "Discovering sign-in methods…")
+        ? "Discovering sign-in methods…"
         : needsExternalSetup
-          ? translateWebSource(
-              sourceLocale,
-              "No in-app sign-in advertised. Follow the provider's docs to finish setup.",
-            )
-          : sourceLocale === "zh-CN"
-            ? `在 ${environmentLabel} 上登录。`
+          ? "No in-app sign-in advertised. Follow the provider's docs to finish setup."
+          : usesCredentials
+            ? `Connect on ${environmentLabel} to load models.`
             : `Sign in on ${environmentLabel}.`;
   const statusMessage = auth?.phase === "failed" ? auth.message : null;
   const disabled = readOnly || pending || query.error !== null || isDiscovering;
@@ -122,13 +118,11 @@ export function ProviderAuthenticationSection({
       else if (!isAtomCommandInterrupted(result)) {
         const failure = squashAtomCommandFailure(result);
         setError(
-          failure instanceof Error
-            ? failure.message
-            : translateWebSource(sourceLocale, "Provider sign-in failed. Try again."),
+          failure instanceof Error ? failure.message : "Provider sign-in failed. Try again.",
         );
       }
     } catch {
-      setError(translateWebSource(sourceLocale, "Provider sign-in failed. Try again."));
+      setError("Provider sign-in failed. Try again.");
     }
     pendingRef.current = false;
     setPending(false);
@@ -171,11 +165,11 @@ export function ProviderAuthenticationSection({
 
   return (
     <SettingsRow
-      title={translateWebSource(sourceLocale, "Account")}
+      title="Account"
       description={
         signedIn && !active && provider.auth.email?.trim() ? (
           <span>
-            {translateWebSource(sourceLocale, "Signed in as")}{" "}
+            Signed in as{" "}
             <RedactedSensitiveText
               key={provider.auth.email}
               value={provider.auth.email}
@@ -204,20 +198,14 @@ export function ProviderAuthenticationSection({
               disabled={disabled}
               onValueChange={(value) => setMethodId(value ?? "")}
             >
-              <SelectTrigger
-                size="sm"
-                aria-label={translateWebSource(sourceLocale, "Sign-in method")}
-                className="w-44"
-              >
+              <SelectTrigger size="sm" aria-label="Sign-in method" className="w-44">
                 <SelectValue>
                   {auth?.methods?.find((method) => method.id === methodId)?.name ??
                     "Provider default"}
                 </SelectValue>
               </SelectTrigger>
               <SelectPopup>
-                <SelectItem value="">
-                  {translateWebSource(sourceLocale, "Provider default")}
-                </SelectItem>
+                <SelectItem value="">Provider default</SelectItem>
                 {auth?.methods?.map((method) => (
                   <SelectItem key={method.id} value={method.id}>
                     {method.name}
@@ -234,13 +222,13 @@ export function ProviderAuthenticationSection({
                 disabled={disabled}
                 onClick={() => void openBrowser()}
               >
-                {translateWebSource(sourceLocale, "Open browser")}
+                Open browser
               </Button>
               <Tooltip>
                 <TooltipTrigger
                   render={
                     <Button
-                      aria-label={translateWebSource(sourceLocale, "Copy sign-in link")}
+                      aria-label="Copy sign-in link"
                       size="icon-sm"
                       variant="ghost-muted"
                       disabled={disabled}
@@ -259,7 +247,7 @@ export function ProviderAuthenticationSection({
                     </Button>
                   }
                 />
-                <TooltipPopup>{translateWebSource(sourceLocale, "Copy sign-in link")}</TooltipPopup>
+                <TooltipPopup>Copy sign-in link</TooltipPopup>
               </Tooltip>
             </>
           ) : null}
@@ -272,13 +260,13 @@ export function ProviderAuthenticationSection({
                   <a href={provider.setup.documentationUrl} target="_blank" rel="noreferrer" />
                 }
               >
-                {translateWebSource(sourceLocale, "Open docs")}
+                Open docs
               </Button>
             ) : active && auth?.flowId ? (
               <Button
                 size="sm"
                 variant="ghost-muted"
-                aria-label={translateWebSource(sourceLocale, "Cancel sign-in")}
+                aria-label="Cancel sign-in"
                 disabled={disabled}
                 onClick={() =>
                   void run(() =>
@@ -286,7 +274,7 @@ export function ProviderAuthenticationSection({
                   )
                 }
               >
-                {translateWebSource(sourceLocale, "Cancel")}
+                Cancel
               </Button>
             ) : !active && !needsExternalSetup && provider.setup?.canAuthenticate !== false ? (
               <Button
@@ -308,10 +296,14 @@ export function ProviderAuthenticationSection({
                 }
               >
                 {signedIn
-                  ? translateStaticUiCopy(staticUiLocale, "Change account")
+                  ? "Change account"
                   : auth?.phase === "failed" || auth?.phase === "cancelled"
-                    ? translateStaticUiCopy(staticUiLocale, "Retry sign-in")
-                    : translateStaticUiCopy(staticUiLocale, "Sign in")}
+                    ? usesCredentials
+                      ? "Retry connection"
+                      : "Retry sign-in"
+                    : usesCredentials
+                      ? "Connect"
+                      : "Sign in"}
               </Button>
             ) : null}
             {!active && signedIn && (provider.auth.canLogout ?? provider.setup?.canAuthenticate) ? (
@@ -329,7 +321,7 @@ export function ProviderAuthenticationSection({
                     });
                 }}
               >
-                {translateWebSource(sourceLocale, "Sign out")}
+                Sign out
               </Button>
             ) : null}
           </>
@@ -345,18 +337,16 @@ export function ProviderAuthenticationSection({
         <>
           {interaction?.type === "deviceCode" ? (
             <p className="py-2 text-sm text-muted-foreground">
-              {translateWebSource(sourceLocale, "Enter code")}{" "}
+              Enter code{" "}
               <code className="select-all font-mono text-foreground">{interaction.userCode}</code>{" "}
-              {translateWebSource(sourceLocale, "in your browser.")}
+              in your browser.
             </p>
           ) : null}
           {interaction?.type === "terminal" ? (
             <div className="py-2">
               <Suspense
                 fallback={
-                  <p className="text-xs text-muted-foreground">
-                    {translateWebSource(sourceLocale, "Loading sign-in terminal…")}
-                  </p>
+                  <p className="text-xs text-muted-foreground">Loading sign-in terminal…</p>
                 }
               >
                 <ProviderAuthTerminal
@@ -437,7 +427,7 @@ export function ProviderAuthenticationSection({
                 className="w-fit"
                 disabled={disabled}
               >
-                {translateWebSource(sourceLocale, "Connect")}
+                Connect
               </Button>
             </form>
           ) : null}
@@ -458,10 +448,7 @@ export function ProviderAuthenticationSection({
               }}
             >
               <label className="grid gap-1">
-                {translateWebSource(
-                  sourceLocale,
-                  "If the final localhost page does not load, paste its full URL here.",
-                )}
+                If the final localhost page does not load, paste its full URL here.
                 <Input
                   size="sm"
                   id={`provider-callback-${instanceId}`}
@@ -480,7 +467,7 @@ export function ProviderAuthenticationSection({
                 className="w-fit"
                 disabled={disabled || !values.callback?.trim()}
               >
-                {translateWebSource(sourceLocale, "Continue")}
+                Continue
               </Button>
             </form>
           ) : null}

@@ -28,13 +28,6 @@ import {
   DialogPopup,
   DialogTitle,
 } from "../ui/dialog";
-import {
-  NumberField,
-  NumberFieldDecrement,
-  NumberFieldGroup,
-  NumberFieldIncrement,
-  NumberFieldInput,
-} from "../ui/number-field";
 import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "../ui/select";
 import { Switch } from "../ui/switch";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
@@ -42,10 +35,10 @@ import {
   backgroundActivityOverrideSettings,
   backgroundActivitySharedPolicySettings,
   durationToSeconds,
-  normalizeIntervalSeconds,
   PROVIDER_HEALTH_INTERVAL_STEP_SECONDS,
   resolveBackgroundActivityProfileOption,
 } from "./SettingsPanels.logic";
+import { IntervalSecondsField } from "./IntervalSecondsField";
 import { PolicyTooltip, SettingResetButton, SettingsRow } from "./settingsLayout";
 import { searchableSetting } from "./settingsSearch";
 
@@ -216,47 +209,22 @@ function BackgroundActivityAdvancedDialog({
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <NumberField
+                <IntervalSecondsField
+                  label={translateStaticUiCopy(staticUiLocale, "Git fetch interval")}
                   value={automaticGitFetchIntervalSeconds}
                   min={0}
                   step={5}
-                  size="sm"
-                  className="w-32"
-                  onValueChange={(value) =>
+                  onCommit={(seconds, options) =>
                     updateSettings(
                       backgroundActivityOverrideSettings(
                         settings.backgroundActivity,
                         resolvedBackgroundActivity,
-                        {
-                          automaticGitFetchInterval: Duration.seconds(
-                            normalizeIntervalSeconds(value),
-                          ),
-                        },
+                        { automaticGitFetchInterval: Duration.seconds(seconds) },
                       ),
+                      options,
                     )
                   }
-                >
-                  <NumberFieldGroup>
-                    <NumberFieldDecrement
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Decrease Git fetch interval",
-                      )}
-                    />
-                    <NumberFieldInput
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Git fetch interval in seconds",
-                      )}
-                    />
-                    <NumberFieldIncrement
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Increase Git fetch interval",
-                      )}
-                    />
-                  </NumberFieldGroup>
-                </NumberField>
+                />
                 <span className="text-xs text-muted-foreground">
                   {translateStaticUiCopy(staticUiLocale, "seconds")}
                 </span>
@@ -276,47 +244,22 @@ function BackgroundActivityAdvancedDialog({
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <NumberField
+                <IntervalSecondsField
+                  label={translateStaticUiCopy(staticUiLocale, "provider health interval")}
                   value={providerHealthRefreshIntervalSeconds}
                   min={0}
                   step={PROVIDER_HEALTH_INTERVAL_STEP_SECONDS}
-                  size="sm"
-                  className="w-32"
-                  onValueChange={(value) =>
+                  onCommit={(seconds, options) =>
                     updateSettings(
                       backgroundActivityOverrideSettings(
                         settings.backgroundActivity,
                         resolvedBackgroundActivity,
-                        {
-                          providerHealthRefreshInterval: Duration.seconds(
-                            normalizeIntervalSeconds(value),
-                          ),
-                        },
+                        { providerHealthRefreshInterval: Duration.seconds(seconds) },
                       ),
+                      options,
                     )
                   }
-                >
-                  <NumberFieldGroup>
-                    <NumberFieldDecrement
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Decrease provider health interval",
-                      )}
-                    />
-                    <NumberFieldInput
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Provider health interval in seconds",
-                      )}
-                    />
-                    <NumberFieldIncrement
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Increase provider health interval",
-                      )}
-                    />
-                  </NumberFieldGroup>
-                </NumberField>
+                />
                 <span className="text-xs text-muted-foreground">
                   {translateStaticUiCopy(staticUiLocale, "seconds")}
                 </span>
@@ -336,47 +279,22 @@ function BackgroundActivityAdvancedDialog({
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <NumberField
+                <IntervalSecondsField
+                  label={translateStaticUiCopy(staticUiLocale, "active host power interval")}
                   value={hostPowerMonitorActiveIntervalSeconds}
                   min={5}
                   step={5}
-                  size="sm"
-                  className="w-32"
-                  onValueChange={(value) =>
+                  onCommit={(seconds, options) =>
                     updateSettings(
                       backgroundActivityOverrideSettings(
                         settings.backgroundActivity,
                         resolvedBackgroundActivity,
-                        {
-                          hostPowerMonitorActiveInterval: Duration.seconds(
-                            normalizeIntervalSeconds(value, 5),
-                          ),
-                        },
+                        { hostPowerMonitorActiveInterval: Duration.seconds(seconds) },
                       ),
+                      options,
                     )
                   }
-                >
-                  <NumberFieldGroup>
-                    <NumberFieldDecrement
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Decrease active host power interval",
-                      )}
-                    />
-                    <NumberFieldInput
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Active host power interval in seconds",
-                      )}
-                    />
-                    <NumberFieldIncrement
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Increase active host power interval",
-                      )}
-                    />
-                  </NumberFieldGroup>
-                </NumberField>
+                />
                 <span className="text-xs text-muted-foreground">
                   {translateStaticUiCopy(staticUiLocale, "seconds")}
                 </span>
@@ -396,47 +314,22 @@ function BackgroundActivityAdvancedDialog({
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <NumberField
+                <IntervalSecondsField
+                  label={translateStaticUiCopy(staticUiLocale, "idle host power interval")}
                   value={hostPowerMonitorIdleIntervalSeconds}
                   min={5}
                   step={30}
-                  size="sm"
-                  className="w-32"
-                  onValueChange={(value) =>
+                  onCommit={(seconds, options) =>
                     updateSettings(
                       backgroundActivityOverrideSettings(
                         settings.backgroundActivity,
                         resolvedBackgroundActivity,
-                        {
-                          hostPowerMonitorIdleInterval: Duration.seconds(
-                            normalizeIntervalSeconds(value, 5),
-                          ),
-                        },
+                        { hostPowerMonitorIdleInterval: Duration.seconds(seconds) },
                       ),
+                      options,
                     )
                   }
-                >
-                  <NumberFieldGroup>
-                    <NumberFieldDecrement
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Decrease idle host power interval",
-                      )}
-                    />
-                    <NumberFieldInput
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Idle host power interval in seconds",
-                      )}
-                    />
-                    <NumberFieldIncrement
-                      aria-label={translateStaticUiCopy(
-                        staticUiLocale,
-                        "Increase idle host power interval",
-                      )}
-                    />
-                  </NumberFieldGroup>
-                </NumberField>
+                />
                 <span className="text-xs text-muted-foreground">
                   {translateStaticUiCopy(staticUiLocale, "seconds")}
                 </span>

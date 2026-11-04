@@ -79,6 +79,12 @@ import Migration0073 from "./Migrations/073_ActiveTurnItemIndexes.ts";
 import Migration0074 from "./Migrations/074_ExcludeAttachmentPlaceholdersFromSearch.ts";
 import Migration0075 from "./Migrations/075_SubagentDeliveryState.ts";
 import Migration0076 from "./Migrations/076_ProjectionProjectsPinArchive.ts";
+import Migration0077 from "./Migrations/077_RepairBooleanSettledOverride.ts";
+import Migration0078 from "./Migrations/078_DropOrchestrationEventCorrelationIndex.ts";
+
+import Migration0079 from "./Migrations/079_DelegatedRecoveryIndexes.ts";
+
+import Migration0080 from "./Migrations/080_Company.ts";
 
 const migrationEntries = [
   [1, "OrchestrationEvents", Migration0001],
@@ -158,6 +164,10 @@ const migrationEntries = [
   [74, "ExcludeAttachmentPlaceholdersFromSearch", Migration0074],
   [75, "SubagentDeliveryState", Migration0075],
   [76, "ProjectionProjectsPinArchive", Migration0076],
+  [77, "RepairBooleanSettledOverride", Migration0077],
+  [78, "DropOrchestrationEventCorrelationIndex", Migration0078],
+  [79, "DelegatedRecoveryIndexes", Migration0079],
+  [80, "Company", Migration0080],
 ] as const;
 
 export const migrationManifest = migrationEntries.map(([id, name]) => [id, name] as const);
@@ -212,7 +222,7 @@ export interface RunMigrationsOptions {
   readonly toMigrationInclusive?: number | undefined;
 }
 
-export const runMigrations = Effect.fn("runMigrations")(function* ({
+const runMigrationsCore = Effect.fn("runMigrationsCore")(function* ({
   toMigrationInclusive,
 }: RunMigrationsOptions = {}) {
   const includesV2 =
@@ -251,4 +261,40 @@ export const runMigrations = Effect.fn("runMigrations")(function* ({
     ).pipe(Effect.annotateLogs({ divergent }));
   }
   return executedMigrations;
+});
+
+export const runMigrations = Effect.fn("runMigrations")(function* (
+  options: RunMigrationsOptions = {},
+) {
+  const sql = yield* SqlClient.SqlClient;
+  return yield* sql.withTransaction(
+    Effect.gen(function* () {
+      if (options.toMigrationInclusive === undefined || options.toMigrationInclusive >= 80) {
+        const exists =
+          yield* sql`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'effect_sql_migrations'`;
+        if (exists.length > 0) {
+          const history = yield* sql<{
+            migration_id: number;
+            name: string;
+          }>`SELECT migration_id, name FROM effect_sql_migrations WHERE migration_id >= 77`;
+          const legacy = history.find((row) => row.migration_id === 77 && row.name === "Company");
+          if (legacy) {
+            const tables = yield* sql<{
+              name: string;
+            }>`SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('company_settings', 'company_tasks', 'company_receipts')`;
+            if (history.length !== 1 || tables.length !== 3) {
+              return yield* new Migrator.MigrationError({
+                kind: "BadState",
+                message:
+                  "Cannot upgrade legacy Company migration with missing tables or unexpected later migrations.",
+              });
+            }
+            // Release main's id only inside the transaction that runs 77-80; company tables remain intact.
+            yield* sql`DELETE FROM effect_sql_migrations WHERE migration_id = 77 AND name = 'Company'`;
+          }
+        }
+      }
+      return yield* runMigrationsCore(options);
+    }),
+  );
 });

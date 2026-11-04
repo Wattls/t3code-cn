@@ -1,6 +1,12 @@
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
-import { ArrowLeftIcon, ArrowRightIcon, ChartNoAxesColumnIcon, SettingsIcon } from "lucide-react";
+import {
+  Building2Icon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChartNoAxesColumnIcon,
+  SettingsIcon,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { memo } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
@@ -291,6 +297,14 @@ const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
             icon={<ChartNoAxesColumnIcon />}
             label={t("sidebar.usage")}
             onClick={handleUsageClick}
+          />
+          <SidebarUtilityItem
+            icon={<Building2Icon />}
+            label="AI 公司"
+            onClick={() => {
+              closeMobileSidebar();
+              void navigate({ to: "/company" });
+            }}
           />
         </>
       )}

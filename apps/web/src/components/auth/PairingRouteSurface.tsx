@@ -34,10 +34,12 @@ export function PairingRouteSurface({
   auth,
   initialErrorMessage,
   onAuthenticated,
+  company = false,
 }: {
   auth: AuthSessionState["auth"];
   initialErrorMessage?: string;
   onAuthenticated: () => void;
+  company?: boolean;
 }) {
   const { t } = useI18n();
   const [autoPairToken] = useState(peekPairingTokenFromUrl);
@@ -90,14 +92,18 @@ export function PairingRouteSurface({
   return (
     <StandalonePage>
       <StandalonePageHeader
-        title={t("pairing.title")}
-        description={describeAuthGate(auth.bootstrapMethods, t)}
+        title={company ? "连接 AI 公司工作台" : t("pairing.title")}
+        description={
+          company
+            ? "把当前页面连接到公司后台，连接后直接进入工作台。这一步不会创建任务，也不用于登录模型账号。"
+            : describeAuthGate(auth.bootstrapMethods, t)
+        }
       />
 
       <form className="mt-6 space-y-4" onSubmit={(event) => void handleSubmit(event)}>
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="pairing-token">
-            {t("pairing.token.label")}
+            {company ? "一次性配对码" : t("pairing.token.label")}
           </label>
           <Input
             id="pairing-token"
@@ -107,7 +113,7 @@ export function PairingRouteSurface({
             disabled={isSubmitting}
             nativeInput
             onChange={(event) => setCredential(event.currentTarget.value)}
-            placeholder={t("pairing.token.placeholder")}
+            placeholder={company ? "粘贴后台生成的配对码" : t("pairing.token.placeholder")}
             spellCheck={false}
             value={credential}
           />
@@ -120,8 +126,12 @@ export function PairingRouteSurface({
         ) : null}
 
         <div className="flex flex-wrap gap-2">
-          <Button disabled={isSubmitting} size="sm" type="submit">
-            {isSubmitting ? t("pairing.submitting") : t("common.continue")}
+          <Button disabled={isSubmitting || !credential.trim()} size="sm" type="submit">
+            {isSubmitting
+              ? t("pairing.submitting")
+              : company
+                ? "连接并进入工作台"
+                : t("common.continue")}
           </Button>
           <Button
             disabled={isSubmitting}
@@ -135,7 +145,9 @@ export function PairingRouteSurface({
       </form>
 
       <div className="mt-6 rounded-lg border border-border/70 bg-background/55 px-3 py-3 text-xs leading-relaxed text-muted-foreground">
-        {describeSupportedMethods(auth.bootstrapMethods, t)}
+        {company
+          ? "打开后台提供的完整配对链接，会自动填入配对码并连接。若提示过期或已使用，请生成新链接。连接完成后，在工作台启用团队并创建任务。"
+          : describeSupportedMethods(auth.bootstrapMethods, t)}
       </div>
     </StandalonePage>
   );

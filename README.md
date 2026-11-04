@@ -4,8 +4,8 @@
 
 - **代码与反馈**：[Dealyoung/t3code-cn](https://github.com/Dealyoung/t3code-cn)
 - **安装包发布入口**：[GitHub Releases](https://github.com/Dealyoung/t3code-cn/releases)
-- **当前基础**：官方 `v0.1.6`，提交 `2359643cffa6ba9ee84d6f2694b935de54a8013e`
-- **当前中文构建**：`0.1.6-zh-test.12`，macOS Apple Silicon，测试发布
+- **当前基础**：官方 `v0.1.7`，提交 `322f6544dfad0a3c8a0c8cbecf2c7f7874b14268`
+- **当前中文构建**：`0.1.7-zh-test.1`，macOS Apple Silicon，测试发布
 - **汉化参考**：[ZhiweiXiao98/t3code](https://github.com/ZhiweiXiao98/t3code)，来源与许可证见 [NOTICE.zh-CN.md](./NOTICE.zh-CN.md)
 
 ## 中文版包含什么
@@ -17,6 +17,8 @@
 本版补齐浏览器批注工具栏、设置下拉框、快捷键命令和动态提示的翻译。网页引用的内部标记显示为“来源”上标；缺少来源网址时提示链接未提供，流式输出中未完成的标记会隐藏，复制文本使用可读占位文字。重新打开历史消息即可生效，无需重新生成或改写记录。
 
 **账号登录页面保持官方英文，使用原版 Clerk 服务和 `t3code://` 协议。** 模型名称、协议值、代码、路径、用户内容以及提供商返回的原始错误不强制翻译。
+
+本次同步官方 0.1.7，并保留 AI 公司组织、团队配置、部门路由和顺序工作流。公司模块为可选功能，默认关闭，配置与使用说明见 [AI 公司模块](./docs/user/ai-company.md)。
 
 ## 安装与数据
 
@@ -54,7 +56,7 @@ sh scripts/build-cn.sh
 
 T3 Code is an "agent harness control surface". It enables control of the agents on your machine with a best-in-class mobile app ([iOS](https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824), [Android](https://play.google.com/store/apps/details?id=com.t3tools.t3code)), [web app](https://app.t3.codes) and [Electron-based desktop app](https://t3.codes).
 
-Works with your subscriptions on Claude Code, Codex, Cursor, Grok Build, OpenCode, and Google Antigravity. If they're set up on your computer, T3 Code can control them.
+Works with your subscriptions on Claude Code, Codex, Cursor, Grok Build, OpenCode, Google Antigravity, and fx. If they're set up on your computer, T3 Code can control them.
 
 ## "Wait, what are you selling me?"
 
@@ -65,7 +67,7 @@ We wanted something performant, remote-ready, and truly open. If we ever go the 
 ## Installation
 
 > [!WARNING]
-> T3 Code currently supports Codex, Claude, Cursor, Grok Build, OpenCode, and Antigravity. Install and authenticate at least one provider before use:
+> T3 Code currently supports Codex, Claude, Cursor, Grok Build, OpenCode, Antigravity, and fx. Install and authenticate at least one provider before use:
 >
 > - Codex: install [Codex CLI](https://developers.openai.com/codex/cli) and run `codex login`
 > - Claude: install [Claude Code](https://claude.com/product/claude-code) and run `claude auth login`
@@ -73,6 +75,7 @@ We wanted something performant, remote-ready, and truly open. If we ever go the 
 > - Grok Build: install [Grok Build CLI](https://x.ai/cli) and run `grok login`
 > - OpenCode: install [OpenCode](https://opencode.ai) and run `opencode auth login`
 > - Antigravity: enable it in Settings, then use **Install Antigravity** and **Sign in with Google**. No CLI is required.
+> - fx: install [fx](https://fx.sh) and run `fx login` on the machine running the T3 Code server ([setup guide](./docs/user/providers-fx.md))
 
 ### Command line
 

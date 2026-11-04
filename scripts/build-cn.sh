@@ -2,7 +2,7 @@
 set -eu
 
 REPO_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-BUILD_VERSION="${1:-0.1.6-zh-test.12}"
+BUILD_VERSION="${1:-0.1.7-zh-test.1}"
 OUTPUT_DIR="${T3CODE_CN_OUTPUT_DIR:-"$REPO_ROOT/release-cn"}"
 export PATH="$REPO_ROOT/node_modules/.bin:$PATH"
 cd "$REPO_ROOT"

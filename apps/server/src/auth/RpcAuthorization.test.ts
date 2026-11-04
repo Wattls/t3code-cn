@@ -31,6 +31,15 @@ import {
 import * as RpcAuthorization from "./RpcAuthorization.ts";
 
 describe("RPC authorization scopes", () => {
+  it("keeps company configuration writes separate from catalogue reads and task execution", () => {
+    expect(requiredScopeForRpcMethod(WS_METHODS.companySaveOrganization)).toBe(
+      AuthSettingsWriteScope,
+    );
+    expect(requiredScopeForRpcMethod(WS_METHODS.companyCatalog)).toBe(AuthOrchestrationReadScope);
+    expect(requiredScopeForRpcMethod(WS_METHODS.companyCommand)).toBe(
+      AuthOrchestrationOperateScope,
+    );
+  });
   it("declares exactly one scope for every RPC in the server group", () => {
     expect(new Set(Object.keys(RPC_REQUIRED_SCOPES))).toEqual(new Set(WsRpcGroup.requests.keys()));
   });

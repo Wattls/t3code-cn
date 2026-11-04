@@ -117,9 +117,11 @@ export function useMediaActions(source: MediaActionSource) {
 export function MediaActions({
   source,
   children,
+  showTooltip = true,
 }: {
   source: MediaActionSource;
   children: ReactElement;
+  showTooltip?: boolean;
 }) {
   const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
@@ -224,7 +226,7 @@ export function MediaActions({
   };
 
   return (
-    <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
+    <Tooltip disabled={!showTooltip} open={tooltipOpen} onOpenChange={setTooltipOpen}>
       <TooltipTrigger
         render={children}
         tabIndex={0}

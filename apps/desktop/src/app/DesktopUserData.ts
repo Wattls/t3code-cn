@@ -1,4 +1,6 @@
 import * as Effect from "effect/Effect";
+import * as Config from "effect/Config";
+import * as Option from "effect/Option";
 import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
 import * as PlatformError from "effect/PlatformError";
@@ -39,6 +41,12 @@ export const resolveUserDataPath = Effect.fn("desktop.userData.resolveUserDataPa
   }) {
     const fs = yield* FileSystem.FileSystem;
     const path = yield* Path.Path;
+    const override = yield* Config.String("T3CODE_ZH_TEST_PROFILE_DIR").pipe(
+      Config.option,
+      Effect.orElseSucceed(() => Option.none()),
+    );
+    if (Option.isSome(override) && override.value.trim())
+      return path.resolve(override.value.trim());
     const names = input.isDevelopment
       ? { current: "t3code-dev", legacy: "T3 Code (Dev)" }
       : { current: "t3code-zh-test", legacy: "T3 Code (Chinese Test Legacy)" };

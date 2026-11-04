@@ -316,7 +316,7 @@ export function SourceControlWritingSettingsSection() {
         {...searchableSetting("review-guides")}
         description={translateStaticUiCopy(
           staticUiLocale,
-          "Adds a Guide tab to pull requests: an agent writes a tour of the change, stop by stop, with the calls a maintainer should make.",
+          "Add a Guide tab to pull requests. An agent explains the changes and points out decisions that need review.",
         )}
         control={
           <Switch
@@ -547,7 +547,7 @@ export function SourceControlWritingSettingsSection() {
           {...searchableSetting("source-control-writer-model")}
           description={translateStaticUiCopy(
             staticUiLocale,
-            "Model for source control text and branch or bookmark names. Off uses the environment's text generation model.",
+            "Model for source control text and branch or bookmark names. When disabled, use the text generation model configured for this environment.",
           )}
           control={
             !hasServerTargets ? (

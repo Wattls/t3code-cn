@@ -1,10 +1,33 @@
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, it } from "@effect/vitest";
 import * as Effect from "effect/Effect";
+import * as ConfigProvider from "effect/ConfigProvider";
 import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
 
 import { resolveUserDataPath } from "./DesktopUserData.ts";
+
+it.effect("keeps a candidate browser profile separate from the installed profile", () =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
+    const directory = yield* fs.makeTempDirectoryScoped({ prefix: "t3-cn-candidate-" });
+    const isolated = path.join(directory, "candidate-profile");
+    const resolved = yield* resolveUserDataPath({
+      appDataDirectory: directory,
+      isDevelopment: false,
+      platform: "darwin",
+    }).pipe(
+      Effect.provide(
+        ConfigProvider.layer(
+          ConfigProvider.fromEnv({ env: { T3CODE_ZH_TEST_PROFILE_DIR: isolated } }),
+        ),
+      ),
+    );
+    assert.strictEqual(resolved, isolated);
+    assert.isFalse(yield* fs.exists(path.join(directory, "t3code-zh-test")));
+  }).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
+);
 
 it.effect.each(["t3code", "T3 Code (Chinese Test Legacy)"])(
   "preserves Windows credential keys from %s without copying browser databases",

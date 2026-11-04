@@ -1,5 +1,3 @@
-import { translateWebSource } from "../../i18n/messages";
-import { useI18n } from "../../i18n/WebI18nContext";
 import type { ProviderAuthResponse } from "@t3tools/contracts";
 import { useEffect, useRef, useState } from "react";
 import { GhosttyTerminalSurface } from "../../terminal/ghostty/surface";
@@ -16,7 +14,6 @@ export default function ProviderAuthTerminal({
   readonly outputOffset?: number | undefined;
   readonly onResponse: (response: Extract<ProviderAuthResponse, { type: "terminal" }>) => void;
 }) {
-  const { locale: sourceLocale } = useI18n();
   const [surface, setSurface] = useState<GhosttyTerminalSurface | null>(null);
   const written = useRef(0);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +65,7 @@ export default function ProviderAuthTerminal({
     <>
       <div
         ref={mountSurface}
-        aria-label={translateWebSource(sourceLocale, "Provider sign-in terminal")}
+        aria-label="Provider sign-in terminal"
         className="relative h-64 overflow-hidden rounded-md border border-border"
       />
       {error ? (

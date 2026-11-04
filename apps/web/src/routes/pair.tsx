@@ -6,8 +6,11 @@ import {
   PairingRouteSurface,
 } from "../components/auth/PairingRouteSurface";
 
+import { parsePairingSearch } from "../components/auth/pairingDestination";
+
 export const Route = createFileRoute("/pair")({
-  beforeLoad: async ({ context }) => {
+  validateSearch: parsePairingSearch,
+  beforeLoad: async ({ context, search }) => {
     const { authGateState } = context;
     if (authGateState.status === "hosted-pairing") {
       return {
@@ -20,7 +23,7 @@ export const Route = createFileRoute("/pair")({
       authGateState.status === "hosted-static" ||
       authGateState.status === "guest"
     ) {
-      throw redirect({ to: "/", replace: true });
+      throw redirect({ to: search.next ?? "/", replace: true });
     }
     return {
       authGateState,
@@ -32,6 +35,7 @@ export const Route = createFileRoute("/pair")({
 
 function PairRouteView() {
   const router = useRouter();
+  const { next } = Route.useSearch();
   const { authGateState } = Route.useRouteContext();
 
   if (!authGateState) {
@@ -44,10 +48,11 @@ function PairRouteView() {
 
   return (
     <PairingRouteSurface
+      company={next === "/company"}
       auth={authGateState.auth}
       onAuthenticated={() => {
         // Recreate the connection so WebSocket and cached scopes use the new pairing cookie.
-        router.history.replace("/");
+        router.history.replace(next ?? "/");
         router.history.flush();
         window.location.reload();
       }}

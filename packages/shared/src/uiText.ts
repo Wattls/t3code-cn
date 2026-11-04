@@ -1,6 +1,47 @@
 import type { ResolvedAppLocale } from "./appLocale.ts";
 
 const CHINESE_UI_MESSAGES: Readonly<Record<string, string>> = {
+  "Repository name incomplete": "仓库名称不完整",
+  "This environment is managed by": "此环境由以下组织管理：",
+  "Approval needed from": "待处理的审批，来自",
+  "Approval from {value0}": "来自 {value0} 的审批",
+  "Subagent work": "子 Agent 工作记录",
+  "Read only. These subagents cannot take messages.": "仅供查看。这些子 Agent 无法接收消息。",
+  "The provider has no record of which subagents this call started.":
+    "提供商未记录此次调用启动了哪些子 Agent。",
+  "Earlier steps are not shown.": "较早的步骤未显示。",
+  "No transcript yet.": "暂无执行记录。",
+
+  "Folders can only be referenced on a server running on this computer":
+    "只能引用在本机运行的服务器上的文件夹",
+  "Refreshing...": "正在刷新…",
+  "provider health interval": "提供商健康检查间隔",
+  "active host power interval": "主机活跃时电源检查间隔",
+  "idle host power interval": "主机空闲时电源检查间隔",
+  "Couldn’t import from": "无法导入自",
+  "Could not save grouping rule": "无法保存分组规则",
+  "Grouping rule decides how each checkout joins project groups in the sidebar. Changing it can move a checkout to a different project.":
+    "分组规则决定各检出目录在侧栏中所属的项目组。修改规则可能将检出目录移至其他项目。",
+  "Enter a new value to rename a saved one or make it plain text.":
+    "输入新值以重命名已保存的值，或改为普通文本。",
+  "This task was deleted or belongs to a different project. Check your project filter.":
+    "此任务已被删除或属于其他项目，请检查项目筛选条件。",
+  "Run a prompt automatically on an interval, at a fixed time, once at a set date, or when a webhook is called.":
+    "按间隔、固定时间、指定日期执行一次，或在 Webhook 调用时自动运行提示词。",
+  Once: "仅一次",
+  "Duplicate request key": "重复请求识别键",
+  "Requests with the same key run only once within 7 days.":
+    "具有相同识别键的请求在 7 天内仅运行一次。",
+  "Coalescing runs the latest payload once when the window from the first delivery closes. Empty keys run normally.":
+    "合并窗口从首次投递开始计时，结束后仅使用最新请求内容运行一次。识别键为空时正常运行。",
+  "Automatically resume threads when their usage limits reset. You can cancel auto-resume in each thread.":
+    "用量限制重置后自动恢复会话。可在各会话中取消自动恢复。",
+  "Snooze threads until their usage limits reset. Enable auto-resume to continue the agent after the reset.":
+    "将会话延后至用量限制重置。启用自动恢复后，Agent 会在重置后继续运行。",
+  "Get help": "获取帮助",
+  "Add a Guide tab to pull requests. An agent explains the changes and points out decisions that need review.":
+    "为拉取请求添加“指南”标签页，由 Agent 解释改动并指出需要审核的决策。",
+
   "Right Panel: Close": "右侧面板：关闭",
   "Right Panel: New": "右侧面板：新建",
   "Chat: Find": "聊天：查找",

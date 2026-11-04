@@ -1,7 +1,3 @@
-import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
-import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
-import { translateWebSource } from "../../i18n/messages";
-import { useI18n } from "../../i18n/WebI18nContext";
 import { useAtomValue } from "@effect/atom-react";
 import type { EnvironmentId, ProviderInstanceId } from "@t3tools/contracts";
 
@@ -24,8 +20,6 @@ export function ProviderWizardAuthenticationStep({
   readonly instanceId: ProviderInstanceId;
   readonly onFinish: () => void;
 }) {
-  const { locale: staticUiLocale } = useStaticUiLocale();
-  const { locale: sourceLocale } = useI18n();
   const providers =
     useAtomValue(serverEnvironment.providersValueAtom(environmentId)) ?? EMPTY_SERVER_PROVIDERS;
   const provider = providers.find((candidate) => candidate.instanceId === instanceId);
@@ -62,10 +56,10 @@ export function ProviderWizardAuthenticationStep({
             />
           ) : (
             <SettingsRow
-              title={translateWebSource(sourceLocale, "Account")}
+              title="Account"
               description={
                 isDiscovering
-                  ? translateStaticUiCopy(staticUiLocale, "Discovering sign-in methods…")
+                  ? "Discovering sign-in methods…"
                   : (query.error ??
                     auth?.message ??
                     "No in-app sign-in advertised. Follow the provider's docs to finish setup.")
@@ -73,7 +67,7 @@ export function ProviderWizardAuthenticationStep({
               control={
                 isDiscovering ? (
                   <Button disabled size="sm" variant="outline">
-                    {translateWebSource(sourceLocale, "Sign in")}
+                    Sign in
                   </Button>
                 ) : provider?.setup?.documentationUrl ? (
                   <Button
@@ -83,7 +77,7 @@ export function ProviderWizardAuthenticationStep({
                       <a href={provider.setup.documentationUrl} target="_blank" rel="noreferrer" />
                     }
                   >
-                    {translateWebSource(sourceLocale, "Open docs")}
+                    Open docs
                   </Button>
                 ) : undefined
               }
@@ -98,9 +92,7 @@ export function ProviderWizardAuthenticationStep({
           disabled={active}
           onClick={onFinish}
         >
-          {signedIn
-            ? translateStaticUiCopy(staticUiLocale, "Done")
-            : translateStaticUiCopy(staticUiLocale, "Skip for now")}
+          {signedIn ? "Done" : "Skip for now"}
         </Button>
       </WizardFooter>
     </>
