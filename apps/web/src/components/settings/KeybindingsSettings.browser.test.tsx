@@ -45,7 +45,7 @@ async function activate(locator: Locator, action: "click" | "focus") {
 
 const existingField = page.getByRole("textbox", { name: "Keybinding for Sidebar: Toggle" });
 const existingPill = page.getByRole("button", { name: /^Edit shortcut for Sidebar: Toggle:/ });
-const newField = page.getByRole("textbox", { name: "Keybinding for new keybinding" });
+const newField = page.getByRole("textbox", { name: "Keybinding for Add keybinding" });
 
 describe("Esc in a shortcut recorder", () => {
   it.each<{

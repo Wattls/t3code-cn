@@ -43,6 +43,7 @@ function setup({ sent = 0, writable = true, alreadyStarred = false } = {}) {
   page.events = new EventTarget();
   const store = new Map([["t3code:github-star-prompt:sent", String(sent)]]);
   vi.stubGlobal("document", {
+    documentElement: { lang: "en" },
     hasFocus: () => page.focused,
     get activeElement() {
       return page.activeElement;
