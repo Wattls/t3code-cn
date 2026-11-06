@@ -141,6 +141,9 @@ jobs:
           cp .env.example .env
           node scripts/update-release-package-versions.ts "${BUILD_VERSION}"
 
+      - name: Typecheck
+        run: vp run typecheck
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
         with:
