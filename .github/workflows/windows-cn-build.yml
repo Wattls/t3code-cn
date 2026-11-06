@@ -1,0 +1,190 @@
+name: Build Windows CN installer
+run-name: Windows CN x64 · ${{ inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Chinese test version (must include -zh-test.)
+        required: true
+        default: 0.1.6-zh-test.12
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-cn-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  BUILD_VERSION: ${{ inputs.version }}
+  NODE_OPTIONS: --max-old-space-size=6144
+  T3CODE_TELEMETRY_CHANNEL: dev
+  CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+jobs:
+  wsl-runtime:
+    name: Build optional WSL runtime
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Validate test version
+        run: |
+          set -euo pipefail
+          if [[ ! "${BUILD_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-zh-test\.[0-9]+$ ]]; then
+            printf 'Invalid Chinese test version: %s\n' "${BUILD_VERSION}" >&2
+            exit 1
+          fi
+
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-ci-deps
+        with:
+          install-args: --filter=t3... --filter=@t3tools/web... --filter=@t3tools/scripts...
+
+      - name: Prepare public configuration and version
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          node scripts/update-release-package-versions.ts "${BUILD_VERSION}"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Install runtime build libraries
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y patchelf libatomic1
+
+      - name: Build resource monitor
+        run: |
+          set -euo pipefail
+          cargo build --locked --release --manifest-path native/resource-monitor/Cargo.toml --target x86_64-unknown-linux-gnu
+          mkdir -p "${RUNNER_TEMP}/cli-resource-monitor/linux-x64"
+          cp native/resource-monitor/target/x86_64-unknown-linux-gnu/release/t3-resource-monitor "${RUNNER_TEMP}/cli-resource-monitor/linux-x64/"
+
+      - name: Build Linux CLI and web client
+        run: |
+          set -euo pipefail
+          vp run --filter t3 build
+          node scripts/apply-web-brand-assets.ts production apps/server/dist/client
+          node apps/server/scripts/cli.ts build-exe --verbose
+
+      - name: Package and verify WSL runtime
+        run: |
+          set -euo pipefail
+          node scripts/build-cli-archive.ts \
+            --platform linux \
+            --arch x64 \
+            --version "${BUILD_VERSION}" \
+            --resource-monitor-dir "${RUNNER_TEMP}/cli-resource-monitor" \
+            --output-dir release-cli
+          node scripts/smoke-cli-archive.ts \
+            --archive "release-cli/t3-${BUILD_VERSION}-linux-x64.tar.gz" \
+            --expect-version "${BUILD_VERSION}"
+
+      - name: Upload WSL runtime
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: wsl-runtime-linux-x64
+          path: release-cli/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  windows-installer:
+    name: Build Windows x64 installer
+    needs: wsl-runtime
+    runs-on: windows-2025
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-ci-deps
+        with:
+          install-args: --filter=@t3tools/desktop... --filter=t3... --filter=@t3tools/web... --filter=@t3tools/scripts...
+
+      - name: Prepare public configuration and version
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          node scripts/update-release-package-versions.ts "${BUILD_VERSION}"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+
+      - name: Download optional WSL runtime
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: wsl-runtime-linux-x64
+          path: wsl-runtime
+
+      - name: Build and verify unsigned Windows installer
+        run: |
+          set -euo pipefail
+          vp run dist:desktop:win:x64 \
+            --build-version "${BUILD_VERSION}" \
+            --wsl-runtime "${PWD}/wsl-runtime/t3-${BUILD_VERSION}-linux-x64.tar.gz" \
+            --output-dir release-cn \
+            --verbose
+
+      - name: Prepare installer and checksums
+        run: |
+          set -euo pipefail
+          mv "release-cn/T3-Code-${BUILD_VERSION}-x64.exe" release-cn/T3-Code-CN-windows-x64.exe
+          (
+            cd release-cn
+            sha256sum T3-Code-CN-windows-x64.exe > SHA256SUMS.txt
+            sha256sum --check SHA256SUMS.txt
+          )
+          printf '%s\n' "${BUILD_VERSION}" > release-cn/VERSION
+          printf '源码：%s/commit/%s\n构建：%s/actions/runs/%s\n未签名测试包；无需启用 WSL 即可使用 Windows 原生后端。\n' \
+            "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" "${GITHUB_SHA}" \
+            "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" "${GITHUB_RUN_ID}" > release-cn/BUILD-INFO.txt
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: T3-Code-CN-windows-x64
+          path: |
+            release-cn/T3-Code-CN-windows-x64.exe
+            release-cn/SHA256SUMS.txt
+            release-cn/VERSION
+            release-cn/BUILD-INFO.txt
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Summarize build
+        run: |
+          printf '### Windows 中文测试安装包\n\n- 架构：x64\n- 版本：%s\n- 下载本次运行的 `T3-Code-CN-windows-x64` artifact。\n- 未签名，Windows 可能显示安全提示。\n- 未发布 Release；未验收登录、模型调用和远程连接。\n' "${BUILD_VERSION}" >> "${GITHUB_STEP_SUMMARY}"
