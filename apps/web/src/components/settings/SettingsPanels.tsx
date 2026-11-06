@@ -12,6 +12,8 @@ import {
   type DesktopUpdateChannel,
   IDLE_COMPACTION_MODES,
   globalIdleCompaction,
+  managedUpdatesDenial,
+  managedUpdatesMessage,
   ProviderDriverKind,
   type ProviderInstanceId,
   type SidebarProjectGroupingMode,
@@ -27,6 +29,7 @@ import {
 } from "@t3tools/contracts/settings";
 import { desktopUpdateChannelOf } from "@t3tools/shared/cliRelease";
 import { createModelSelection } from "@t3tools/shared/model";
+import { resolvePastedPath } from "@t3tools/shared/path";
 import * as Equal from "effect/Equal";
 import * as Schema from "effect/Schema";
 import { APP_VERSION, HOSTED_APP_CHANNEL } from "../../branding";
@@ -65,6 +68,7 @@ import { ProjectDefaultsSettings } from "./ProjectDefaultsSettings";
 import { ThreadTitleInstructionsSettings } from "./ThreadTitleInstructionsSettings";
 import { SnoozePresetsRow } from "./SnoozePresetsSettings";
 import { useDesktopUpdateState } from "../../state/desktopUpdate";
+import { managedTelemetryOffMessage, usePrimaryManagedPolicy } from "../../state/managedPolicy";
 import {
   getCustomModelOptionsByInstance,
   resolveAppModelSelectionState,
@@ -163,6 +167,13 @@ function AboutVersionSection() {
 
   const hasDesktopBridge = typeof window !== "undefined" && Boolean(window.desktopBridge);
   const selectedUpdateChannel = updateState?.channel ?? "latest";
+  // The desktop updates this machine, whose policy the primary environment reports.
+  const primaryPolicy = usePrimaryManagedPolicy();
+  const updatesDenial = hasDesktopBridge ? managedUpdatesDenial(primaryPolicy) : undefined;
+  const nightlyDeniedBy =
+    hasDesktopBridge && primaryPolicy?.limits?.updates?.allowNightly === false
+      ? primaryPolicy.organization
+      : undefined;
   const selectedHostedAppChannel = hasDesktopBridge ? null : HOSTED_APP_CHANNEL;
   // A switch that failed part way leaves this app or a server on the other track.
   // With its updater off, a switch cannot move this app, so it is not counted.
@@ -258,7 +269,7 @@ function AboutVersionSection() {
             stackedThreadToast({
               type: "error",
               title: t("settings.about.error.checkTitle"),
-              description: result.state.message ?? t("settings.about.error.unavailable"),
+              description: updatesDenial ?? result.state.message ?? t("settings.about.error.unavailable"),
             }),
           );
         }
@@ -299,7 +310,7 @@ function AboutVersionSection() {
   const description =
     action === "download" || action === "install"
       ? t("settings.about.updateAvailable")
-      : (getDesktopUpdateDisabledReason(updateState) ?? t("settings.about.currentVersion"));
+      : (getDesktopUpdateDisabledReason(updateState, updatesDenial) ?? t("settings.about.currentVersion"));
 
   return (
     <>
@@ -307,6 +318,7 @@ function AboutVersionSection() {
         id={searchableSetting("app-version").id}
         title={<AboutVersionTitle />}
         description={description}
+        managed={updatesDenial}
         control={
           <Tooltip>
             <TooltipTrigger
@@ -329,7 +341,13 @@ function AboutVersionSection() {
         <SettingsRow
           {...searchableSetting("update-track")}
           description={
-            unswitchedMachines > 0 ? (
+            nightlyDeniedBy !== undefined ? (
+              `${managedUpdatesMessage(nightlyDeniedBy)} Nightly builds are not available${
+                selectedUpdateChannel === "nightly"
+                  ? "; switch to Stable to keep getting updates."
+                  : "."
+              }`
+            ) : unswitchedMachines > 0 ? (
               <>
                 {unswitchedMachines === 1
                   ? translateWebSource(uiLocale, "1 machine still runs")
@@ -354,6 +372,7 @@ function AboutVersionSection() {
               )
             )
           }
+          managed={updatesDenial}
           control={
             <Select
               value={selectedUpdateChannel}
@@ -377,7 +396,11 @@ function AboutVersionSection() {
                 <SelectItem hideIndicator value="latest">
                   {t("settings.about.updateTrack.option.stable")}
                 </SelectItem>
-                <SelectItem hideIndicator value="nightly">
+                <SelectItem
+                  hideIndicator
+                  value="nightly"
+                  disabled={nightlyDeniedBy !== undefined && selectedUpdateChannel !== "nightly"}
+                >
                   {t("settings.about.updateTrack.option.nightly")}
                 </SelectItem>
               </SelectPopup>
@@ -526,7 +549,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       : []),
     ...(settings.diffLayout !== DEFAULT_UNIFIED_SETTINGS.diffLayout ? ["Diff layout"] : []),
     ...(settings.proactivePanelsEnabled !== DEFAULT_UNIFIED_SETTINGS.proactivePanelsEnabled
-      ? ["Proactive panels"]
+      ? ["Open pull requests and changes panels proactively"]
       : []),
     ...(settings.showSkillsInSlashMenu !== DEFAULT_UNIFIED_SETTINGS.showSkillsInSlashMenu
       ? ["Show skills in slash menu"]
@@ -1604,7 +1627,7 @@ export function DiffsSettingsPanel() {
               onCheckedChange={(checked) =>
                 updateSettings({ proactivePanelsEnabled: Boolean(checked) })
               }
-              aria-label={translateStaticUiCopy(staticUiLocale, "Proactive panels")}
+              aria-label="Open pull requests and changes panels proactively"
             />
           }
         />
@@ -1784,9 +1807,8 @@ export function ThreadsSettingsPanel() {
               className="w-full sm:w-72"
               value={mixedAddProjectBaseDirectory ? "" : settings.addProjectBaseDirectory}
               onCommit={(next) => updateSettings({ addProjectBaseDirectory: next })}
-              placeholder={
-                mixedAddProjectBaseDirectory ? translateStaticUiCopy(staticUiLocale, "Mixed") : "~/"
-              }
+              normalizeDraft={resolvePastedPath}
+              placeholder={mixedAddProjectBaseDirectory ? translateStaticUiCopy(staticUiLocale, "Mixed") : "~/"}
               spellCheck={false}
               aria-label={translateStaticUiCopy(staticUiLocale, "Add project base directory")}
             />
@@ -1809,10 +1831,7 @@ export function ThreadsSettingsPanel() {
         <SettingsRow
           serverScoped
           {...searchableSetting("auto-resume-limited-threads")}
-          description={translateStaticUiCopy(
-            staticUiLocale,
-            "Resume usage-limit stops at the reported reset time. Each thread can cancel its scheduled continuation.",
-          )}
+          description="Automatically resume threads when their usage limits reset. You can cancel auto-resume in each thread."
           settingKeys={["autoResumeLimitedThreads"]}
           control={
             <ScopedSwitch
@@ -1828,10 +1847,7 @@ export function ThreadsSettingsPanel() {
         <SettingsRow
           serverScoped
           {...searchableSetting("snooze-limited-threads")}
-          description={translateStaticUiCopy(
-            staticUiLocale,
-            "Snooze usage-limit stops until reset. Pair with resume to continue on wake.",
-          )}
+          description="Snooze threads until their usage limits reset. Enable auto-resume to continue the agent after the reset."
           settingKeys={["snoozeLimitedThreads"]}
           control={
             <ScopedSwitch
@@ -2274,9 +2290,30 @@ export function MaintenanceSettingsPanel() {
 
 export function AboutSettingsPanel() {
   const { locale: staticUiLocale } = useStaticUiLocale();
+  const primaryPolicy = usePrimaryManagedPolicy();
+  const telemetryOff = managedTelemetryOffMessage(primaryPolicy);
   return (
     <SettingsPageContainer>
       <SettingsSection id="about" title={translateStaticUiCopy(staticUiLocale, "App")}>
+        {primaryPolicy ? (
+          <SettingsRow
+            title="Organization"
+            description={`This environment is managed by ${primaryPolicy.organization}. Some settings and features follow its policy.`}
+            control={
+              primaryPolicy.supportUrl ? (
+                <Button
+                  render={
+                    <a href={primaryPolicy.supportUrl} target="_blank" rel="noreferrer noopener" />
+                  }
+                  size="sm"
+                  variant="outline"
+                >
+                  Get help
+                </Button>
+              ) : null
+            }
+          />
+        ) : null}
         {isElectron || HOSTED_APP_CHANNEL ? (
           <AboutVersionSection />
         ) : (
@@ -2297,10 +2334,11 @@ export function AboutSettingsPanel() {
       <SettingsSection id="legal" title={translateStaticUiCopy(staticUiLocale, "Legal")}>
         <SettingsRow
           {...searchableSetting("privacy-policy")}
-          description={translateStaticUiCopy(
-            staticUiLocale,
-            "How we handle your data, including the anonymous usage data T3 Code collects.",
-          )}
+          description={
+            telemetryOff === undefined
+              ? translateStaticUiCopy( staticUiLocale, "How we handle your data, including the anonymous usage data T3 Code collects.", )
+              : `How we handle your data. ${telemetryOff}`
+          }
           control={
             <Button
               render={<a href={PRIVACY_POLICY_URL} target="_blank" rel="noreferrer noopener" />}

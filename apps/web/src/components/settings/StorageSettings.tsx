@@ -9,6 +9,7 @@ import type {
   StorageCleanupSettings,
   WorktreeCleanupRules,
 } from "@t3tools/contracts";
+import { resolvePastedPath } from "@t3tools/shared/path";
 import { resolveWorktreeCleanup } from "@t3tools/shared/projectSettings";
 import { useRef, useState } from "react";
 import { useAtomValue } from "@effect/atom-react";
@@ -61,6 +62,7 @@ export function WorktreesDirectoryRow() {
   const updateSettings = useUpdateScopedSettings();
   const mixed = useScopedSettingsMixed(["worktreesDirectory"]);
   const edited = useRef(false);
+  const draft = useRef("");
   if (
     connectedEnvironments.some(
       (environment) =>
@@ -98,8 +100,13 @@ export function WorktreesDirectoryRow() {
               : translateStaticUiCopy(staticUiLocale, "Default")
           }
           defaultValue={mixed ? "" : settings.worktreesDirectory}
-          onChange={() => {
+          onFocus={(event) => {
+            draft.current = event.target.value;
+          }}
+          onChange={(event) => {
             edited.current = true;
+            draft.current = resolvePastedPath(draft.current, event.target.value);
+            event.target.value = draft.current;
           }}
           onBlur={(event) => {
             const value = event.target.value.trim();
@@ -521,6 +528,9 @@ export function WorktreeCleanupSection() {
     )
       ? "Mixed across selected machines"
       : undefined;
+  // A policy locks these through worktreeCleanup, which also reaches each project's own rules.
+  const lockablePath = (key: keyof WorktreeCleanupRules) =>
+    isProjectScope ? ["worktreeCleanup"] : ["worktreeCleanup", `storageCleanup.${key}`];
   const update = (patch: Partial<StorageCleanupSettings>) =>
     updateSettings({ storageCleanup: patch });
   const updateWorktree = (patch: Partial<WorktreeCleanupRules>) =>
@@ -631,10 +641,8 @@ export function WorktreeCleanupSection() {
             <SettingsRow
               title={translateStaticUiCopy(staticUiLocale, "Delete worktrees with deleted threads")}
               status={ruleStatus("worktreeOnDelete")}
-              description={translateStaticUiCopy(
-                staticUiLocale,
-                "Remove unused worktrees when active or archived threads are deleted. Worktrees with local changes are kept.",
-              )}
+              managedPaths={lockablePath("worktreeOnDelete")}
+              description={translateStaticUiCopy( staticUiLocale, "Remove unused worktrees when active or archived threads are deleted. Worktrees with local changes are kept.", )}
               serverScoped={!isProjectScope}
               control={
                 <Switch
@@ -650,10 +658,8 @@ export function WorktreeCleanupSection() {
             <SettingsRow
               title={translateStaticUiCopy(staticUiLocale, "Delete merged worktrees")}
               status={ruleStatus("worktreeOnMerge")}
-              description={translateStaticUiCopy(
-                staticUiLocale,
-                "Remove worktrees whose pull request is merged and whose commits are included in the default branch.",
-              )}
+              managedPaths={lockablePath("worktreeOnMerge")}
+              description={translateStaticUiCopy( staticUiLocale, "Remove worktrees whose pull request is merged and whose commits are included in the default branch.", )}
               serverScoped={!isProjectScope}
               control={
                 <Switch
@@ -666,10 +672,8 @@ export function WorktreeCleanupSection() {
             <SettingsRow
               title={translateStaticUiCopy(staticUiLocale, "Delete inactive worktrees")}
               status={ruleStatus("worktreeAfterDays")}
-              description={translateStaticUiCopy(
-                staticUiLocale,
-                "Remove worktrees after their threads have been inactive for this many days. Branches and thread history are kept.",
-              )}
+              managedPaths={lockablePath("worktreeAfterDays")}
+              description={translateStaticUiCopy( staticUiLocale, "Remove worktrees after their threads have been inactive for this many days. Branches and thread history are kept.", )}
               serverScoped={!isProjectScope}
               control={
                 <RetentionControl
@@ -691,6 +695,7 @@ export function WorktreeCleanupSection() {
                 ) && (
                   <SettingsRow
                     title={translateStaticUiCopy(staticUiLocale, "Delete settled worktrees")}
+                    managedPaths={lockablePath("worktreeSettledAfterDays")}
                     status={[
                       ruleStatus("worktreeSettledAfterDays"),
                       environments.length > connectedEnvironments.length
@@ -719,10 +724,8 @@ export function WorktreeCleanupSection() {
               <SettingsRow
                 title={translateStaticUiCopy(staticUiLocale, "Delete unchanged worktrees")}
                 status={ruleStatus("worktreeUnchanged")}
-                description={translateStaticUiCopy(
-                  staticUiLocale,
-                  "Remove worktrees with no commits beyond the default branch.",
-                )}
+                managedPaths={lockablePath("worktreeUnchanged")}
+                description={translateStaticUiCopy( staticUiLocale, "Remove worktrees with no commits beyond the default branch.", )}
                 serverScoped={!isProjectScope}
                 control={
                   <Switch
@@ -739,6 +742,7 @@ export function WorktreeCleanupSection() {
                 <SettingsRow
                   {...searchableSetting("storage-worktree-keep-when")}
                   status={ruleStatus("worktreeKeepWhen")}
+                  managedPaths={lockablePath("worktreeKeepWhen")}
                   description={
                     settings.worktreeKeepWhen === "any-local-files"
                       ? translateStaticUiCopy(
@@ -871,10 +875,8 @@ export function StorageCleanupSections() {
           <SettingsRow
             title={translateStaticUiCopy(staticUiLocale, "Delete old browser artifacts")}
             status={artifactsStatus}
-            description={translateStaticUiCopy(
-              staticUiLocale,
-              "Delete saved browser captures after this many days. Older capture links will no longer open.",
-            )}
+            managedPaths={["storageCleanup.browserArtifactsAfterDays"]}
+            description={translateStaticUiCopy( staticUiLocale, "Delete saved browser captures after this many days. Older capture links will no longer open.", )}
             serverScoped
             control={
               <RetentionControl
@@ -889,10 +891,8 @@ export function StorageCleanupSections() {
           <SettingsRow
             title={translateStaticUiCopy(staticUiLocale, "Delete old rotated logs")}
             status={logsStatus}
-            description={translateStaticUiCopy(
-              staticUiLocale,
-              "Delete inactive rotated log files after this many days. Current logs are kept.",
-            )}
+            managedPaths={["storageCleanup.logsAfterDays"]}
+            description={translateStaticUiCopy( staticUiLocale, "Delete inactive rotated log files after this many days. Current logs are kept.", )}
             serverScoped
             control={
               <RetentionControl

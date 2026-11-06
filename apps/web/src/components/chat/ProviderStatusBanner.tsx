@@ -2,13 +2,21 @@ import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
-import { type ProviderInstanceId, type ServerProvider } from "@t3tools/contracts";
-import { memo } from "react";
+import {
+  type EnvironmentId,
+  type ProviderInstanceId,
+  type ServerProvider,
+} from "@t3tools/contracts";
+import { useAtomValue } from "@effect/atom-react";
+import { memo, useRef, useState } from "react";
 import { InfoIcon, XIcon } from "lucide-react";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "../ui/alert";
 import { Button, InlineButton } from "../ui/button";
 import { formatProviderDriverKindLabel } from "../../providerModels";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
+import { serverEnvironment } from "../../state/server";
+import { useAtomCommand } from "../../state/use-atom-command";
+import { RefreshIcon } from "../ui/refresh-icon";
 
 function getIncompatibleVersion(status: ServerProvider) {
   const compatibility = status.compatibilityAdvisory;
@@ -90,16 +98,37 @@ export function getProviderStatusMessage(status: ServerProvider): string {
 }
 
 export const ProviderStatusBanner = memo(function ProviderStatusBanner({
+  environmentId,
   onDismiss,
   onOpenProviderSetup,
   status,
 }: {
+  environmentId: EnvironmentId;
   onDismiss: () => void;
   onOpenProviderSetup?: (instanceId: ProviderInstanceId) => void;
   status: ServerProvider | null;
 }) {
   const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
+  const canRefresh = useAtomValue(serverEnvironment.refreshProviders.permissionAtom(environmentId));
+  const refreshProviders = useAtomCommand(serverEnvironment.refreshProviders, {
+    label: "Refresh provider status",
+  });
+  const refreshingRef = useRef(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refresh = async () => {
+    if (!status || !canRefresh || refreshingRef.current) return;
+    refreshingRef.current = true;
+    setIsRefreshing(true);
+    await refreshProviders({
+      environmentId,
+      input: { instanceId: status.instanceId, refreshModels: true },
+    });
+    refreshingRef.current = false;
+    setIsRefreshing(false);
+  };
+
   if (!status || getProviderStatusBannerKey(status) === null) {
     return null;
   }
@@ -127,17 +156,31 @@ export const ProviderStatusBanner = memo(function ProviderStatusBanner({
         <InfoIcon />
         <AlertTitle>{title}</AlertTitle>
         <AlertDescription>
-          <Tooltip>
-            <TooltipTrigger render={<div className="line-clamp-3" />}>{message}</TooltipTrigger>
-            <TooltipPopup side="top" className="whitespace-pre-wrap">
-              {message}
-            </TooltipPopup>
-          </Tooltip>
-          {onOpenProviderSetup && hasProviderSetup(status) ? (
-            <InlineButton onClick={() => onOpenProviderSetup(status.instanceId)}>
-              {translateStaticUiCopy(staticUiLocale, "Open provider setup")}
-            </InlineButton>
-          ) : null}
+          <div className="flex flex-col gap-2">
+            <Tooltip>
+              <TooltipTrigger render={<div className="line-clamp-3" />}>{message}</TooltipTrigger>
+              <TooltipPopup side="top" className="whitespace-pre-wrap">
+                {message}
+              </TooltipPopup>
+            </Tooltip>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {onOpenProviderSetup && hasProviderSetup(status) ? (
+                <InlineButton onClick={() => onOpenProviderSetup(status.instanceId)}>
+                  {translateStaticUiCopy(staticUiLocale, "Open provider setup")}
+                </InlineButton>
+              ) : null}
+              <Button
+                aria-label={translateFullUiCopy(fullUiLocale, `Refresh ${providerName} provider status`)}
+                disabled={!canRefresh || isRefreshing}
+                onClick={() => void refresh()}
+                size="xs"
+                variant="outline"
+              >
+                <RefreshIcon />
+                {translateStaticUiCopy(staticUiLocale, isRefreshing ? "Refreshing..." : "Refresh")}
+              </Button>
+            </div>
+          </div>
         </AlertDescription>
         <AlertAction>
           <Button
