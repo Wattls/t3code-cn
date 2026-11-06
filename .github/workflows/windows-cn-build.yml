@@ -7,7 +7,7 @@ on:
       version:
         description: Chinese test version (must include -zh-test.)
         required: true
-        default: 0.1.6-zh-test.12
+        default: 0.1.7-zh-test.1
         type: string
 
 permissions:
