@@ -141,8 +141,9 @@ jobs:
           cp .env.example .env
           node scripts/update-release-package-versions.ts "${BUILD_VERSION}"
 
+      # The root `typecheck` script is recursive and reaches packages this job does not install (apps/marketing needs astro).
       - name: Typecheck
-        run: vp run typecheck
+        run: vp run --cache --concurrency-limit 4 --filter "@t3tools/desktop..." --filter "t3..." --filter "@t3tools/web..." --filter "@t3tools/scripts..." typecheck
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
