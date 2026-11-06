@@ -7,7 +7,7 @@ on:
       version:
         description: Chinese test version (must include -zh-test.)
         required: true
-        default: 0.1.7-zh-test.1
+        default: 0.1.6-zh-test.13
         type: string
 
 permissions:
@@ -175,6 +175,10 @@ jobs:
           printf '源码：%s/commit/%s\n构建：%s/actions/runs/%s\n未签名测试包；无需启用 WSL 即可使用 Windows 原生后端。\n' \
             "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" "${GITHUB_SHA}" \
             "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" "${GITHUB_RUN_ID}" > release-cn/BUILD-INFO.txt
+
+      - name: Verify installer isolation
+        shell: pwsh
+        run: ./verify-windows-cn-isolation.ps1 -Installer "release-cn/T3-Code-CN-windows-x64.exe"
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
