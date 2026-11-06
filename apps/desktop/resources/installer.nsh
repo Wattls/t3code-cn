@@ -7,6 +7,10 @@
   !define T3StrRep '${StrRep}'
 !endif
 
+!macro preInit
+  StrCpy $INSTDIR "$LOCALAPPDATA\\Programs\\t3code-cn"
+!macroend
+
 !macro customAppRunningMessages
   Push $0
   Push $1
