@@ -260,6 +260,7 @@ import {
 } from "@t3tools/client-runtime/state/composer-dispatch";
 import { deriveLatestContextWindowSnapshot } from "../../lib/contextWindow";
 import {
+  getProviderSkillInvocationText,
   resolveProviderSkillsForCwd,
   resolveProviderSlashCommandsForCwd,
 } from "@t3tools/client-runtime/providerSkills";
@@ -307,7 +308,7 @@ export interface ChatComposerHandle {
     sourceAnchor: AssistantCitationSourceAnchor,
   ) => boolean;
   openModelPicker: () => void;
-  stepReasoningEffort: (direction: 1 | -1) => void;
+  stepReasoningEffort: (direction: 1 | 0 | -1) => void;
   toggleModelPicker: () => void;
   openControl: (command: KeybindingCommand) => void;
   isModelPickerOpen: () => boolean;
@@ -1939,7 +1940,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       return;
     }
     if (item.type === "skill") {
-      const replacement = `$${item.skill.name} `;
+      const replacement = `${getProviderSkillInvocationText(item.skill)} `;
       const replacementRangeEnd = extendReplacementRangeForTrailingSpace(
         snapshot.value,
         trigger.rangeEnd,

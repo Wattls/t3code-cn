@@ -41,7 +41,7 @@ const MAX_MODELS = 256;
 const MAX_ID_LENGTH = 128;
 const MAX_NAME_LENGTH = 160;
 const MAX_DESCRIPTION_LENGTH = 1_024;
-const MAX_COMMANDS = 128;
+const MAX_COMMANDS = 1_024;
 const MAX_COMMAND_LINE_LENGTH = 2_048;
 const PROBE_TIMEOUT_SECONDS = 60;
 const PROBE_TIMEOUT = `${PROBE_TIMEOUT_SECONDS} seconds`;
@@ -224,13 +224,15 @@ export function normalizeAcpRegistryCommands(
     seen.add(key);
     const description = boundedText(command.description, MAX_DESCRIPTION_LENGTH);
     const hint = command.input ? boundedText(command.input.hint, MAX_DESCRIPTION_LENGTH) : "";
-    if (name.startsWith("$")) {
-      const skillName = boundedOpaqueValue(name.slice(1), MAX_ID_LENGTH);
+    const nativeSkillCommand = name.startsWith("skill:");
+    if (name.startsWith("$") || nativeSkillCommand) {
+      const skillName = boundedOpaqueValue(name.slice(nativeSkillCommand ? 6 : 1), MAX_ID_LENGTH);
       if (skillName === undefined) continue;
       skills.push({
         name: skillName,
         ...(description ? { description } : {}),
         path: `acp://skill/${encodeURIComponent(skillName)}`,
+        ...(nativeSkillCommand ? { invocationCommand: `/${name}` } : {}),
         scope: "agent",
         enabled: true,
       });

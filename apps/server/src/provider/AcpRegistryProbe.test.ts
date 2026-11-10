@@ -281,13 +281,13 @@ describe("ACP Registry probe", () => {
         input: { type: "text", hint: " topic " },
       },
       { name: "CREATE_PLAN", description: "duplicate" },
-      ...Array.from({ length: 140 }, (_, index) => ({
+      ...Array.from({ length: 1_100 }, (_, index) => ({
         name: `command_${index}`,
         description: "",
       })),
     ]);
 
-    expect(commands.slashCommands).toHaveLength(128);
+    expect(commands.slashCommands).toHaveLength(1_024);
     expect(commands.slashCommands[0]).toEqual({
       name: "create_plan",
       description: "Create a plan",
@@ -319,6 +319,43 @@ describe("ACP Registry probe", () => {
         },
       ],
     });
+  });
+
+  it("discovers native skill commands beyond the old command limit", () => {
+    const commands = normalizeAcpRegistryCommands([
+      ...Array.from({ length: 128 }, (_, index) => ({ name: `command_${index}`, description: "" })),
+      { name: "skill:poteto-mode", description: "pstack" },
+      { name: "skill:openspec-propose", description: "OpenSpec" },
+      { name: "skill:grilling", description: "Matt" },
+      { name: "skill:", description: "invalid empty skill" },
+    ]);
+    expect(commands.slashCommands).toHaveLength(128);
+    expect(commands.skills).toEqual([
+      {
+        name: "poteto-mode",
+        description: "pstack",
+        path: "acp://skill/poteto-mode",
+        scope: "agent",
+        enabled: true,
+        invocationCommand: "/skill:poteto-mode",
+      },
+      {
+        name: "openspec-propose",
+        description: "OpenSpec",
+        path: "acp://skill/openspec-propose",
+        scope: "agent",
+        enabled: true,
+        invocationCommand: "/skill:openspec-propose",
+      },
+      {
+        name: "grilling",
+        description: "Matt",
+        path: "acp://skill/grilling",
+        scope: "agent",
+        enabled: true,
+        invocationCommand: "/skill:grilling",
+      },
+    ]);
   });
 
   it.effect("lists native sessions and logs out through generic ACP lifecycle methods", () => {

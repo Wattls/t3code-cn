@@ -111,6 +111,8 @@ export const ServerProviderSkill = Schema.Struct({
   name: TrimmedNonEmptyString,
   description: Schema.optional(TrimmedNonEmptyString),
   path: TrimmedNonEmptyString,
+  /** Native invocation for skills exposed as commands, such as OMP /skill:name. */
+  invocationCommand: Schema.optional(TrimmedNonEmptyString),
   scope: Schema.optional(TrimmedNonEmptyString),
   enabled: Schema.Boolean,
   displayName: Schema.optional(TrimmedNonEmptyString),

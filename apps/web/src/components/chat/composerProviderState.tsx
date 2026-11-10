@@ -163,7 +163,7 @@ export function getComposerReasoningStep(input: {
   prompt: string;
   cursor: number;
   planModeEnabled: boolean;
-  direction: 1 | -1;
+  direction: 1 | 0 | -1;
 }): {
   prompt: string;
   cursor: number;

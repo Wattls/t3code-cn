@@ -11,11 +11,22 @@ import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import {
   createProviderWorkspaceSnapshotRefreshAtomFamily,
   getProviderSkillsForSlashMenu,
+  getProviderSkillInvocationText,
   hasCompleteProviderWorkspaceSnapshot,
   isProviderWorkspaceSnapshotScanning,
   resolveProviderSkillsForCwd,
   resolveProviderSlashCommandsForCwd,
 } from "./providerSkills.ts";
+
+it("preserves native skill invocations without changing dollar-based providers", () => {
+  expect(
+    getProviderSkillInvocationText({
+      name: "poteto-mode",
+      invocationCommand: "/skill:poteto-mode",
+    }),
+  ).toBe("/skill:poteto-mode");
+  expect(getProviderSkillInvocationText({ name: "poteto-mode" })).toBe("$poteto-mode");
+});
 
 const provider = {
   instanceId: ProviderInstanceId.make("codex"),

@@ -247,7 +247,7 @@ export function getReasoningTraitStep(input: {
   reportedModelSelection: ModelSelection | null | undefined;
   prompt: string;
   planModeEnabled: boolean;
-  direction: 1 | -1;
+  direction: 1 | 0 | -1;
 }) {
   const selected = getSelectedTraits(
     input.provider,
@@ -261,7 +261,15 @@ export function getReasoningTraitStep(input: {
   if (selected.modelIsUnavailable || selected.ultrathinkInBodyText) return null;
   const descriptor = selected.selectDescriptors.find(isReasoningSelect);
   const choices = descriptor ? selectableProviderOptionChoices(descriptor) : [];
-  if (!descriptor || choices.length < 2) return null;
+  if (!descriptor || choices.length === 0) return null;
+  if (input.direction === 0) {
+    const target = choices.find((option) => option.id === "medium");
+    const change = target && getTraitSelectChange(selected, descriptor, input.prompt, target.id);
+    return change?.modelOptions
+      ? { prompt: change.prompt, modelOptions: change.modelOptions }
+      : null;
+  }
+  if (choices.length < 2) return null;
   const isPrimary = descriptor.id === selected.primarySelectDescriptor?.id;
   const current =
     isPrimary && selected.ultrathinkPromptControlled

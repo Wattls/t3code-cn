@@ -59,6 +59,12 @@ export function getProviderSlashCommandsForSlashMenu(
   return slashCommands.filter((command) => !skillNames.has(command.name.trim().toLowerCase()));
 }
 
+export function getProviderSkillInvocationText(
+  skill: Pick<ServerProviderSkill, "name" | "invocationCommand">,
+): string {
+  return skill.invocationCommand ?? `$${skill.name}`;
+}
+
 export function resolveProviderSkillSourceKind(
   skill: Pick<ServerProviderSkill, "path" | "scope">,
 ): ProviderSkillSourceKind {

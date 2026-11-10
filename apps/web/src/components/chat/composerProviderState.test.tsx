@@ -315,6 +315,53 @@ describe("getComposerReasoningStep", () => {
     }
   });
 
+  it("resets by the medium id regardless of the provider's option order", () => {
+    for (const options of [
+      LEVELS,
+      [
+        { id: "off", label: "Off" },
+        { id: "auto", label: "Auto" },
+        { id: "low", label: "Low" },
+        { id: "medium", label: "medium" },
+        { id: "high", label: "High" },
+        { id: "max", label: "Max" },
+      ],
+      [{ id: "medium", label: "Medium" }],
+    ]) {
+      for (const from of options) {
+        expect(
+          step({
+            models: modelWith([
+              selectDescriptor("contextWindow", [
+                { id: "200k", label: "200k" },
+                { id: "1m", label: "1M" },
+              ]),
+              selectDescriptor("reasoningEffort", options),
+            ]),
+            modelOptions: selections(["contextWindow", "1m"], ["reasoningEffort", from.id]),
+            direction: 0,
+          })?.modelOptions,
+        ).toStrictEqual(selections(["contextWindow", "1m"], ["reasoningEffort", "medium"]));
+      }
+    }
+  });
+
+  it("does not substitute auto or another level when medium is unavailable", () => {
+    expect(
+      step({
+        models: modelWith([
+          selectDescriptor("reasoningEffort", [
+            { id: "auto", label: "Auto" },
+            { id: "low", label: "Low" },
+            { id: "high", label: "High" },
+          ]),
+        ]),
+        modelOptions: selections(["reasoningEffort", "high"]),
+        direction: 0,
+      }),
+    ).toBeNull();
+  });
+
   it("steps Antigravity's thinking_level like other effort controls", () => {
     expect(
       step({

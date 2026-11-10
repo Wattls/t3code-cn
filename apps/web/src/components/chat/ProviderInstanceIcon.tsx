@@ -7,6 +7,7 @@ import {
 } from "@t3tools/client-runtime/state/provider-instance-display";
 
 import { ProviderDriverKind } from "@t3tools/contracts";
+import type { ProviderIcon } from "@t3tools/provider-core/client";
 import { AntigravityIcon, ClaudeAI, Icon, OpenAI } from "../Icons";
 
 import { cn } from "~/lib/utils";
@@ -28,6 +29,12 @@ const PROVIDER_TEXT_COLOR_BY_PROVIDER: Partial<Record<ProviderDriverKind, string
   [ProviderDriverKind.make("codex")]: "text-black dark:text-white",
   [ProviderDriverKind.make("claudeAgent")]: "text-[#d97757]",
   [ProviderDriverKind.make("antigravity")]: "text-[#5b87bf]",
+};
+
+const OH_MY_PI_ICON: ProviderIcon = {
+  viewBox: "0 0 24 24",
+  fill: { light: "#0F0F0F", dark: "#F5F5F5" },
+  paths: [{ d: "M3 3h18v4h-4v14h-4V7h-3v10H6V7H3Z" }],
 };
 
 export function providerTextColor(driverKind: ProviderDriverKind): {
@@ -72,7 +79,9 @@ export const ProviderInstanceIcon = memo(function ProviderInstanceIcon(props: {
   indicatorBackground?: string;
 }) {
   const Icon = PROVIDER_ICON_BY_PROVIDER[props.driverKind] ?? null;
-  const packageIcon = providerClients.get(props.driverKind)?.icon;
+  const isOhMyPi =
+    props.driverKind === "acpRegistry" && /^(?:omp|oh my pi)$/i.test(props.displayName.trim());
+  const packageIcon = isOhMyPi ? OH_MY_PI_ICON : providerClients.get(props.driverKind)?.icon;
   const indicatorBackground = props.indicatorBackground ?? "var(--card)";
   const accentColor = normalizeProviderAccentColor(props.accentColor);
   const accentStyle = accentColor
@@ -99,7 +108,7 @@ export const ProviderInstanceIcon = memo(function ProviderInstanceIcon(props: {
       style={accentStyle}
       data-provider-accent-color={accentColor}
     >
-      {isAcpRegistry ? (
+      {isAcpRegistry && !isOhMyPi ? (
         <AcpRegistryAgentIcon
           className={cn("size-5 rounded-none bg-transparent", iconClassName)}
           fallbackClassName="size-full"

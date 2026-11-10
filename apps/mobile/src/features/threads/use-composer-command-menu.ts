@@ -47,6 +47,7 @@ import {
   getProviderSkillsForSlashMenu,
   getProviderSlashCommandsForSlashMenu,
   isProviderSkillUserInvocable,
+  getProviderSkillInvocationText,
   resolveProviderSkillsForCwd,
   resolveProviderSlashCommandsForCwd,
 } from "@t3tools/client-runtime/providerSkills";
@@ -193,7 +194,7 @@ export function resolveComposerCommandSelection(input: {
   if (item.type === "path") {
     replacement = `${serializeComposerFileLink(item.path)} `;
   } else if (item.type === "skill") {
-    replacement = `$${item.skill.name} `;
+    replacement = `${getProviderSkillInvocationText(item.skill)} `;
   } else if (item.type === "slash-command") {
     replacement = `/${item.command} `;
   } else if (item.type === "provider-slash-command") {
