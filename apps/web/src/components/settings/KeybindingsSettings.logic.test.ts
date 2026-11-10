@@ -1,10 +1,8 @@
 import { DEFAULT_RESOLVED_KEYBINDINGS } from "@t3tools/shared/keybindings";
 import {
   buildKeybindingCommandOptions,
-  buildWhenVariableOptions,
   commandLabel,
   filterKeybindingRows,
-  unknownWhenVariables,
   whenNodeRemoveLabel,
 } from "./KeybindingsSettings.logic";
 import { assert, describe, expect, it } from "vite-plus/test";
