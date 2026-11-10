@@ -28,6 +28,23 @@ function commit(cwd, value) {
   return git(cwd, "rev-parse", "--verify", `${value}^{commit}`);
 }
 
+function containsCommit(cwd, ancestor, descendant) {
+  try {
+    git(cwd, "merge-base", "--is-ancestor", ancestor, descendant);
+    return true;
+  } catch (error) {
+    if (error.status === 1) return false;
+    throw error;
+  }
+}
+
+function newerRelease(candidate, version) {
+  const left = candidate.split(".").map(Number);
+  const right = version.split(".").map(Number);
+  const position = left.findIndex((value, index) => value !== right[index]);
+  return position >= 0 && left[position] > right[position];
+}
+
 export function resolveBaseline({ cwd, upstreamUrl = UPSTREAM, officialUrl = OFFICIAL, ref, version }) {
   const versionMatch = /^(\d+\.\d+\.\d+)-zh-test\.\d+$/.exec(version);
   if (!versionMatch) throw new Error("Invalid Windows Chinese test version.");
@@ -42,10 +59,17 @@ export function resolveBaseline({ cwd, upstreamUrl = UPSTREAM, officialUrl = OFF
   const sha = git(cwd, "rev-parse", "FETCH_HEAD^{commit}");
   git(cwd, "fetch", "--no-tags", officialUrl, `refs/tags/v${versionMatch[1]}`);
   const official = git(cwd, "rev-parse", "FETCH_HEAD^{commit}");
-  try {
-    git(cwd, "merge-base", "--is-ancestor", official, sha);
-  } catch {
+  if (!containsCommit(cwd, official, sha)) {
     throw new Error("Chinese upstream does not contain the requested official release.");
+  }
+  const officialTags = git(cwd, "ls-remote", "--tags", "--refs", officialUrl, "refs/tags/v*");
+  for (const line of officialTags.split("\n")) {
+    const match = /refs\/tags\/v(\d+\.\d+\.\d+)$/.exec(line);
+    if (!match || !newerRelease(match[1], versionMatch[1])) continue;
+    git(cwd, "fetch", "--no-tags", officialUrl, `refs/tags/v${match[1]}`);
+    if (containsCommit(cwd, git(cwd, "rev-parse", "FETCH_HEAD^{commit}"), sha)) {
+      throw new Error(`Chinese upstream already contains official v${match[1]}; update the Windows version.`);
+    }
   }
   return sha;
 }
@@ -54,9 +78,7 @@ export function syncCn({ cwd, originUrl, sha }) {
   commit(cwd, sha);
   git(cwd, "fetch", "--no-tags", originUrl, "refs/heads/cn");
   const current = git(cwd, "rev-parse", "FETCH_HEAD^{commit}");
-  try {
-    git(cwd, "merge-base", "--is-ancestor", current, sha);
-  } catch {
+  if (!containsCommit(cwd, current, sha)) {
     throw new Error("Downstream cn cannot fast-forward; refusing to overwrite its history.");
   }
   // A normal push also rejects concurrent divergence after the ancestor check.

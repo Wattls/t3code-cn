@@ -53,6 +53,22 @@ test("refuses a Chinese branch that does not contain the official release", (t) 
   assert.throws(() => resolveBaseline({ cwd: f.cwd, upstreamUrl: f.upstream, officialUrl: f.upstream, ref: "cn", version: "1.2.3-zh-test.1" }), /official/);
 });
 
+test("refuses to label a newer cn baseline with an older Windows version", (t) => {
+  const f = fixture(t);
+  writeFileSync(path.join(f.upstream, "release.txt"), "new official release\n");
+  f.git("add", ".");
+  f.git("commit", "-m", "next official release");
+  f.git("tag", "v1.2.4");
+  assert.throws(() => resolveBaseline({
+    cwd: f.cwd, upstreamUrl: f.upstream, officialUrl: f.upstream,
+    ref: "cn", version: "1.2.3-zh-test.2",
+  }), /already contains official v1.2.4/);
+  assert.equal(resolveBaseline({
+    cwd: f.cwd, upstreamUrl: f.upstream, officialUrl: f.upstream,
+    ref: "v1.2.3-zh-test.1", version: "1.2.3-zh-test.2",
+  }), f.sha);
+});
+
 test("syncs cn with a fast-forward and refuses divergent downstream commits", (t) => {
   const f = fixture(t);
   const originUrl = path.join(f.root, "downstream.git");
