@@ -1,5 +1,10 @@
 const CHINESE_MESSAGES = {
   Select: "选择",
+  "Start voice input": "开始语音输入",
+  "Cancel voice input": "取消语音输入",
+  "Finish voice input": "完成语音输入",
+  "Skip transcript cleanup": "跳过转录整理",
+  Skip: "跳过",
   Region: "区域",
   Draw: "绘制",
   Erase: "擦除",

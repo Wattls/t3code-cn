@@ -7,7 +7,7 @@ on:
       version:
         description: Chinese test version (must include -zh-test.)
         required: true
-        default: 0.1.7-zh-test.1
+        default: 0.1.8-zh-test.1
         type: string
 
 permissions:
@@ -144,6 +144,15 @@ jobs:
       # The root `typecheck` script is recursive and reaches packages this job does not install (apps/marketing needs astro).
       - name: Typecheck
         run: vp run --cache --concurrency-limit 4 --filter "@t3tools/desktop..." --filter "t3..." --filter "@t3tools/web..." --filter "@t3tools/scripts..." typecheck
+
+      - name: Verify Chinese localization
+        run: >-
+          vp test run
+          apps/desktop/src/preview/AnnotationLocalization.test.ts
+          apps/desktop/src/window/DesktopUiLocale.test.ts
+          apps/desktop/src/window/DesktopApplicationMenu.test.ts
+          packages/shared/src/appLocale.test.ts
+          apps/web/src/i18n/messages.test.ts
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87

@@ -1,14 +1,11 @@
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { EnvironmentId, UnifiedSettings } from "@t3tools/contracts";
-import { useAtomValue } from "@effect/atom-react";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useUpdateEnvironmentSettings } from "../../hooks/useSettings";
 import { useI18n } from "../../i18n/WebI18nContext";
-import { serverEnvironment } from "../../state/server";
-import { useAtomCommand } from "../../state/use-atom-command";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -19,7 +16,6 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { Button } from "../ui/button";
-import { Switch } from "../ui/switch";
 import { AddUsageLimitSourceDialog } from "./AddUsageLimitSourceDialog";
 import { searchableSetting } from "./settingsSearch";
 import { SettingsRow, SettingsSection } from "./settingsLayout";
@@ -28,41 +24,18 @@ export function UsageProviderSettings({
   environmentId,
   environmentLabel,
   sources,
-  cursorKeychainUsageEnabled,
   readOnly,
 }: {
   readonly environmentId: EnvironmentId;
   readonly environmentLabel: string;
   readonly sources: UnifiedSettings["usageLimitSources"];
-  readonly cursorKeychainUsageEnabled: boolean;
   readonly readOnly: boolean;
 }) {
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { t } = useI18n();
   const updateSettings = useUpdateEnvironmentSettings(environmentId);
-  const updateCursorSettings = useAtomCommand(serverEnvironment.updateSettings, {
-    label: translateStaticUiCopy(staticUiLocale, "update Cursor account usage"),
-  });
-  const refreshProviders = useAtomCommand(serverEnvironment.refreshProviders, {
-    reportFailure: false,
-  });
-  const platform = useAtomValue(serverEnvironment.configValueAtom(environmentId))?.environment
-    .platform;
   const [adding, setAdding] = useState(false);
-  const [updatingCursor, setUpdatingCursor] = useState(false);
   const entries = Object.entries(sources);
-
-  const setCursorUsageEnabled = async (enabled: boolean) => {
-    setUpdatingCursor(true);
-    const result = await updateCursorSettings({
-      environmentId,
-      input: { patch: { cursorKeychainUsageEnabled: enabled } },
-    });
-    if (result._tag === "Success") {
-      await refreshProviders({ environmentId, input: {} });
-    }
-    setUpdatingCursor(false);
-  };
 
   return (
     <>
@@ -77,24 +50,6 @@ export function UsageProviderSettings({
           ) : null
         }
       >
-        {platform?.os === "darwin" ? (
-          <SettingsRow
-            id="cursor-keychain-usage"
-            title={translateStaticUiCopy(staticUiLocale, "Cursor account usage")}
-            description={translateStaticUiCopy(
-              staticUiLocale,
-              "Read your existing Cursor CLI login from macOS Keychain to show account history and monthly limits. macOS may ask you to allow access.",
-            )}
-            control={
-              <Switch
-                aria-label={translateStaticUiCopy(staticUiLocale, "Cursor account usage")}
-                checked={cursorKeychainUsageEnabled}
-                disabled={readOnly || updatingCursor}
-                onCheckedChange={(enabled) => void setCursorUsageEnabled(enabled)}
-              />
-            }
-          />
-        ) : null}
         {entries.length === 0 ? (
           <SettingsRow title={translateStaticUiCopy(staticUiLocale, "No hubs configured.")} />
         ) : (

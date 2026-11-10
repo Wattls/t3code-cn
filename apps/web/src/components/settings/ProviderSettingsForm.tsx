@@ -217,7 +217,6 @@ function ProviderCommandArguments({
 }: Pick<ProviderSettingsFormProps, "value" | "onChange"> & {
   readonly managedReason: string | undefined;
 }) {
-  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const args = configuredCommandArgs(value);
   const [storedDraft, setDraft] = useState(() => seedRowsDraft(args, toCommandArgumentRows));
@@ -236,7 +235,10 @@ function ProviderCommandArguments({
   return (
     <SettingsRow
       title={translateStaticUiCopy(staticUiLocale, "Arguments")}
-      description={translateStaticUiCopy( staticUiLocale, "One literal argument per row, in launch order.", )}
+      description={translateStaticUiCopy(
+        staticUiLocale,
+        "One literal argument per row, in launch order.",
+      )}
       managed={managedReason}
       control={
         <Button

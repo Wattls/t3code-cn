@@ -1,5 +1,3 @@
-import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
-import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { useComposerMenuState } from "../chat/useComposerMenuState";
@@ -269,7 +267,6 @@ function ProjectDetail({
   allMembers: ReadonlyArray<SidebarProjectGroupMember>;
   hasOtherMembers: boolean;
 }) {
-  const { locale: fullUiLocale } = useFullUiLocale();
   const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: uiLocale, t } = useI18n();
   const navigate = useNavigate({ from: "/settings" });
