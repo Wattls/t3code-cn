@@ -213,14 +213,20 @@ function ModelCard(props: ModelCardProps) {
             <ModelBadge
               icon={<AudioLinesIcon className="mr-1 size-3" />}
               label={translateStaticUiCopy(staticUiLocale, "Live preview")}
-              tooltip="Shows words in your draft as you speak, before the recording finishes."
+              tooltip={translateFullUiCopy(
+                fullUiLocale,
+                "Shows words in your draft as you speak, before the recording finishes.",
+              )}
             />
           ) : null}
           {model.supportsTranslation ? (
             <ModelBadge
               icon={<LanguagesIcon className="mr-1 size-3" />}
               label={translateStaticUiCopy(staticUiLocale, "Translate")}
-              tooltip="Can write English text from speech in another language. Turn on Translate to English to use it."
+              tooltip={translateFullUiCopy(
+                fullUiLocale,
+                "Can write English text from speech in another language. Turn on Translate to English to use it.",
+              )}
             />
           ) : null}
         </div>
@@ -610,6 +616,7 @@ function CleanupModelRow() {
 }
 
 function useVoiceModels(prepared: PreparedConnection | null) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const canManage = useEnvironmentScope(prepared?.environmentId ?? null, AuthSettingsWriteScope);
   const [models, setModels] = useState<readonly EnvironmentSpeechModel[]>([]);
   const [status, setStatus] = useState<EnvironmentSpeechStatus | null>(null);
@@ -649,7 +656,7 @@ function useVoiceModels(prepared: PreparedConnection | null) {
         if (current !== epoch.current || revision !== refreshRevision.current) return;
         toastManager.add({
           type: "error",
-          title: "Could not load transcription models",
+          title: translateFullUiCopy(fullUiLocale, "Could not load transcription models"),
           description: error instanceof Error ? error.message : String(error),
         });
       }

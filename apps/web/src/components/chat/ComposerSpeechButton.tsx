@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import type { VoiceInputState } from "@t3tools/client-runtime/voice-input";
@@ -114,6 +116,7 @@ function ComposerSpeechStatus(props: {
   level: number;
   recordingLimitSeconds?: number | undefined;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const presentation = resolveSpeechPresentation(props.state, props.progress);
 
   if (!presentation.status) return null;
@@ -125,7 +128,7 @@ function ComposerSpeechStatus(props: {
       className="flex h-7 min-w-0 flex-1 items-center gap-2"
       role="status"
       aria-live={isRecording ? "off" : "polite"}
-      aria-label={presentation.status}
+      aria-label={translateStaticUiCopy(staticUiLocale, presentation.status)}
     >
       {isRecording ? (
         <RecordingStatus level={props.level} recordingLimitSeconds={props.recordingLimitSeconds} />
@@ -136,7 +139,7 @@ function ComposerSpeechStatus(props: {
             isError && "text-destructive",
           )}
         >
-          {presentation.status}
+          {translateStaticUiCopy(staticUiLocale, presentation.status)}
         </span>
       )}
     </div>
@@ -184,8 +187,9 @@ export function ComposerSpeechButton(props: {
   onStart(): void;
   onCancel(): void;
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const presentation = resolveSpeechPresentation(props.state, props.progress);
-  const label = "Start voice input";
+  const label = translateFullUiCopy(fullUiLocale, "Start voice input");
 
   if (presentation.showsConfirm || props.state.phase === "error") return null;
 

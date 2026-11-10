@@ -82,7 +82,7 @@ export function VoiceInputErrorPill(props: {
             />
           }
         >
-          {voiceErrorLabel(props.error)}
+          {translateStaticUiCopy(staticUiLocale, voiceErrorLabel(props.error))}
         </TooltipTrigger>
         <TooltipPopup side="top">{props.error ?? "Voice input failed"}</TooltipPopup>
       </Tooltip>
@@ -94,7 +94,7 @@ export function VoiceInputErrorPill(props: {
                 type="button"
                 size="icon-sm-pill"
                 variant="ghost"
-                aria-label={actionLabel}
+                aria-label={translateStaticUiCopy(staticUiLocale, actionLabel)}
                 disabled={props.disabled}
                 onPointerDown={(event) => event.preventDefault()}
                 onClick={() => {
@@ -110,7 +110,9 @@ export function VoiceInputErrorPill(props: {
               </Button>
             }
           />
-          <TooltipPopup side="top">{actionLabel}</TooltipPopup>
+          <TooltipPopup side="top">
+            {translateStaticUiCopy(staticUiLocale, actionLabel)}
+          </TooltipPopup>
         </Tooltip>
       ) : null}
     </VoiceInputPill>

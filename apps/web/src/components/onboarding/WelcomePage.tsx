@@ -168,7 +168,7 @@ export function WelcomePage({
       toastManager.add({
         id: "welcome-finishing",
         type: "info",
-        title: "Finishing setup",
+        title: translateFullUiCopy(fullUiLocale, "Finishing setup"),
         description: "One moment.",
       });
       return true;
@@ -280,7 +280,7 @@ export function WelcomePage({
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-gutter-both">
           <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-6 pt-12 pb-8 sm:pt-20">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              Welcome to T3 Code
+              {translateFullUiCopy(fullUiLocale, "Welcome to T3 Code")}
             </h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
               Setting up <span className="text-foreground">{label}</span>.
@@ -304,7 +304,7 @@ export function WelcomePage({
                 <span />
               ) : (
                 <Button variant="ghost-muted" disabled={isImporting} onClick={start}>
-                  Start without an agent
+                  {translateFullUiCopy(fullUiLocale, "Start without an agent")}
                 </Button>
               )}
               <div className="flex items-center gap-3">
@@ -321,7 +321,7 @@ export function WelcomePage({
                     : newCount > 0
                       ? `Import ${newCount} ${newCount === 1 ? "project" : "projects"} and start`
                       : selected.length > 0
-                        ? "Import threads and start"
+                        ? translateFullUiCopy(fullUiLocale, "Import threads and start")
                         : translateFullUiCopy(fullUiLocale, "Start")}
                 </Button>
               </div>
@@ -340,7 +340,9 @@ function TelemetryNotice({ environmentId }: { readonly environmentId: Environmen
   return (
     <p className="mt-auto pt-12 text-2xs leading-relaxed text-muted-foreground/70">
       {telemetryOff ?? "T3 Code collects anonymous usage data to improve the app."}{" "}
-      {telemetryOff === undefined ? "To opt out, see the" : "See the"}{" "}
+      {telemetryOff === undefined
+        ? translateFullUiCopy(fullUiLocale, "To opt out, see the")
+        : "See the"}{" "}
       <a
         className="underline decoration-current/40 underline-offset-2 hover:text-muted-foreground"
         href={PRIVACY_POLICY_URL}
@@ -568,7 +570,7 @@ function AgentsSection({
           disabled={!canManageProviders || serverConfig === null}
           onClick={() => void turnOn(provider)}
         >
-          Turn on
+          {translateFullUiCopy(fullUiLocale, "Turn on")}
         </Button>
       );
     }
@@ -658,7 +660,7 @@ function AgentsSection({
             )}
           >
             {found.length > 0
-              ? "Add more agents"
+              ? translateFullUiCopy(fullUiLocale, "Add more agents")
               : translateFullUiCopy(fullUiLocale, "Set up an agent")}
           </span>
           {showMore ? null : <AgentLogoStack providers={available} acp={acpAllowed} />}
@@ -682,7 +684,7 @@ function AgentsSection({
                 <ACPRegistryIcon className="size-4" />
               </RowIcon>
               <span className="min-w-0 flex-1 text-sm text-muted-foreground">
-                More agents in the ACP Registry
+                {translateFullUiCopy(fullUiLocale, "More agents in the ACP Registry")}
               </span>
               <Button
                 size="xs"
@@ -852,7 +854,7 @@ function ProjectsSection({
             <span className="block text-sm font-medium text-foreground">
               {canWrite && selected.length > 0
                 ? `Import ${selected.length} ${selected.length === 1 ? "project" : "projects"} and their threads`
-                : "Import projects and their threads"}
+                : translateFullUiCopy(fullUiLocale, "Import projects and their threads")}
             </span>
             <span className="block text-xs text-muted-foreground">
               From your {IMPORT_SOURCES_LABEL} history
@@ -923,7 +925,10 @@ function ProjectsSection({
           role="alert"
           className="flex items-center justify-between gap-3 pl-8 text-sm text-muted-foreground"
         >
-          <span>Could not check projects again. {scan.error}</span>
+          <span>
+            {translateFullUiCopy(fullUiLocale, "Could not check projects again.") + " "}
+            {scan.error}
+          </span>
           {retry}
         </div>
       ) : null}
@@ -956,7 +961,9 @@ function PhoneSection({ environmentId }: { readonly environmentId: EnvironmentId
           <div className="flex items-center gap-8 pt-2 pb-3 pl-8">
             <ol className="min-w-0 flex-1 space-y-5">
               <PhoneStep step={1}>
-                <p className="text-sm text-foreground">Scan with your phone to get the app.</p>
+                <p className="text-sm text-foreground">
+                  {translateFullUiCopy(fullUiLocale, "Scan with your phone to get the app.")}
+                </p>
               </PhoneStep>
               <PhoneStep step={2}>
                 <PhoneConnectLink environmentId={environmentId} />
@@ -989,6 +996,7 @@ function PhoneStep({ step, children }: { readonly step: number; readonly childre
 }
 
 function PhoneConnectLink({ environmentId }: { readonly environmentId: EnvironmentId }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { isLoaded, isSignedIn, userId } = useAuth({ treatPendingAsSignedOut: false });
   const { openAuthPrompt } = useT3ConnectAuthPrompt();
   const linkState = useCloudLinkState(environmentId);
@@ -1015,12 +1023,18 @@ function PhoneConnectLink({ environmentId }: { readonly environmentId: Environme
     </Button>
   );
   if (isSignedIn && link === null && linkState.isPending) {
-    return <p className="text-sm text-muted-foreground">Checking T3 Connect…</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        {translateFullUiCopy(fullUiLocale, "Checking T3 Connect…")}
+      </p>
+    );
   }
   if (isSignedIn && linkState.error !== null) {
     return (
       <>
-        <p className="text-sm text-foreground">Could not check T3 Connect.</p>
+        <p className="text-sm text-foreground">
+          {translateFullUiCopy(fullUiLocale, "Could not check T3 Connect.")}
+        </p>
         {settingsLink("Check T3 Connect")}
       </>
     );
@@ -1907,18 +1921,22 @@ function CliPathSetup() {
       <p className="min-w-0 flex-1 text-sm text-muted-foreground">
         {setup.added ? (
           <>
-            Added to {setup.file}. Open a new terminal to use <code className="font-mono">t3</code>.
+            Added to {setup.file}
+            {translateFullUiCopy(fullUiLocale, ". Open a new terminal to use") + " "}
+            <code className="font-mono">t3</code>.
           </>
         ) : (
           <>
             {translateFullUiCopy(fullUiLocale, "Use") + " "}
-            <code className="font-mono">t3</code> from any terminal. Adds one line to {setup.file}.
+            <code className="font-mono">t3</code>
+            {" " + translateFullUiCopy(fullUiLocale, "from any terminal. Adds one line to") + " "}
+            {setup.file}.
           </>
         )}
       </p>
       {setup.added ? null : (
         <Button size="xs" variant="outline" disabled={busy} onClick={() => run("addToPath")}>
-          Add to PATH
+          {translateFullUiCopy(fullUiLocale, "Add to PATH")}
         </Button>
       )}
     </div>

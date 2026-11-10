@@ -98,7 +98,8 @@ export function VoiceInputSetup(props: {
                     <h3 className="font-medium">{model.name}</h3>
                     {model?.recommended && props.language ? (
                       <span className="text-xs font-medium text-primary">
-                        Recommended for {languageLabel(props.language)}
+                        {translateFullUiCopy(fullUiLocale, "Recommended for") + " "}
+                        {languageLabel(props.language)}
                       </span>
                     ) : null}
                   </div>
@@ -121,7 +122,10 @@ export function VoiceInputSetup(props: {
                     <div role="status" className="mt-4 space-y-1 text-muted-foreground">
                       <div
                         role="progressbar"
-                        aria-label="Speech model download progress"
+                        aria-label={translateFullUiCopy(
+                          fullUiLocale,
+                          "Speech model download progress",
+                        )}
                         aria-valuemin={0}
                         aria-valuemax={100}
                         aria-valuenow={progress ?? undefined}
@@ -134,9 +138,9 @@ export function VoiceInputSetup(props: {
                       </div>
                       <p className="text-xs">
                         {model?.state === "verifying"
-                          ? "Verifying download…"
+                          ? translateFullUiCopy(fullUiLocale, "Verifying download…")
                           : progress === null
-                            ? "Starting download…"
+                            ? translateFullUiCopy(fullUiLocale, "Starting download…")
                             : `${progress}% downloaded`}
                       </p>
                     </div>
@@ -144,7 +148,7 @@ export function VoiceInputSetup(props: {
                 </div>
               ) : !props.error ? (
                 <p role="status" className="text-muted-foreground">
-                  Loading transcription models…
+                  {translateFullUiCopy(fullUiLocale, "Loading transcription models…")}
                 </p>
               ) : null}
               {props.error ? (
@@ -185,7 +189,7 @@ export function VoiceInputSetup(props: {
                       </SelectItem>
                       {selectedIsUnavailable ? (
                         <SelectItem value={`device:${selectedMicrophone}`}>
-                          Selected microphone (Unavailable)
+                          {translateFullUiCopy(fullUiLocale, "Selected microphone (Unavailable)")}
                         </SelectItem>
                       ) : null}
                       {microphones.map((device) => (
@@ -200,7 +204,7 @@ export function VoiceInputSetup(props: {
                     variant="ghost"
                     size="icon-sm"
                     disabled={loadingMicrophones}
-                    aria-label="Refresh microphones"
+                    aria-label={translateFullUiCopy(fullUiLocale, "Refresh microphones")}
                     onClick={() => void refreshMicrophones()}
                   >
                     <RefreshCwIcon className="size-3.5" />
@@ -208,8 +212,10 @@ export function VoiceInputSetup(props: {
                 </div>
                 {selectedIsUnavailable ? (
                   <p className="text-xs text-destructive">
-                    The selected microphone is unavailable. Choose another or use the system
-                    default.
+                    {translateFullUiCopy(
+                      fullUiLocale,
+                      "The selected microphone is unavailable. Choose another or use the system default.",
+                    )}
                   </p>
                 ) : null}
                 {microphoneError ? (
@@ -219,8 +225,10 @@ export function VoiceInputSetup(props: {
                 ) : null}
               </div>
               <p className="text-muted-foreground">
-                Speak and transcribe in multiple languages or translate into English, and get names
-                and technical terms right with the dictionary in Voice settings.
+                {translateFullUiCopy(
+                  fullUiLocale,
+                  "Speak and transcribe in multiple languages or translate into English, and get names and technical terms right with the dictionary in Voice settings.",
+                )}
               </p>
             </section>
           )}
@@ -229,14 +237,18 @@ export function VoiceInputSetup(props: {
           {props.step === 0 ? (
             <>
               <Button variant="outline" onClick={() => openSettings("speech-models")}>
-                {model ? "Choose another model or language" : "Choose a model or language"}
+                {model
+                  ? translateFullUiCopy(fullUiLocale, "Choose another model or language")
+                  : translateFullUiCopy(fullUiLocale, "Choose a model or language")}
               </Button>
               {props.onRetryCatalog ? (
-                <Button onClick={props.onRetryCatalog}>Retry loading models</Button>
+                <Button onClick={props.onRetryCatalog}>
+                  {translateFullUiCopy(fullUiLocale, "Retry loading models")}
+                </Button>
               ) : null}
               {props.downloading ? (
                 <Button variant="outline" disabled={!canManage} onClick={props.onCancelDownload}>
-                  Cancel download
+                  {translateFullUiCopy(fullUiLocale, "Cancel download")}
                 </Button>
               ) : null}
               {model ? (
@@ -250,16 +262,18 @@ export function VoiceInputSetup(props: {
                       ? translateFullUiCopy(fullUiLocale, "Try again")
                       : canManage
                         ? translateFullUiCopy(fullUiLocale, "Download model")
-                        : "Ask an environment admin to download"}
+                        : translateFullUiCopy(fullUiLocale, "Ask an environment admin to download")}
                 </Button>
               ) : null}
             </>
           ) : (
             <>
               <Button variant="outline" onClick={() => openSettings("")}>
-                Customize in Voice settings
+                {translateFullUiCopy(fullUiLocale, "Customize in Voice settings")}
               </Button>
-              <Button onClick={props.onStartRecording}>Start dictating</Button>
+              <Button onClick={props.onStartRecording}>
+                {translateFullUiCopy(fullUiLocale, "Start dictating")}
+              </Button>
             </>
           )}
         </WizardFooter>

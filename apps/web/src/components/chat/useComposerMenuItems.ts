@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n } from "~/i18n/WebI18nContext";
 import { translateWebSource } from "~/i18n/messages";
 import {
@@ -104,6 +106,7 @@ export function useComposerMenuItems({
     readonly modelOptionsByInstance: ReadonlyMap<ProviderInstanceId, ReadonlyArray<ModelEsque>>;
   };
 }) {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { t, locale: releaseLocale } = useI18n();
 
   // Thread mentions rank by recency as of when the composer mounted.
@@ -267,7 +270,10 @@ export function useComposerMenuItems({
                 type: "slash-command",
                 command: "clear",
                 label: "/clear",
-                description: "Start a fresh session; earlier messages stay visible",
+                description: translateFullUiCopy(
+                  fullUiLocale,
+                  "Start a fresh session; earlier messages stay visible",
+                ),
               },
             ] as const)
           : []),

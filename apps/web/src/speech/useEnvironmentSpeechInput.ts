@@ -352,7 +352,7 @@ export function useEnvironmentSpeechInput(input: HookInput) {
         toastManager.add({
           type: "warning",
           title: translateFullUiCopy(fullUiLocale, "Transcript cleanup failed"),
-          description: "The original transcript was added.",
+          description: translateFullUiCopy(fullUiLocale, "The original transcript was added."),
         }),
       readDraft,
       commitDraft: (text, selection) => {
@@ -523,7 +523,7 @@ export function useEnvironmentSpeechInput(input: HookInput) {
     if (!latestStatus.supported) {
       toastManager.add({
         type: "error",
-        title: "Voice input is not available",
+        title: translateFullUiCopy(fullUiLocale, "Voice input is not available"),
         description: latestStatus.reason,
       });
       return;

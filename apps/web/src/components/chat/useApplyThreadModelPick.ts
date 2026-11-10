@@ -1,3 +1,5 @@
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { RegistryContext } from "@effect/atom-react";
 import { scopedThreadKey } from "@t3tools/client-runtime/environment";
 import {
@@ -13,6 +15,7 @@ import { stackedThreadToast, toastManager } from "../ui/toast";
 
 /** Sets an existing thread's composer pick on the thread, so any next turn runs on it. */
 export function useApplyThreadModelPick() {
+  const { locale: fullUiLocale } = useFullUiLocale();
   const registry = useContext(RegistryContext);
   const setModelSelection = useOrchestrationCommand(threadEnvironment.setModelSelection, {
     label: "change model",
@@ -39,7 +42,7 @@ export function useApplyThreadModelPick() {
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Could not apply model selection",
+          title: translateFullUiCopy(fullUiLocale, "Could not apply model selection"),
           description: `This model pick was not saved. ${error instanceof Error ? error.message : "Try again."}`,
         }),
       );
