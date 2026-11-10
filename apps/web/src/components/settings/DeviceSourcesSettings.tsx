@@ -33,6 +33,7 @@ import { Menu, MenuItem, MenuPopup, MenuTrigger } from "../ui/menu";
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
 import { Spinner } from "../ui/spinner";
 import { toastManager } from "../ui/toast";
+import { incompleteListings } from "../device/DeviceSetup";
 import { DeviceHostEditor } from "./DeviceHostEditor";
 import { updateDeviceHosts, groupDeviceHosts } from "./deviceHostsSettings.logic";
 import { EasDeviceHostEditor } from "./EasDeviceHostEditor";
@@ -120,14 +121,12 @@ function hostStatus(
   if (!state) return { tone: "pending", label: localizeBuiltInUi("Loading") };
   const status = state.hostStatuses[hostId];
   switch (status?.status) {
-    case "ready":
-      return status.androidDiscoveryIncomplete
-        ? {
-            tone: "warning",
-            label: localizeBuiltInUi("Android list may be incomplete"),
-            detail: status.detail,
-          }
-        : undefined;
+    case "ready": {
+      const incomplete = incompleteListings(status);
+      if (incomplete.length === 0) return undefined;
+      const list = incomplete.length > 1 ? "Device" : incomplete[0] === "ios" ? "iOS" : "Android";
+      return { tone: "warning", label: `${list} list may be incomplete`, detail: status.detail };
+    }
     case "installing":
     case "starting":
       return { tone: "pending", label: localizeBuiltInUi("Starting"), detail: status.detail };
@@ -784,6 +783,7 @@ function PlatformIcon(props: {
 }
 
 function DeviceSourceRow(props: { row: SourceRow }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { row } = props;
   const several = row.environments.length > 1;
   const issues = row.environments.filter(
@@ -815,10 +815,22 @@ function DeviceSourceRow(props: { row: SourceRow }) {
           >
             <span className="min-w-0 break-words">
               {several ? `${environment.label}: ` : ""}
-              {!several && environment.status.detail
+              {environment.status.tone === "error" && !several && environment.status.detail
                 ? environment.status.detail
                 : environment.status.label}
             </span>
+            {environment.status.tone === "warning" && environment.status.detail ? (
+              <Popover>
+                <PopoverTrigger render={<InlineButton />}>
+                  {translateStaticUiCopy(staticUiLocale, "Details")}
+                </PopoverTrigger>
+                <PopoverPopup side="bottom" align="start" width="lg" padding="compact">
+                  <p className="whitespace-pre-wrap break-words font-mono text-xs text-muted-foreground">
+                    {environment.status.detail}
+                  </p>
+                </PopoverPopup>
+              </Popover>
+            ) : null}
             {environment.status.action ? (
               <InlineButton onClick={environment.status.action.run}>
                 {environment.status.action.label}

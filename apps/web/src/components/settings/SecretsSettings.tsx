@@ -2,7 +2,7 @@ import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
 import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
-import type { SecretProviderConfig, SecretProviderId } from "@t3tools/contracts";
+import type { EnvironmentId, SecretProviderConfig, SecretProviderId } from "@t3tools/contracts";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -22,6 +22,7 @@ import {
 import { Button } from "../ui/button";
 import { SecretProviderDialog } from "./SecretProviderDialog";
 import { classifySecretProvider } from "./SecretProviderDialog.logic";
+import { secretProviderUses } from "./SecretsSettings.logic";
 import {
   classifyProviderEnvironmentAccess,
   resolveRemoteOperateAccess,
@@ -181,6 +182,8 @@ function EnvironmentSecretProviders({
                         </Button>
                       ) : null}
                       <RemoveSecretProviderButton
+                        environmentId={environmentId}
+                        id={id}
                         label={config.label}
                         onConfirm={() => updateSettings({ secretProviders: { [id]: null } })}
                       />
@@ -206,9 +209,13 @@ function EnvironmentSecretProviders({
 }
 
 function RemoveSecretProviderButton({
+  environmentId,
+  id,
   label,
   onConfirm,
 }: {
+  readonly environmentId: EnvironmentId;
+  readonly id: SecretProviderId;
   readonly label: string;
   readonly onConfirm: () => void;
 }) {
@@ -228,15 +235,7 @@ function RemoveSecretProviderButton({
               {label}
               {translateFullUiCopy(fullUiLocale, "?")}
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              {translateStaticUiCopy(staticUiLocale, "Provider variables that read from") + " "}
-              {label}
-              {" " +
-                translateStaticUiCopy(
-                  staticUiLocale,
-                  "stop resolving until a provider with the same name is added again. The secrets themselves are untouched.",
-                )}
-            </AlertDialogDescription>
+            <SecretProviderUses environmentId={environmentId} id={id} label={label} />
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogClose render={<Button variant="outline" />}>
@@ -254,6 +253,46 @@ function RemoveSecretProviderButton({
           </AlertDialogFooter>
         </AlertDialogPopup>
       </AlertDialog>
+    </>
+  );
+}
+
+function SecretProviderUses({
+  environmentId,
+  id,
+  label,
+}: {
+  readonly environmentId: EnvironmentId;
+  readonly id: SecretProviderId;
+  readonly label: string;
+}) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const uses = secretProviderUses(useEnvironmentSettings(environmentId), id);
+  if (uses.length === 0) {
+    return (
+      <AlertDialogDescription>
+        {translateStaticUiCopy(staticUiLocale, "Nothing reads from") + " "}
+        {label}
+        {translateStaticUiCopy(staticUiLocale, ". The secrets themselves are untouched.")}
+      </AlertDialogDescription>
+    );
+  }
+  return (
+    <>
+      <AlertDialogDescription>
+        {translateStaticUiCopy(staticUiLocale, "These read from") + " "}
+        {label}
+        {" " +
+          translateStaticUiCopy(
+            staticUiLocale,
+            "and will be unset. The secrets themselves are untouched.",
+          )}
+      </AlertDialogDescription>
+      <ul className="max-h-48 list-disc space-y-0.5 overflow-y-auto ps-5 text-sm wrap-anywhere">
+        {uses.map((use) => (
+          <li key={use.id}>{use.label}</li>
+        ))}
+      </ul>
     </>
   );
 }

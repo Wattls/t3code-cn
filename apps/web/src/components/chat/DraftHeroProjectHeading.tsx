@@ -1,3 +1,8 @@
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
+
+import { useI18n as useFullUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateFullUiCopy } from "~/i18n/messages";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import { useI18n, splitWebTranslation } from "~/i18n/WebI18nContext";
@@ -11,6 +16,8 @@ export function DraftHeroProjectHeading({
   children: ReactNode;
   projectName: string;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  const { locale: fullUiLocale } = useFullUiLocale();
   const { t } = useI18n();
   const [beforeProject, afterProject] = splitWebTranslation(t, "draftHero.question", "project");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -50,22 +57,18 @@ export function DraftHeroProjectHeading({
           </span>
         </span>
       </span>
-      <h1
-        aria-label={t("draftHero.question", { project: projectName })}
-        className="flex w-full flex-col items-center justify-center gap-2 text-center font-normal text-2xl text-foreground tracking-tight sm:text-3xl lg:group-data-[inline=true]/draft-hero:flex-row"
-      >
-        <span className="max-w-full lg:group-data-[inline=true]/draft-hero:shrink-0">
+      <h1 className="flex w-full flex-col items-center justify-center gap-2 text-center font-normal text-2xl text-foreground tracking-tight sm:text-3xl lg:group-data-[inline=true]/draft-hero:flex-row">
+        <span className="max-w-full lg:group-data-[inline=true]/draft-hero:shrink-0 [@media(max-height:28rem)]:sr-only">
+          {translateStaticUiCopy(staticUiLocale, "What should we build")}
           <span className="lg:group-data-[inline=true]/draft-hero:hidden">
-            {t("draftHero.questionShort")}
+            {translateFullUiCopy(fullUiLocale, "?")}
           </span>
-          <span className="hidden lg:group-data-[inline=true]/draft-hero:inline">
-            {beforeProject}
-          </span>
+          <span className="hidden lg:group-data-[inline=true]/draft-hero:inline"> in</span>
         </span>
         <span className="flex min-w-0 max-w-full items-baseline justify-center text-base tracking-normal lg:group-data-[inline=true]/draft-hero:text-3xl lg:group-data-[inline=true]/draft-hero:tracking-tight">
           <span className="min-w-0">{children}</span>
-          <span className="hidden shrink-0 lg:group-data-[inline=true]/draft-hero:inline">
-            {afterProject}
+          <span className="hidden shrink-0 lg:group-data-[inline=true]/draft-hero:inline [@media(max-height:28rem)]:hidden!">
+            {translateFullUiCopy(fullUiLocale, "?")}
           </span>
         </span>
       </h1>

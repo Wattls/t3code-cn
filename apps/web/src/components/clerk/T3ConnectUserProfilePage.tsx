@@ -19,6 +19,7 @@ import {
   useManagedRelayEnvironments,
   useManagedTunnelUsage,
 } from "../../cloud/managedRelayState";
+import { relayFailureReason } from "../../cloud/relayFailureReason";
 import { relayEnvironmentDiscovery } from "../../state/relay";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { T3CHAT_SUBSCRIPTION_URL, TunnelUsageMeter, tunnelUpgradeCopy } from "../cloud/TunnelUsage";
@@ -26,6 +27,7 @@ import { Button, InlineButton } from "../ui/button";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "../ui/collapsible";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "../ui/empty";
 import { toastManager } from "../ui/toast";
+import { stackedThreadToast } from "../ui/toastHelpers";
 import {
   ClerkUserProfilePage,
   ClerkUserProfileRefreshButton,
@@ -177,6 +179,7 @@ function T3ConnectTunnelUsage() {
 }
 
 export function T3ConnectUserProfilePage() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale } = useI18n();
   const tx = (source: string) => translateWebSource(locale, source);
 
@@ -210,9 +213,9 @@ export function T3ConnectUserProfilePage() {
     });
     mutationPendingRef.current = false;
     setDeregisteringEnvironmentId(null);
+    setConfirmingEnvironmentId(null);
 
     if (result._tag === "Success") {
-      setConfirmingEnvironmentId(null);
       setRemovedEnvironments((current) => {
         const linkedAtById = new Map(current.accountId === accountId ? current.linkedAtById : []);
         linkedAtById.set(environment.environmentId, environment.linkedAt);
@@ -229,6 +232,8 @@ export function T3ConnectUserProfilePage() {
     }
     if (isAtomCommandInterrupted(result)) return;
 
+    // The relay may have removed it before failing.
+    environmentsState.refresh();
     const cause = squashAtomCommandFailure(result);
     const message = cause instanceof Error ? cause.message : tx("Could not deregister the server.");
     const traceId = findErrorTraceId(cause);
@@ -238,19 +243,23 @@ export function T3ConnectUserProfilePage() {
       traceId,
       cause,
     });
-    toastManager.add({
-      type: "error",
-      title: tx("Could not deregister server"),
-      description: message,
-      data: traceId
-        ? {
-            secondaryActionProps: {
-              children: tx("Copy trace ID"),
-              onClick: () => void navigator.clipboard?.writeText(traceId),
-            },
-          }
-        : undefined,
-    });
+    toastManager.add(
+      stackedThreadToast({
+        type: "error",
+        title: translateStaticUiCopy(staticUiLocale, "Could not deregister server"),
+        description: relayFailureReason(cause) ?? message,
+        ...(traceId
+          ? {
+              actionProps: {
+                children: "Copy trace ID",
+                onClick: () => void navigator.clipboard?.writeText(traceId),
+              },
+              actionVariant: "outline",
+            }
+          : {}),
+        data: { hideCopyButton: true },
+      }),
+    );
   };
 
   const removedEnvironmentLinkedAt =

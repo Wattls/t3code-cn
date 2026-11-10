@@ -1,3 +1,4 @@
+import * as HostProcess from "@t3tools/shared/HostProcess";
 // @effect-diagnostics nodeBuiltinImport:off - filesystem evidence boundary; errors are mapped before transport.
 import * as NodeFSP from "node:fs/promises";
 import type * as NodeFS from "node:fs";
@@ -230,6 +231,7 @@ async function loadWorkflow(settings: CompanySettings): Promise<CompanyWorkflow>
   return decodeWorkflow(bytes.toString("utf8"));
 }
 const make = Effect.gen(function* () {
+  const hostEnvironment = yield* HostProcess.Environment;
   const config = yield* ServerConfig;
   const root = NodePath.join(config.stateDir, "company");
   const verify = (artifacts: readonly CompanyArtifact[]) =>
@@ -294,7 +296,7 @@ const make = Effect.gen(function* () {
           await NodeFSP.mkdir(home, { recursive: true, mode: 0o700 });
           // Keep user MCPs, hooks, API keys and broader workspace permissions out of workers.
           const authPath = NodePath.join(
-            process.env.CODEX_HOME ?? NodePath.join(NodeOS.homedir(), ".codex"),
+            hostEnvironment.CODEX_HOME ?? NodePath.join(NodeOS.homedir(), ".codex"),
             "auth.json",
           );
           const auth = await NodeFSP.readFile(authPath, "utf8");

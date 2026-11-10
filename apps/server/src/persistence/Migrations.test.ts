@@ -8,7 +8,7 @@ import * as Path from "effect/Path";
 import * as SqlClient from "effect/sql/SqlClient";
 
 import { migrationManifest, runMigrations } from "./Migrations.ts";
-import companyMigration from "./Migrations/080_Company.ts";
+import companyMigration from "./Migrations/081_Company.ts";
 
 const v2Migrations = migrationManifest.filter(([id]) => id >= 55);
 const newerMigrationId = Math.max(...migrationManifest.map(([id]) => id)) + 1;
@@ -46,23 +46,24 @@ describe("runMigrations", () => {
       }).pipe(Effect.provide(NodeSqliteClient.layer({ filename: ":memory:" }))),
   );
 
-  it.effect(
-    "upgrades the legacy company migration without losing company data or skipping official migrations",
-    () =>
+  it.effect.each([77, 80])(
+    "upgrades legacy Company %s without losing data or skipping official migrations",
+    (legacyCompanyId) =>
       Effect.gen(function* () {
         const sql = yield* SqlClient.SqlClient;
-        yield* runMigrations({ toMigrationInclusive: 76 });
+        yield* runMigrations({ toMigrationInclusive: legacyCompanyId === 77 ? 76 : 79 });
         yield* companyMigration;
         yield* sql`INSERT INTO company_settings (singleton, body) VALUES (1, '{"enabled":false}')`;
         yield* sql`INSERT INTO company_tasks (id, body, updated_at) VALUES ('task-1', '{"status":"done"}', '2026-11-01')`;
         yield* sql`INSERT INTO company_receipts (id, fingerprint, created_at) VALUES ('receipt-1', 'fingerprint-1', '2026-11-01')`;
-        yield* sql`INSERT INTO effect_sql_migrations (migration_id, name) VALUES (77, 'Company')`;
+        yield* sql`INSERT INTO effect_sql_migrations (migration_id, name) VALUES (${legacyCompanyId}, 'Company')`;
         yield* runMigrations();
         assert.includeDeepMembers(yield* history, [
           [77, "RepairBooleanSettledOverride"],
           [78, "DropOrchestrationEventCorrelationIndex"],
           [79, "DelegatedRecoveryIndexes"],
-          [80, "Company"],
+          [80, "ScheduledTaskThreadMode"],
+          [81, "Company"],
         ]);
         assert.deepStrictEqual(yield* sql`SELECT body FROM company_settings`, [
           { body: '{"enabled":false}' },

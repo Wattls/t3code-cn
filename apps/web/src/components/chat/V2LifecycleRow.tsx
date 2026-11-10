@@ -47,6 +47,7 @@ import {
   CircleStopIcon,
   ArrowRightLeftIcon,
   ArrowRightIcon,
+  EraserIcon,
   GitForkIcon,
   MessageSquareIcon,
 } from "lucide-react";
@@ -615,6 +616,17 @@ function EnvironmentHandoffRow({
   const providers =
     useAtomValue(serverEnvironment.providersValueAtom(environmentId)) ?? EMPTY_SERVER_PROVIDERS;
   return <HandoffRow {...props} environmentId={environmentId} providers={providers} />;
+}
+
+/** Marks where `/clear` or an automation started a new provider session in this thread. */
+export function FreshSessionRow() {
+  const { locale: staticUiLocale } = useStaticUiLocale();
+  return (
+    <TimelineSystemDivider
+      label={translateStaticUiCopy(staticUiLocale, "New session")}
+      icon={EraserIcon}
+    />
+  );
 }
 
 /** A same-harness model or effort change. Shows only what changed. */

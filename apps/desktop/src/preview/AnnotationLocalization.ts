@@ -1,4 +1,13 @@
 const CHINESE_MESSAGES = {
+  "Start voice input": "开始语音输入",
+  "Cancel voice input": "取消语音输入",
+  "Finish voice input": "完成语音输入",
+  "Skip transcript cleanup": "跳过转写整理",
+  "Open voice settings": "打开语音设置",
+  "Dismiss voice input error": "关闭语音输入错误提示",
+  "Voice input": "语音输入",
+  "Voice input is busy": "语音输入正忙",
+  Skip: "跳过",
   Select: "选择",
   Region: "区域",
   Draw: "绘制",
@@ -68,6 +77,7 @@ export function createAnnotationLocalization(initialLocale: AnnotationLocale = "
     for (const update of bindings) update();
   };
   return {
+    translate,
     text: (target: AnnotationTextTarget, source: AnnotationMessageSource) =>
       bind(() => {
         target.textContent = translate(source);

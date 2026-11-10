@@ -1,3 +1,6 @@
+import { useI18n } from "~/i18n/WebI18nContext";
+import { useI18n as useStaticUiLocale } from "~/i18n/WebI18nContext";
+import { translateWebSource as translateStaticUiCopy } from "~/i18n/messages";
 import { translateWebSource } from "~/i18n/messages";
 import type {
   EnvironmentId,
@@ -8,29 +11,33 @@ import type {
   PullRequestThreadCommentsResult,
   PullRequestThreadComment,
 } from "@t3tools/contracts";
-import { HammerIcon, MessageSquareIcon, Trash2Icon } from "lucide-react";
+import { HammerIcon, MessageSquareIcon, MessageSquarePlusIcon, Trash2Icon } from "lucide-react";
 import { Circle, CircleCheck } from "lucide";
 import { useRef, useState } from "react";
 import { settlePromise, squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 
 import { RelativeTime } from "~/components/RelativeTime";
 import { cn } from "~/lib/utils";
-import { useI18n } from "../../i18n/WebI18nContext";
+import { SpeechTextField, TextFieldSpeechControls } from "~/speech/useTextFieldSpeech";
 
 import { Button } from "../ui/button";
 import { MorphIcon } from "~/components/MorphIcon";
 import { PullRequestEditButton } from "./PullRequestEditButton";
-import { Textarea } from "../ui/textarea";
 import { isCommentSubmitShortcut } from "../diffs/commentSubmitShortcut";
 import {
   editPullRequestThreadComment,
   mergePullRequestThreadComments,
+  visibleBody,
 } from "./pullRequestDetail.logic";
 import { PullRequestActorLabel } from "./pullRequestPresentation";
 import { PullRequestMarkdown } from "./PullRequestMarkdown";
 import { PullRequestMarkdownEditor } from "./PullRequestMarkdownEditor";
 import { PullRequestReactionBar } from "./PullRequestReactions";
 import type { PendingReviewComment } from "./pullRequestReviewStore";
+import {
+  PullRequestMarkdownTextarea,
+  type PullRequestCompletionScope,
+} from "./PullRequestMarkdownTextarea";
 
 const CARD_CLASS =
   "mx-3 my-2 rounded-xl border border-border/70 bg-background p-3 text-sm shadow-sm";
@@ -38,6 +45,7 @@ const CARD_CLASS =
 function submitKeys(input: {
   readonly value: string;
   readonly pending: boolean;
+  readonly allowEmpty?: boolean;
   readonly onSubmit: () => void;
   readonly onCancel?: (() => void) | undefined;
 }) {
@@ -46,7 +54,7 @@ function submitKeys(input: {
       event.preventDefault();
       input.onCancel();
     }
-    if (isCommentSubmitShortcut(event, input.value, input.pending)) {
+    if (isCommentSubmitShortcut(event, input.value, input.pending, input.allowEmpty)) {
       event.preventDefault();
       input.onSubmit();
     }
@@ -114,10 +122,12 @@ export function ReviewThreadCard({
   canReact,
   environmentId,
   reference,
+  completionScope,
   pending,
   fixPending,
   fixLabel = "Fix in a thread",
   onFix,
+  onAddToChat,
   onReply,
   onLoadMore,
   canEditComment,
@@ -132,10 +142,16 @@ export function ReviewThreadCard({
   canReact: boolean;
   environmentId: EnvironmentId;
   reference: PullRequestRef;
+  completionScope: PullRequestCompletionScope | null;
   pending: boolean;
   fixPending?: boolean;
   fixLabel?: string;
   onFix?: () => void;
+  /**
+   * Absent where there is no composer beside the panel to add the conversation to. Handed the
+   * thread with every comment the reader has loaded, not only the first page.
+   */
+  onAddToChat?: (thread: PullRequestReviewThread) => void;
   onReply: (body: string) => Promise<boolean>;
   onLoadMore: (cursor: string) => Promise<PullRequestThreadCommentsResult | null>;
   canEditComment: (comment: PullRequestThreadComment) => boolean;
@@ -143,6 +159,7 @@ export function ReviewThreadCard({
   onToggleResolved: () => void;
   onReacted: () => void;
 }) {
+  const { locale: staticUiLocale } = useStaticUiLocale();
   const { locale: uiLocale, t } = useI18n();
   const [expanded, setExpanded] = useState(!thread.isResolved);
   const [replying, setReplying] = useState(false);
@@ -150,6 +167,7 @@ export function ReviewThreadCard({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const sendingRef = useRef(false);
+  const replyRef = useRef<HTMLTextAreaElement>(null);
   const [loadedPage, setLoadedPage] = useState<
     (PullRequestThreadCommentsResult & { readonly threadId: string }) | null
   >(null);
@@ -178,8 +196,8 @@ export function ReviewThreadCard({
     }
   };
 
-  const send = async () => {
-    const trimmed = reply.trim();
+  const send = async (text: string) => {
+    const trimmed = text.trim();
     if (trimmed.length === 0 || pending || sendingRef.current) return;
     sendingRef.current = true;
     const result = await settlePromise(() => onReply(trimmed));
@@ -251,11 +269,22 @@ export function ReviewThreadCard({
             {fixPending ? t("pullRequests.actions.preparing") : fixLabel}
           </Button>
         ) : null}
-        {canResolve ? (
+        {onAddToChat && comments.some((comment) => visibleBody(comment.body) !== null) ? (
           <Button
             size="xs"
             variant="ghost"
             className={onFix ? undefined : "ml-auto"}
+            onClick={() => onAddToChat({ ...thread, comments })}
+          >
+            <MessageSquarePlusIcon className="size-3" />
+            {translateStaticUiCopy(staticUiLocale, "Add to chat")}
+          </Button>
+        ) : null}
+        {canResolve ? (
+          <Button
+            size="xs"
+            variant="ghost"
+            className={onFix || onAddToChat ? undefined : "ml-auto"}
             disabled={pending}
             onClick={onToggleResolved}
           >
@@ -292,7 +321,8 @@ export function ReviewThreadCard({
                     value={comment.body}
                     cwd={workspaceRoot}
                     environmentId={environmentId}
-                    label={t("pullRequests.comments.edit")}
+                    completionScope={completionScope}
+                    label={translateStaticUiCopy(staticUiLocale, "Edit comment")}
                     saving={savingEdit}
                     onSave={(body) => void saveEdit(comment.id, body)}
                     onCancel={() => setEditingId(null)}
@@ -331,36 +361,59 @@ export function ReviewThreadCard({
 
           {canReply ? (
             replying ? (
-              <div className="mt-2">
-                <Textarea
-                  autoFocus
-                  size="sm"
-                  value={reply}
-                  placeholder={t("pullRequests.comments.reply")}
-                  aria-label={t("pullRequests.comments.replyToConversation")}
-                  onChange={(event) => setReply(event.target.value)}
-                  onKeyDown={(event) =>
-                    submitKeys({
-                      value: reply,
-                      pending,
-                      onSubmit: () => void send(),
-                      onCancel: () => setReplying(false),
-                    })(event)
-                  }
-                />
-                <div className="mt-2 flex justify-end gap-2">
-                  <Button size="xs" variant="ghost" onClick={() => setReplying(false)}>
-                    {translateWebSource(uiLocale, "Cancel")}
-                  </Button>
-                  <Button
-                    size="xs"
-                    disabled={pending || reply.trim().length === 0}
-                    onClick={() => void send()}
-                  >
-                    {t("pullRequests.comments.reply")}
-                  </Button>
-                </div>
-              </div>
+              <SpeechTextField
+                environmentId={environmentId}
+                projectId={reference.projectId}
+                ownerKey={JSON.stringify(["pr-reply", environmentId, reference, thread.id])}
+                text={reply}
+                textareaRef={replyRef}
+                onTextChange={setReply}
+                disabled={pending}
+              >
+                {(speech) => (
+                  <div className="mt-2">
+                    <PullRequestMarkdownTextarea
+                      ref={replyRef}
+                      readOnly={speech.freezesEditor}
+                      autoFocus
+                      size="sm"
+                      completionScope={completionScope}
+                      value={reply}
+                      placeholder={translateStaticUiCopy(staticUiLocale, "Reply")}
+                      aria-label={translateStaticUiCopy(
+                        staticUiLocale,
+                        "Reply to this conversation",
+                      )}
+                      onValueChange={setReply}
+                      onKeyDown={submitKeys({
+                        value: reply,
+                        pending,
+                        allowEmpty: speech.blocksSubmission,
+                        onSubmit: () => speech.submitAfterDictation((text) => void send(text)),
+                        onCancel: () =>
+                          speech.state.phase === "idle" ? setReplying(false) : speech.cancel(),
+                      })}
+                    />
+                    <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
+                      <TextFieldSpeechControls speech={speech} disabled={pending} />
+                      <Button size="xs" variant="ghost" onClick={() => setReplying(false)}>
+                        {translateStaticUiCopy(staticUiLocale, "Cancel")}
+                      </Button>
+                      <Button
+                        size="xs"
+                        disabled={
+                          speech.preparing ||
+                          pending ||
+                          (!speech.blocksSubmission && reply.trim().length === 0)
+                        }
+                        onClick={() => speech.submitAfterDictation((text) => void send(text))}
+                      >
+                        {translateStaticUiCopy(staticUiLocale, "Reply")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </SpeechTextField>
             ) : (
               <Button size="xs" variant="ghost" className="mt-2" onClick={() => setReplying(true)}>
                 {t("pullRequests.comments.reply")}
