@@ -1,0 +1,207 @@
+diff --git a/apps/desktop/package.json b/apps/desktop/package.json
+index 2466aa0e8..a60d780f5 100644
+--- a/apps/desktop/package.json
++++ b/apps/desktop/package.json
+@@ -40,5 +40,5 @@
+     "tailwindcss": "^4.0.0",
+     "vite-plus": "catalog:"
+   },
+-  "productName": "T3 Code CN Test (Beta)"
++  "productName": "T3 Code CN"
+ }
+diff --git a/apps/desktop/resources/installer.nsh b/apps/desktop/resources/installer.nsh
+index 7f277fdcb..d60d43d74 100644
+--- a/apps/desktop/resources/installer.nsh
++++ b/apps/desktop/resources/installer.nsh
+@@ -7,17 +7,59 @@
+   !define T3StrRep '${StrRep}'
+ !endif
+ 
++!macro CNValidateInstallDirectory
++  Push $0
++  Push $1
++  GetFullPathName $0 "$LOCALAPPDATA\Programs\t3code-cn"
++  GetFullPathName $1 "$INSTDIR"
++  ${If} $1 != $0
++    MessageBox MB_OK|MB_ICONSTOP "T3 Code CN must use $0. Refusing to modify another installation." /SD IDOK
++    SetErrorLevel 2
++    Abort
++  ${EndIf}
++  Pop $1
++  Pop $0
++!macroend
++
++!macro customInit
++  !insertmacro CNValidateInstallDirectory
++  Push $0
++  Push $1
++  Push $2
++  Push $3
++  ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTALL_APP_KEY}" UninstallString
++  ${If} $0 != ""
++    StrCpy $1 '$\"$INSTDIR\'
++    StrLen $2 $1
++    StrCpy $3 $0 $2
++    ${If} $3 != $1
++      MessageBox MB_OK|MB_ICONSTOP "T3 Code CN found an unsafe uninstall record. Refusing to uninstall another installation." /SD IDOK
++      SetErrorLevel 2
++      Abort
++    ${EndIf}
++  ${EndIf}
++  Pop $3
++  Pop $2
++  Pop $1
++  Pop $0
++!macroend
++
++!macro customUnInit
++  !insertmacro CNValidateInstallDirectory
++!macroend
++
+ !macro customAppRunningMessages
+   Push $0
+   Push $1
+   ${If} $IsPowerShellAvailable == 0
+     System::Call 'kernel32::SetEnvironmentVariable(t "T3CODE_INSTALL_DIR", t "$INSTDIR")'
+-    nsExec::ExecToStack `"$PowerShellPath" -NoProfile -NonInteractive -C "Get-CimInstance -ClassName Win32_Process | Where-Object { $$_.ExecutablePath -and [IO.Path]::GetDirectoryName($$_.ExecutablePath) -eq $$env:T3CODE_INSTALL_DIR } | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($$_.ExecutablePath) } | Where-Object { $$_ -in 'T3 Code (Alpha)', 'T3 Code (Beta)', 'T3 Code (Nightly)' } | Select-Object -First 1 | ForEach-Object { [Console]::Write($$_) }"`
++    nsExec::ExecToStack `"$PowerShellPath" -NoProfile -NonInteractive -C "Get-CimInstance -ClassName Win32_Process | Where-Object { $$_.ExecutablePath -and [IO.Path]::GetDirectoryName($$_.ExecutablePath) -eq $$env:T3CODE_INSTALL_DIR } | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($$_.ExecutablePath) } | Where-Object { $$_ -in 'T3 Code CN', 'T3 Code (Alpha)', 'T3 Code (Beta)', 'T3 Code (Nightly)' } | Select-Object -First 1 | ForEach-Object { [Console]::Write($$_) }"`
+     Pop $0
+     Pop $1
+     System::Call 'kernel32::SetEnvironmentVariable(t "T3CODE_INSTALL_DIR", p 0)'
+     ${If} $0 == 0
+-      ${If} $1 == "T3 Code (Alpha)"
++      ${If} $1 == "T3 Code CN"
++      ${OrIf} $1 == "T3 Code (Alpha)"
+       ${OrIf} $1 == "T3 Code (Beta)"
+       ${OrIf} $1 == "T3 Code (Nightly)"
+         ${T3StrRep} $appRunningMessage $appRunningMessage "${PRODUCT_NAME}" $1
+diff --git a/apps/desktop/src/app/DesktopEnvironment.ts b/apps/desktop/src/app/DesktopEnvironment.ts
+index 4dec89c8d..5acdd1732 100644
+--- a/apps/desktop/src/app/DesktopEnvironment.ts
++++ b/apps/desktop/src/app/DesktopEnvironment.ts
+@@ -85,7 +85,7 @@ export class DesktopEnvironment extends Context.Service<
+   }
+ >()("@t3tools/desktop/app/DesktopEnvironment") {}
+ 
+-const APP_BASE_NAME = "T3 Code CN Test";
++const APP_BASE_NAME = "T3 Code CN";
+ 
+ function resolveDesktopAppStageLabel(input: {
+   readonly isDevelopment: boolean;
+diff --git a/apps/desktop/src/boot.ts b/apps/desktop/src/boot.ts
+index a0a81b4db..c7b7c03bd 100644
+--- a/apps/desktop/src/boot.ts
++++ b/apps/desktop/src/boot.ts
+@@ -3,5 +3,8 @@ process.env.T3CODE_HOME =
+   process.env.T3CODE_ZH_TEST_HOME ||
+   require("node:path").join(require("node:os").homedir(), ".t3-zh-test");
+ process.env.T3CODE_DISABLE_AUTO_UPDATE = "true";
++// Match the appId the installer writes into shortcuts so the taskbar and notification
++// identity stay separate from the official installation.
++process.env.T3CODE_DESKTOP_APP_USER_MODEL_ID ??= "cn.t3code.desktop";
+ require("./compileCache.cjs");
+ require("./main.cjs");
+diff --git a/apps/desktop/src/window/DesktopApplicationMenu.test.ts b/apps/desktop/src/window/DesktopApplicationMenu.test.ts
+index 71a4bf6a3..ffb954a08 100644
+--- a/apps/desktop/src/window/DesktopApplicationMenu.test.ts
++++ b/apps/desktop/src/window/DesktopApplicationMenu.test.ts
+@@ -48,7 +48,7 @@ const layerElectronApp = (systemLocale = "en-US") =>
+     metadata: Effect.die("unexpected metadata read"),
+     name: Effect.succeed("T3 Code"),
+     systemLocale: Effect.succeed(systemLocale),
+-    preferredSystemLanguages: Effect.succeed(["en-US"]),
++    preferredSystemLanguages: Effect.succeed([systemLocale]),
+     whenReady: Effect.void,
+     requestSingleInstanceLock: Effect.succeed(true),
+     quit: Effect.void,
+@@ -179,21 +179,21 @@ describe("DesktopApplicationMenu", () => {
+       const template = yield* Deferred.await(applicationMenuTemplate);
+       const applicationMenu = template[0];
+       assert.isDefined(applicationMenu);
+-      assert.equal(applicationMenu.label, "T3 Code CN Test (Nightly)");
++      assert.equal(applicationMenu.label, "T3 Code CN (Nightly)");
+       if (!Array.isArray(applicationMenu.submenu)) {
+         throw new Error("Expected application menu submenu to be an array.");
+       }
+       assert.equal(
+         applicationMenu.submenu.find((item) => item.role === "about")?.label,
+-        "About T3 Code CN Test (Nightly)",
++        "About T3 Code CN (Nightly)",
+       );
+       assert.equal(
+         applicationMenu.submenu.find((item) => item.role === "hide")?.label,
+-        "Hide T3 Code CN Test (Nightly)",
++        "Hide T3 Code CN (Nightly)",
+       );
+       assert.equal(
+         applicationMenu.submenu.find((item) => item.role === "quit")?.label,
+-        "Quit T3 Code CN Test (Nightly)",
++        "Quit T3 Code CN (Nightly)",
+       );
+     }),
+   );
+@@ -362,7 +362,7 @@ describe("DesktopApplicationMenu", () => {
+       assert.isDefined(fileMenu.submenu.find((item) => item.label === "设置..."));
+       assert.equal(
+         fileMenu.submenu.find((item) => item.role === "quit")?.label,
+-        "退出 T3 Code CN Test (Beta)",
++        "退出 T3 Code CN (Beta)",
+       );
+ 
+       const editMenu = template.find((item) => item.label === "编辑");
+@@ -491,12 +491,12 @@ describe("DesktopApplicationMenu", () => {
+           .filter((item) => item.role !== undefined)
+           .map((item) => [item.role, item.label]),
+         [
+-          ["about", "关于 T3 Code CN Test (Beta)"],
++          ["about", "关于 T3 Code CN (Beta)"],
+           ["services", "服务"],
+-          ["hide", "隐藏 T3 Code CN Test (Beta)"],
++          ["hide", "隐藏 T3 Code CN (Beta)"],
+           ["hideOthers", "隐藏其他应用"],
+           ["unhide", "全部显示"],
+-          ["quit", "退出 T3 Code CN Test (Beta)"],
++          ["quit", "退出 T3 Code CN (Beta)"],
+         ],
+       );
+ 
+diff --git a/scripts/build-desktop-artifact.ts b/scripts/build-desktop-artifact.ts
+index c253318e4..5188f8f24 100644
+--- a/scripts/build-desktop-artifact.ts
++++ b/scripts/build-desktop-artifact.ts
+@@ -62,7 +62,7 @@ import { Command, Flag } from "effect/cli";
+ import { ChildProcess, ChildProcessSpawner } from "effect/process";
+ 
+ const LINUX_ICON_SIZES = [16, 22, 24, 32, 48, 64, 128, 256, 512] as const;
+-const DESKTOP_APP_ID = "local.t3code.zh-test";
++const DESKTOP_APP_ID = "cn.t3code.desktop";
+ const APPLE_TEAM_ID_PATTERN = /^[A-Z0-9]{10}$/u;
+ 
+ const BuildPlatform = Schema.Literals(["mac", "linux", "win"]);
+@@ -1061,7 +1061,7 @@ export function resolveWindowsServerAsarIgnoreGlobs(arch: typeof BuildArch.Type)
+   ];
+ }
+ 
+-export const WINDOWS_PACKAGED_PAYLOAD_FILE_LIMIT = 80;
++export const WINDOWS_PACKAGED_PAYLOAD_FILE_LIMIT = 96;
+ export const WINDOWS_SERVER_RESOURCE_SOURCE_DIR = "apps/desktop/prod-resources/windows-server";
+ export const WINDOWS_SERVER_EXTRA_RESOURCES = [
+   {
+@@ -2782,7 +2782,7 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
+   const buildConfig: Record<string, unknown> = {
+     afterPack: (yield* Path.Path).join(yield* RepoRoot, "scripts/prepare-server-compile-cache.cjs"),
+     appId: DESKTOP_APP_ID,
+-    productName: resolveDesktopProductName(version),
++    productName: "T3 Code CN",
+     artifactName: "T3-Code-${version}-${arch}.${ext}",
+     electronLanguages: [...DESKTOP_ELECTRON_LANGUAGES],
+     files: [
+@@ -3860,7 +3860,7 @@ const buildDesktopArtifactUnlocked = Effect.fn("buildDesktopArtifactUnlocked")(f
+       ? path.join(stageAppDir, WINDOWS_SERVER_RESOURCE_SOURCE_DIR, WINDOWS_SERVER_ASAR_RESOURCE)
+       : undefined;
+   const stagePackageJson: StagePackageJson = {
+-    name: "t3code",
++    name: options.platform === "win" ? "t3code-cn" : "t3code",
+     version: appVersion,
+     buildVersion: appVersion,
+     t3codeCommitHash: commitHash,

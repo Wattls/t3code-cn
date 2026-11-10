@@ -4,17 +4,22 @@ run-name: Windows CN x64 · ${{ inputs.version }}
 on:
   workflow_dispatch:
     inputs:
+      upstream_ref:
+        description: Chinese upstream tag or cn (Dealyoung/t3code-cn)
+        required: true
+        default: v0.1.8-zh-test.1
+        type: string
       version:
         description: Chinese test version (must include -zh-test.)
         required: true
-        default: 0.1.8-zh-test.1
+        default: 0.1.8-zh-test.2
         type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: windows-cn-${{ github.ref }}
+  group: windows-cn-upstream
   cancel-in-progress: false
 
 env:
@@ -24,10 +29,44 @@ env:
   CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
 jobs:
+  upstream:
+    name: Lock Chinese upstream and sync cn
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.baseline.outputs.sha }}
+    steps:
+      - name: Checkout workflow and Windows overlay
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/.repos/
+
+      - name: Test upstream preparation guards
+        run: node --test scripts/windows-cn-upstream.test.mjs
+
+      - name: Lock Chinese release commit
+        id: baseline
+        env:
+          UPSTREAM_REF: ${{ inputs.upstream_ref }}
+        run: node scripts/windows-cn-upstream.mjs resolve "$UPSTREAM_REF" "$BUILD_VERSION"
+
+      - name: Fast-forward cn without Windows modifications
+        env:
+          UPSTREAM_SHA: ${{ steps.baseline.outputs.sha }}
+        run: node scripts/windows-cn-upstream.mjs sync "$UPSTREAM_SHA"
+
   wsl-runtime:
     name: Build optional WSL runtime
+    needs: upstream
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    env:
+      UPSTREAM_SHA: ${{ needs.upstream.outputs.sha }}
     defaults:
       run:
         shell: bash
@@ -43,13 +82,11 @@ jobs:
           git sparse-checkout set --no-cone '/*' '!/.repos/'
           git -c checkout.workers=0 checkout --detach FETCH_HEAD
 
-      - name: Validate test version
+      - name: Prepare locked Chinese baseline and Windows overlay
         run: |
           set -euo pipefail
-          if [[ ! "${BUILD_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-zh-test\.[0-9]+$ ]]; then
-            printf 'Invalid Chinese test version: %s\n' "${BUILD_VERSION}" >&2
-            exit 1
-          fi
+          git fetch --no-tags https://github.com/Dealyoung/t3code-cn.git "${UPSTREAM_SHA}"
+          node scripts/windows-cn-upstream.mjs prepare "${UPSTREAM_SHA}"
 
       - name: Setup dependencies
         uses: ./.github/actions/setup-ci-deps
@@ -112,9 +149,11 @@ jobs:
 
   windows-installer:
     name: Build Windows x64 installer
-    needs: wsl-runtime
+    needs: [upstream, wsl-runtime]
     runs-on: windows-2025
     timeout-minutes: 120
+    env:
+      UPSTREAM_SHA: ${{ needs.upstream.outputs.sha }}
     defaults:
       run:
         shell: bash
@@ -129,6 +168,12 @@ jobs:
           git fetch --no-tags --depth=1 origin "${GITHUB_SHA}"
           git sparse-checkout set --no-cone '/*' '!/.repos/'
           git -c checkout.workers=0 checkout --detach FETCH_HEAD
+
+      - name: Prepare locked Chinese baseline and Windows overlay
+        run: |
+          set -euo pipefail
+          git fetch --no-tags https://github.com/Dealyoung/t3code-cn.git "${UPSTREAM_SHA}"
+          node scripts/windows-cn-upstream.mjs prepare "${UPSTREAM_SHA}"
 
       - name: Setup dependencies
         uses: ./.github/actions/setup-ci-deps
@@ -192,8 +237,8 @@ jobs:
             sha256sum --check SHA256SUMS.txt
           )
           printf '%s\n' "${BUILD_VERSION}" > release-cn/VERSION
-          printf '源码：%s/commit/%s\n构建：%s/actions/runs/%s\n未签名测试包；无需启用 WSL 即可使用 Windows 原生后端。\n' \
-            "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" "${GITHUB_SHA}" \
+          printf '中文基线：https://github.com/Dealyoung/t3code-cn/commit/%s\nWindows 适配：%s/commit/%s\n构建：%s/actions/runs/%s\n未签名测试包；无需启用 WSL 即可使用 Windows 原生后端。\n' \
+            "${UPSTREAM_SHA}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" "${GITHUB_SHA}" \
             "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" "${GITHUB_RUN_ID}" > release-cn/BUILD-INFO.txt
 
       - name: Verify installer isolation
