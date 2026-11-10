@@ -179,21 +179,21 @@ describe("DesktopApplicationMenu", () => {
       const template = yield* Deferred.await(applicationMenuTemplate);
       const applicationMenu = template[0];
       assert.isDefined(applicationMenu);
-      assert.equal(applicationMenu.label, "T3 Code CN Test (Nightly)");
+      assert.equal(applicationMenu.label, "T3 Code CN (Nightly)");
       if (!Array.isArray(applicationMenu.submenu)) {
         throw new Error("Expected application menu submenu to be an array.");
       }
       assert.equal(
         applicationMenu.submenu.find((item) => item.role === "about")?.label,
-        "About T3 Code CN Test (Nightly)",
+        "About T3 Code CN (Nightly)",
       );
       assert.equal(
         applicationMenu.submenu.find((item) => item.role === "hide")?.label,
-        "Hide T3 Code CN Test (Nightly)",
+        "Hide T3 Code CN (Nightly)",
       );
       assert.equal(
         applicationMenu.submenu.find((item) => item.role === "quit")?.label,
-        "Quit T3 Code CN Test (Nightly)",
+        "Quit T3 Code CN (Nightly)",
       );
     }),
   );
@@ -362,7 +362,7 @@ describe("DesktopApplicationMenu", () => {
       assert.isDefined(fileMenu.submenu.find((item) => item.label === "设置..."));
       assert.equal(
         fileMenu.submenu.find((item) => item.role === "quit")?.label,
-        "退出 T3 Code CN Test (Beta)",
+        "退出 T3 Code CN (Beta)",
       );
 
       const editMenu = template.find((item) => item.label === "编辑");
@@ -491,12 +491,12 @@ describe("DesktopApplicationMenu", () => {
           .filter((item) => item.role !== undefined)
           .map((item) => [item.role, item.label]),
         [
-          ["about", "关于 T3 Code CN Test (Beta)"],
+          ["about", "关于 T3 Code CN (Beta)"],
           ["services", "服务"],
-          ["hide", "隐藏 T3 Code CN Test (Beta)"],
+          ["hide", "隐藏 T3 Code CN (Beta)"],
           ["hideOthers", "隐藏其他应用"],
           ["unhide", "全部显示"],
-          ["quit", "退出 T3 Code CN Test (Beta)"],
+          ["quit", "退出 T3 Code CN (Beta)"],
         ],
       );
 
