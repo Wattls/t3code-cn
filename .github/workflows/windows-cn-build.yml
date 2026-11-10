@@ -145,14 +145,21 @@ jobs:
       - name: Typecheck
         run: vp run --cache --concurrency-limit 4 --filter "@t3tools/desktop..." --filter "t3..." --filter "@t3tools/web..." --filter "@t3tools/scripts..." typecheck
 
-      - name: Verify Chinese localization
+      - name: Verify desktop Chinese localization
+        working-directory: apps/desktop
         run: >-
           vp test run
-          apps/desktop/src/preview/AnnotationLocalization.test.ts
-          apps/desktop/src/window/DesktopUiLocale.test.ts
-          apps/desktop/src/window/DesktopApplicationMenu.test.ts
-          packages/shared/src/appLocale.test.ts
-          apps/web/src/i18n/messages.test.ts
+          src/preview/AnnotationLocalization.test.ts
+          src/window/DesktopUiLocale.test.ts
+          src/window/DesktopApplicationMenu.test.ts
+
+      - name: Verify shared locale resolution
+        working-directory: packages/shared
+        run: vp test run src/appLocale.test.ts
+
+      - name: Verify web Chinese localization
+        working-directory: apps/web
+        run: vp test run --project unit src/i18n/messages.test.ts
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
